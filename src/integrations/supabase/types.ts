@@ -14,138 +14,147 @@ export type Database = {
   }
   public: {
     Tables: {
-      cadastro: {
+      client: {
         Row: {
-          nome: string
-          senha: number | null
-          "user-id": string
+          criado_em: string
+          email: string | null
+          id: string
+          nome: string | null
         }
         Insert: {
-          nome: string
-          senha?: number | null
-          "user-id"?: string
+          criado_em?: string
+          email?: string | null
+          id?: string
+          nome?: string | null
         }
         Update: {
-          nome?: string
-          senha?: number | null
-          "user-id"?: string
+          criado_em?: string
+          email?: string | null
+          id?: string
+          nome?: string | null
         }
         Relationships: []
       }
-      metas: {
+      goal: {
         Row: {
-          ano: number | null
-          "m-anual": number | null
-          "m-mensal": number
-          "meta-id": string
-          "user-id": string | null
+          created_at: string
+          goal_ano: number | null
+          goal_id: string
+          goal_tipo: string | null
+          goal_valor: number | null
+          id: string | null
         }
         Insert: {
-          ano?: number | null
-          "m-anual"?: number | null
-          "m-mensal": number
-          "meta-id"?: string
-          "user-id"?: string | null
+          created_at?: string
+          goal_ano?: number | null
+          goal_id?: string
+          goal_tipo?: string | null
+          goal_valor?: number | null
+          id?: string | null
         }
         Update: {
-          ano?: number | null
-          "m-anual"?: number | null
-          "m-mensal"?: number
-          "meta-id"?: string
-          "user-id"?: string | null
+          created_at?: string
+          goal_ano?: number | null
+          goal_id?: string
+          goal_tipo?: string | null
+          goal_valor?: number | null
+          id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "metas_user-id_fkey"
-            columns: ["user-id"]
+            foreignKeyName: "goal_id_fkey"
+            columns: ["id"]
             isOneToOne: false
-            referencedRelation: "cadastro"
-            referencedColumns: ["user-id"]
+            referencedRelation: "client"
+            referencedColumns: ["id"]
           },
         ]
       }
-      opcoes: {
+      ops_completed: {
         Row: {
-          acao: string | null
-          cotacao: number | null
-          data: string | null
-          opcao: string
-          operacao: string
-          premio: number | null
-          quantidade: number | null
-          status: string | null
-          strike: number | null
-          tipo: string | null
-          "user-id": string | null
+          completed_criado_em: string
+          completed_data: string | null
+          completed_id: string
+          completed_premio: number | null
+          completed_quanti: number | null
+          ops_id: string | null
         }
         Insert: {
-          acao?: string | null
-          cotacao?: number | null
-          data?: string | null
-          opcao: string
-          operacao: string
-          premio?: number | null
-          quantidade?: number | null
-          status?: string | null
-          strike?: number | null
-          tipo?: string | null
-          "user-id"?: string | null
+          completed_criado_em?: string
+          completed_data?: string | null
+          completed_id?: string
+          completed_premio?: number | null
+          completed_quanti?: number | null
+          ops_id?: string | null
         }
         Update: {
-          acao?: string | null
-          cotacao?: number | null
-          data?: string | null
-          opcao?: string
-          operacao?: string
-          premio?: number | null
-          quantidade?: number | null
-          status?: string | null
-          strike?: number | null
-          tipo?: string | null
-          "user-id"?: string | null
+          completed_criado_em?: string
+          completed_data?: string | null
+          completed_id?: string
+          completed_premio?: number | null
+          completed_quanti?: number | null
+          ops_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "opcoes_user-id_fkey"
-            columns: ["user-id"]
+            foreignKeyName: "ops_completed_ops_id_fkey"
+            columns: ["ops_id"]
             isOneToOne: false
-            referencedRelation: "cadastro"
-            referencedColumns: ["user-id"]
+            referencedRelation: "ops_registry"
+            referencedColumns: ["ops_id"]
           },
         ]
       }
-      venda: {
+      ops_registry: {
         Row: {
-          created_at: string | null
-          encerramento: string
-          opcao_id: string | null
-          premio: number
-          quantidade: number
-          "update-id": string
+          acao_cotacao: number | null
+          id: string
+          ops_acao: string | null
+          ops_criado_em: string | null
+          ops_id: string
+          ops_operacao: string | null
+          ops_premio: number | null
+          ops_quanti: number | null
+          ops_strike: number | null
+          ops_ticker: string | null
+          ops_tipo: string | null
+          ops_vencimento: string | null
         }
         Insert: {
-          created_at?: string | null
-          encerramento: string
-          opcao_id?: string | null
-          premio: number
-          quantidade: number
-          "update-id"?: string
+          acao_cotacao?: number | null
+          id?: string
+          ops_acao?: string | null
+          ops_criado_em?: string | null
+          ops_id?: string
+          ops_operacao?: string | null
+          ops_premio?: number | null
+          ops_quanti?: number | null
+          ops_strike?: number | null
+          ops_ticker?: string | null
+          ops_tipo?: string | null
+          ops_vencimento?: string | null
         }
         Update: {
-          created_at?: string | null
-          encerramento?: string
-          opcao_id?: string | null
-          premio?: number
-          quantidade?: number
-          "update-id"?: string
+          acao_cotacao?: number | null
+          id?: string
+          ops_acao?: string | null
+          ops_criado_em?: string | null
+          ops_id?: string
+          ops_operacao?: string | null
+          ops_premio?: number | null
+          ops_quanti?: number | null
+          ops_strike?: number | null
+          ops_ticker?: string | null
+          ops_tipo?: string | null
+          ops_vencimento?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "venda_opcao_id_fkey"
-            columns: ["opcao_id"]
+            foreignKeyName: "registry_id_fkey"
+            columns: ["id"]
             isOneToOne: false
-            referencedRelation: "opcoes"
-            referencedColumns: ["opcao"]
+            referencedRelation: "client"
+            referencedColumns: ["id"]
           },
         ]
       }
