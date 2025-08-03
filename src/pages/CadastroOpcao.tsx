@@ -49,7 +49,7 @@ export default function CadastroOpcao() {
     setLoading(true);
 
     try {
-      const opcaoData: Omit<Opcao, 'id'> = {
+      const opcaoData = {
         opcao: formData.opcao,
         operacao: formData.operacao,
         tipo: formData.tipo || null,

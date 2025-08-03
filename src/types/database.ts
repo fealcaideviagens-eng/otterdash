@@ -1,4 +1,19 @@
 export interface Opcao {
+  // Novos campos da tabela ops_registry
+  ops_id: string;
+  id: string;
+  ops_ticker: string;
+  ops_operacao: string;
+  ops_tipo: string | null;
+  ops_acao: string | null;
+  ops_strike: number | null;
+  acao_cotacao: number | null;
+  ops_quanti: number | null;
+  ops_premio: number | null;
+  ops_vencimento: string | null;
+  ops_criado_em: string | null;
+  
+  // Aliases para compatibilidade (campos antigos)
   opcao: string;
   operacao: string;
   tipo: string | null;
@@ -13,6 +28,15 @@ export interface Opcao {
 }
 
 export interface Venda {
+  // Novos campos da tabela ops_completed
+  completed_id: string;
+  completed_premio: number;
+  completed_data: string;
+  completed_quanti: number;
+  completed_criado_em: string | null;
+  ops_id: string | null;
+  
+  // Aliases para compatibilidade (campos antigos)
   "update-id": string;
   premio: number;
   encerramento: string;
@@ -22,17 +46,19 @@ export interface Venda {
 }
 
 export interface Cadastro {
-  "user-id": string;
+  id: string;
   nome: string;
-  senha: number | null;
+  email: string;
+  criado_em: string;
 }
 
 export interface Meta {
-  "meta-id": string;
-  "m-mensal": number;
-  "m-anual": number | null;
-  ano: number | null;
-  "user-id": string | null;
+  goal_id: string;
+  goal_tipo: string;
+  goal_valor: number;
+  goal_ano: number | null;
+  id?: string;
+  created_at?: string;
 }
 
 export interface DashboardMetrics {

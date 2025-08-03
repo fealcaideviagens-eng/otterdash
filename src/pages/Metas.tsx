@@ -44,8 +44,8 @@ const Metas = () => {
     const mesAtual = agora.getMonth();
     const anoAtual = agora.getFullYear();
 
-    const metaValor = meta["m-mensal"] > 0 ? meta["m-mensal"] : meta["m-anual"] || 0;
-    const metaTipo = meta["m-mensal"] > 0 ? "mensal" : "anual";
+    const metaValor = meta.goal_valor || 0;
+    const metaTipo = meta.goal_tipo;
 
     if (metaTipo === "mensal") {
       // Para meta mensal: soma todos os resultados do ano atual e divide pelo número de meses passados
@@ -111,7 +111,7 @@ const Metas = () => {
         const vendaAno = dataEncerramento.getFullYear();
         
         // Soma todos os resultados do ano da meta
-        if (vendaAno === meta.ano) {
+        if (vendaAno === meta.goal_ano) {
           totalResultadoAno += resultado;
         }
       });
@@ -150,15 +150,15 @@ const Metas = () => {
   };
 
   const getMetaTitulo = (meta: Meta) => {
-    const metaTipo = meta["m-mensal"] > 0 ? "mensal" : "anual";
+    const metaTipo = meta.goal_tipo;
     if (metaTipo === "mensal") {
       return "Meta mensal";
     }
-    return `Meta ${meta.ano}`;
+    return `Meta ${meta.goal_ano}`;
   };
 
   const getMetaIcon = (meta: Meta) => {
-    const metaTipo = meta["m-mensal"] > 0 ? "mensal" : "anual";
+    const metaTipo = meta.goal_tipo;
     return metaTipo === "mensal" ? Calendar : CalendarDays;
   };
 
@@ -259,13 +259,13 @@ const Metas = () => {
         <div className="grid gap-6 md:grid-cols-2">
           {metas.map((meta) => {
             const { atual, progresso, restante } = calcularProgresso(meta);
-            const metaValor = meta["m-mensal"] > 0 ? meta["m-mensal"] : meta["m-anual"] || 0;
-            const metaTipo = meta["m-mensal"] > 0 ? "mensal" : "anual";
+            const metaValor = meta.goal_valor || 0;
+            const metaTipo = meta.goal_tipo;
             
             const MetaIcon = getMetaIcon(meta);
             
             return (
-              <Card key={meta["meta-id"]}>
+              <Card key={meta.goal_id}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MetaIcon className="h-5 w-5" />

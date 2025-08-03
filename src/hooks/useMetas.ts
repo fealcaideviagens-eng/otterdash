@@ -15,10 +15,10 @@ export const useMetas = (props?: UseMetasProps) => {
     
     try {
       const { data, error } = await supabase
-        .from('metas')
+        .from('goal')
         .select('*')
-        .eq('user-id', props.userId)
-        .order('ano', { ascending: false });
+        .eq('goal_id', props.userId)
+        .order('goal_ano', { ascending: false });
       
       if (error) throw error;
       setMetas(data || []);
@@ -35,14 +35,14 @@ export const useMetas = (props?: UseMetasProps) => {
     
     try {
       const metaData = {
-        "m-mensal": meta.tipo === "mensal" ? meta.valor : 0,
-        "m-anual": meta.tipo === "anual" ? meta.valor : null,
-        ano: meta.ano,
-        "user-id": props.userId,
+        goal_tipo: meta.tipo,
+        goal_valor: meta.valor,
+        goal_ano: meta.ano,
+        goal_id: props.userId,
       };
 
       const { data, error } = await supabase
-        .from('metas')
+        .from('goal')
         .insert([metaData])
         .select();
       

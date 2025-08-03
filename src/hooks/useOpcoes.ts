@@ -1,8 +1,58 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Opcao, Venda } from "@/types/database";
+
+// Adapter functions para mapear entre formatos antigo e novo
+const mapOpsRegistryToOpcao = (data: any): Opcao => ({
+  // Novos campos
+  ops_id: data.ops_id,
+  id: data.id,
+  ops_ticker: data.ops_ticker,
+  ops_operacao: data.ops_operacao,
+  ops_tipo: data.ops_tipo,
+  ops_acao: data.ops_acao,
+  ops_strike: data.ops_strike,
+  acao_cotacao: data.acao_cotacao,
+  ops_quanti: data.ops_quanti,
+  ops_premio: data.ops_premio,
+  ops_vencimento: data.ops_vencimento,
+  ops_criado_em: data.ops_criado_em,
+  
+  // Mapeamento para campos antigos (compatibilidade)
+  opcao: data.ops_ticker || '',
+  operacao: data.ops_operacao || '',
+  tipo: data.ops_tipo,
+  acao: data.ops_acao,
+  strike: data.ops_strike,
+  cotacao: data.acao_cotacao,
+  quantidade: data.ops_quanti,
+  premio: data.ops_premio,
+  data: data.ops_vencimento,
+  status: 'aberta', // Status padrão
+  user_id: data.id
+});
+
+const mapOpsCompletedToVenda = (data: any): Venda => ({
+  // Novos campos
+  completed_id: data.completed_id,
+  completed_premio: data.completed_premio,
+  completed_data: data.completed_data,
+  completed_quanti: data.completed_quanti,
+  completed_criado_em: data.completed_criado_em,
+  ops_id: data.ops_id,
+  
+  // Mapeamento para campos antigos (compatibilidade)
+  "update-id": data.completed_id,
+  premio: data.completed_premio,
+  encerramento: data.completed_data,
+  quantidade: data.completed_quanti,
+  created_at: data.completed_criado_em,
+  opcao_id: data.ops_id
+});
 
 export const useOpcoes = (userId?: string) => {
-  const [opcoes, setOpcoes] = useState<any[]>([]);
-  const [vendas, setVendas] = useState<any[]>([]);
+  const [opcoes, setOpcoes] = useState<Opcao[]>([]);
+  const [vendas, setVendas] = useState<Venda[]>([]);
   const [loading, setLoading] = useState(true);
 
   const carregarOpcoes = async () => {
@@ -12,9 +62,16 @@ export const useOpcoes = (userId?: string) => {
     }
     
     try {
-      // Mock data para teste - substitua pela implementação real do Supabase
-      console.log('Carregando opções para userId:', userId);
-      setOpcoes([]);
+      const { data, error } = await supabase
+        .from('ops_registry')
+        .select('*')
+        .eq('id', userId)
+        .order('ops_criado_em', { ascending: false });
+        
+      if (error) throw error;
+      
+      const opcoesFormatadas = (data || []).map(mapOpsRegistryToOpcao);
+      setOpcoes(opcoesFormatadas);
     } catch (error) {
       console.error('Erro ao buscar opções:', error);
       setOpcoes([]);
@@ -27,9 +84,15 @@ export const useOpcoes = (userId?: string) => {
     if (!userId) return;
     
     try {
-      // Mock data para teste - substitua pela implementação real do Supabase
-      console.log('Carregando vendas para userId:', userId);
-      setVendas([]);
+      const { data, error } = await supabase
+        .from('ops_completed')
+        .select('*')
+        .order('completed_criado_em', { ascending: false });
+        
+      if (error) throw error;
+      
+      const vendasFormatadas = (data || []).map(mapOpsCompletedToVenda);
+      setVendas(vendasFormatadas);
     } catch (error) {
       console.error('Erro ao buscar vendas:', error);
       setVendas([]);
@@ -40,10 +103,30 @@ export const useOpcoes = (userId?: string) => {
     if (!userId) throw new Error('Usuário não autenticado');
     
     try {
-      // Mock implementation - substitua pela implementação real do Supabase
-      console.log('Adicionando opção:', dadosOpcao, 'para userId:', userId);
+      // Mapear dados antigos para o novo formato
+      const novoFormatoOpcao = {
+        id: userId,
+        ops_ticker: dadosOpcao.opcao,
+        ops_operacao: dadosOpcao.operacao,
+        ops_tipo: dadosOpcao.tipo,
+        ops_acao: dadosOpcao.acao,
+        ops_strike: dadosOpcao.strike,
+        acao_cotacao: dadosOpcao.cotacao,
+        ops_quanti: dadosOpcao.quantidade,
+        ops_premio: dadosOpcao.premio,
+        ops_vencimento: dadosOpcao.data,
+        ops_criado_em: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('ops_registry')
+        .insert([novoFormatoOpcao])
+        .select();
+
+      if (error) throw error;
+      
       await carregarOpcoes();
-      return [dadosOpcao];
+      return data;
     } catch (error) {
       console.error('Erro ao adicionar opção:', error);
       throw error;
@@ -54,7 +137,26 @@ export const useOpcoes = (userId?: string) => {
     if (!userId) throw new Error('Usuário não autenticado');
     
     try {
-      console.log('Editando opção:', opcaoId, dadosAtualizados);
+      // Mapear dados antigos para o novo formato
+      const dadosFormatados = {
+        ops_ticker: dadosAtualizados.opcao,
+        ops_operacao: dadosAtualizados.operacao,
+        ops_tipo: dadosAtualizados.tipo,
+        ops_acao: dadosAtualizados.acao,
+        ops_strike: dadosAtualizados.strike,
+        acao_cotacao: dadosAtualizados.cotacao,
+        ops_quanti: dadosAtualizados.quantidade,
+        ops_premio: dadosAtualizados.premio,
+        ops_vencimento: dadosAtualizados.data
+      };
+
+      const { error } = await supabase
+        .from('ops_registry')
+        .update(dadosFormatados)
+        .eq('ops_id', opcaoId);
+
+      if (error) throw error;
+      
       await carregarOpcoes();
     } catch (error) {
       console.error('Erro ao editar:', error);
@@ -65,17 +167,46 @@ export const useOpcoes = (userId?: string) => {
   const deletarOpcao = async (opcaoId: string) => {
     if (!userId) throw new Error('Usuário não autenticado');
     
-    console.log('Deletando opção:', opcaoId);
-    await carregarOpcoes();
+    try {
+      const { error } = await supabase
+        .from('ops_registry')
+        .delete()
+        .eq('ops_id', opcaoId);
+
+      if (error) throw error;
+      
+      await carregarOpcoes();
+    } catch (error) {
+      console.error('Erro ao deletar opção:', error);
+      throw error;
+    }
   };
 
   const encerrarOpcao = async (opcaoId: string, vendaData: any) => {
     if (!userId) throw new Error('Usuário não autenticado');
     
-    console.log('Encerrando opção:', opcaoId, vendaData);
-    
-    await carregarOpcoes();
-    await carregarVendas();
+    try {
+      // Inserir dados no ops_completed
+      const dadosEncerramento = {
+        ops_id: opcaoId,
+        completed_premio: vendaData.premio,
+        completed_data: vendaData.encerramento,
+        completed_quanti: vendaData.quantidade,
+        completed_criado_em: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('ops_completed')
+        .insert([dadosEncerramento]);
+
+      if (error) throw error;
+      
+      await carregarOpcoes();
+      await carregarVendas();
+    } catch (error) {
+      console.error('Erro ao encerrar opção:', error);
+      throw error;
+    }
   };
 
   const getDashboardMetrics = () => {
