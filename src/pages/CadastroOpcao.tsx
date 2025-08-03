@@ -1,0 +1,548 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { useOpcoes } from "@/hooks/useOpcoes";
+import { useAuth } from "@/context/AuthContext";
+import { Opcao } from "@/types/database";
+import { formatDateForInput, formatCurrency as formatCurrencyDisplay } from "@/utils/formatters";
+import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
+import { CalendarIcon, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+
+export default function CadastroOpcao() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addOpcao } = useOpcoes(user?.['user-id']);
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    opcao: "",
+    operacao: "",
+    tipo: "",
+    acao: "",
+    strike: "",
+    cotacao: "",
+    quantidade: "",
+    premio: "",
+    data: formatDateForInput(new Date()),
+    status: "aberta",
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const opcaoData: Omit<Opcao, 'id'> = {
+        opcao: formData.opcao,
+        operacao: formData.operacao,
+        tipo: formData.tipo || null,
+        acao: formData.acao || null,
+        strike: formData.strike ? parseCurrencyToNumber(formData.strike) : null,
+        cotacao: formData.cotacao ? parseCurrencyToNumber(formData.cotacao) : null,
+        quantidade: formData.quantidade ? parseNumberToInt(formData.quantidade) : null,
+        premio: formData.premio ? parseCurrencyToNumber(formData.premio) : null,
+        data: formData.data || null,
+        status: "aberta", // Sempre definir como "aberta"
+        user_id: user?.['user-id'], // Adicionar o ID do usuário
+      };
+
+      await addOpcao(opcaoData);
+      
+      toast({
+        title: "✅ Sucesso!",
+        description: "Opção cadastrada com sucesso.",
+        className: "border-green-200 bg-green-50 text-green-900",
+      });
+
+      // Limpar formulário após sucesso
+      setFormData({
+        opcao: "",
+        operacao: "",
+        tipo: "",
+        acao: "",
+        strike: "",
+        cotacao: "",
+        quantidade: "",
+        premio: "",
+        data: formatDateForInput(new Date()),
+        status: "aberta",
+      });
+    } catch (error) {
+      console.error("Erro ao cadastrar opção:", error);
+      toast({
+        variant: "destructive",
+        title: "❌ Erro!",
+        description: "Erro ao cadastrar opção. Tente novamente.",
+        className: "border-red-200 bg-red-50 text-red-900",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCurrencyChange = (field: string, value: string) => {
+    const formatted = formatCurrency(value);
+    setFormData(prev => ({ ...prev, [field]: formatted }));
+  };
+
+  const handleNumberChange = (field: string, value: string) => {
+    const formatted = formatNumber(value);
+    setFormData(prev => ({ ...prev, [field]: formatted }));
+  };
+
+  const handleOpcaoChange = (value: string) => {
+    // Converte para maiúsculo
+    const upperValue = value.toUpperCase();
+    
+    // Permite apenas letras e números
+    const cleanValue = upperValue.replace(/[^A-Z0-9]/g, '');
+    
+    // Valida formato: 5 letras seguidas de até 3 números
+    const regex = /^[A-Z]{0,5}[0-9]{0,3}$/;
+    
+    if (regex.test(cleanValue) && cleanValue.length <= 8) {
+      setFormData(prev => ({ 
+        ...prev, 
+        opcao: cleanValue,
+        // Preencher automaticamente o campo ação com as 4 primeiras letras
+        acao: cleanValue.substring(0, 4)
+      }));
+    }
+  };
+
+  const handleAcaoChange = (value: string) => {
+    // Converte para maiúsculo
+    const upperValue = value.toUpperCase();
+    
+    // Permite apenas letras e números
+    const cleanValue = upperValue.replace(/[^A-Z0-9]/g, '');
+    
+    // Valida formato: 4 letras seguidas de 1 ou 2 números
+    const regex = /^[A-Z]{0,4}[0-9]{0,2}$/;
+    
+    if (regex.test(cleanValue) && cleanValue.length <= 6) {
+      setFormData(prev => ({ ...prev, acao: cleanValue }));
+    }
+  };
+
+  const handleDateIconClick = () => {
+    const dateInput = document.getElementById('data') as HTMLInputElement;
+    if (dateInput) {
+      dateInput.showPicker();
+    }
+  };
+
+  // Calcular dados da operação para o card lateral
+  const calculateOperationData = () => {
+    const strike = parseCurrencyToNumber(formData.strike);
+    const cotacao = parseCurrencyToNumber(formData.cotacao);
+    const quantidade = parseNumberToInt(formData.quantidade);
+    const premio = parseCurrencyToNumber(formData.premio);
+
+    let percentualDiferenca = 0;
+    let valorTotal = 0;
+    let valorTotalLabel = "";
+    let isGanho = true;
+    let nivelRisco = "baixo";
+    let corRisco = "text-green-600";
+    let progressValue = 100;
+
+    if (strike > 0 && cotacao > 0) {
+      // Calcular diferença baseado no tipo de opção
+      if (formData.tipo === "call") {
+        percentualDiferenca = ((strike - cotacao) / cotacao) * 100;
+      } else if (formData.tipo === "put") {
+        percentualDiferenca = ((cotacao - strike) / cotacao) * 100;
+      }
+      
+      // Determinar nível de risco baseado na operação e tipo
+      const diferencaAbsoluta = Math.abs(percentualDiferenca);
+      
+      if (formData.operacao === "compra" && formData.tipo === "call") {
+        // Compra Call: quanto menor a diferença, menor o risco
+        if (percentualDiferenca < 0) {
+          nivelRisco = "baixíssimo";
+          corRisco = "text-green-600";
+          progressValue = 80;
+        } else if (diferencaAbsoluta <= 4) {
+          nivelRisco = "baixo";
+          corRisco = "text-green-600";
+          progressValue = 80;
+        } else if (diferencaAbsoluta <= 6) {
+          nivelRisco = "médio";
+          corRisco = "text-yellow-600";
+          progressValue = 60;
+        } else {
+          nivelRisco = "alto";
+          corRisco = "text-red-600";
+          progressValue = 20;
+        }
+      } else if (formData.operacao === "compra" && formData.tipo === "put") {
+        // Compra Put: quanto menor a diferença, menor o risco
+        if (percentualDiferenca < 0) {
+          nivelRisco = "baixíssimo";
+          corRisco = "text-emerald-600";
+          progressValue = 100;
+        } else if (diferencaAbsoluta <= 4) {
+          nivelRisco = "baixo";
+          corRisco = "text-green-600";
+          progressValue = 80;
+        } else if (diferencaAbsoluta <= 6) {
+          nivelRisco = "médio";
+          corRisco = "text-yellow-600";
+          progressValue = 60;
+        } else {
+          nivelRisco = "alto";
+          corRisco = "text-red-600";
+          progressValue = 20;
+        }
+      } else if (formData.operacao === "venda" && formData.tipo === "put") {
+        // Venda Put: quanto maior a diferença, menor o risco
+        if (percentualDiferenca < 0) {
+          nivelRisco = "altíssimo";
+          corRisco = "text-red-800";
+          progressValue = 10;
+        } else if (diferencaAbsoluta <= 4) {
+          nivelRisco = "alto";
+          corRisco = "text-red-600";
+          progressValue = 20;
+        } else if (diferencaAbsoluta <= 6) {
+          nivelRisco = "médio";
+          corRisco = "text-yellow-600";
+          progressValue = 60;
+        } else {
+          nivelRisco = "baixo";
+          corRisco = "text-green-600";
+          progressValue = 80;
+        }
+       } else {
+         // Venda Call: lógica original
+         if (percentualDiferenca < 0) {
+           nivelRisco = "altíssimo";
+           corRisco = "text-red-800";
+           progressValue = 10;
+         } else if (percentualDiferenca > 0 && diferencaAbsoluta > 6) {
+           nivelRisco = "baixo";
+           corRisco = "text-green-600";
+           progressValue = 80;
+         } else if (percentualDiferenca > 0 && diferencaAbsoluta > 3) {
+           nivelRisco = "médio";
+           corRisco = "text-yellow-600";
+           progressValue = 60;
+         } else {
+           nivelRisco = "alto";
+           corRisco = "text-red-600";
+           progressValue = 20;
+         }
+       }
+    }
+
+    if (premio > 0 && quantidade > 0) {
+      valorTotal = premio * quantidade;
+      
+      if (formData.operacao === "venda") {
+        valorTotalLabel = "Ganho máximo";
+        isGanho = true;
+      } else {
+        valorTotalLabel = "Perda máxima";
+        isGanho = false;
+        valorTotal = -valorTotal;
+      }
+    }
+
+    return {
+      percentualDiferenca,
+      valorTotal,
+      valorTotalLabel,
+      isGanho,
+      nivelRisco,
+      corRisco,
+      progressValue
+    };
+  };
+
+  const operationData = calculateOperationData();
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Cadastro de opção</h1>
+        <p className="text-muted-foreground">
+          Adicione uma nova operação de opção ao seu portfólio
+        </p>
+      </div>
+
+      <div className="flex gap-6">
+        <Card className="flex-1 max-w-2xl">
+          <CardHeader>
+            <CardTitle>Nova opção</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Primeira linha: Nome da opção e Ação */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="opcao">Nome da opção</Label>
+                  <Input
+                    id="opcao"
+                    value={formData.opcao}
+                    onChange={(e) => handleOpcaoChange(e.target.value)}
+                    placeholder="ex: PETRH123"
+                    className="placeholder-subtle"
+                    maxLength={8}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="acao">Ação</Label>
+                  <Input
+                    id="acao"
+                    value={formData.acao}
+                    onChange={(e) => handleAcaoChange(e.target.value)}
+                    placeholder="ex: PETR4"
+                    className="placeholder-subtle"
+                    maxLength={6}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Segunda linha: Operação e Tipo */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="operacao">Operação</Label>
+                  <Select
+                    value={formData.operacao}
+                    onValueChange={(value) => handleInputChange("operacao", value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a operação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="compra">Compra</SelectItem>
+                      <SelectItem value="venda">Venda</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="tipo">Tipo</Label>
+                  <Select
+                    value={formData.tipo}
+                    onValueChange={(value) => handleInputChange("tipo", value)}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="call">Call</SelectItem>
+                      <SelectItem value="put">Put</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Demais campos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="strike">Strike (R$)</Label>
+                  <Input
+                    id="strike"
+                    value={formData.strike}
+                    onChange={(e) => handleCurrencyChange("strike", e.target.value)}
+                    placeholder="0,00"
+                    className="placeholder-subtle"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="cotacao">Cotação (R$)</Label>
+                  <Input
+                    id="cotacao"
+                    value={formData.cotacao}
+                    onChange={(e) => handleCurrencyChange("cotacao", e.target.value)}
+                    placeholder="0,00"
+                    className="placeholder-subtle"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="quantidade">Quantidade</Label>
+                  <Input
+                    id="quantidade"
+                    value={formData.quantidade}
+                    onChange={(e) => handleNumberChange("quantidade", e.target.value)}
+                    placeholder="100"
+                    className="placeholder-subtle"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="premio">Prêmio (R$)</Label>
+                  <Input
+                    id="premio"
+                    value={formData.premio}
+                    onChange={(e) => handleCurrencyChange("premio", e.target.value)}
+                    placeholder="0,00"
+                    className="placeholder-subtle"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="data">Vencimento</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                          !formData.data && "text-muted-foreground"
+                        )}
+                      >
+                        {formData.data ? (
+                          format(new Date(formData.data), "dd/MM/yyyy")
+                        ) : (
+                          <span>Selecione a data</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.data ? new Date(formData.data) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            handleInputChange("data", formatDateForInput(date));
+                          }
+                        }}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => navigate("/opcoes")}
+                  >
+                    Cancelar
+                  </Button>
+                <Button type="submit" disabled={loading} style={{ backgroundColor: '#61005D' }}>
+                  {loading ? "Cadastrando..." : "Cadastrar opção"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Card lateral com análise de risco */}
+        <Card className="w-80 h-fit">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Análise de risco
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Diferença percentual Strike vs Cotação */}
+            <div>
+              <Label className="text-sm font-medium">Diferença Strike vs Cotação</Label>
+              <p className="text-lg font-bold text-foreground">
+                {operationData.percentualDiferenca.toFixed(2)}%
+              </p>
+            </div>
+
+            {/* Valor total do prêmio */}
+            <div className="mb-8">
+              <Label className="text-sm font-medium">{operationData.valorTotalLabel}</Label>
+              <p className={`text-lg font-bold ${operationData.isGanho ? 'text-green-600' : 'text-red-600'}`}>
+                {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+              </p>
+            </div>
+
+            {/* Nível de risco */}
+            <div>
+              <div className="mb-2">
+                <Label className="text-sm font-medium">Nível de Risco</Label>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                {/* Meio círculo de progresso */}
+                <div className="relative w-52 h-26 mb-3">
+                  <svg className="w-52 h-26" viewBox="0 0 208 104">
+                    {/* Background semicircle */}
+                    <path
+                      d="M 26 104 A 78 78 0 0 1 182 104"
+                      fill="none"
+                      stroke="hsl(var(--muted))"
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                    />
+                    {/* Progress semicircle */}
+                    <path
+                      d="M 26 104 A 78 78 0 0 1 182 104"
+                      fill="none"
+                      stroke={
+                        operationData.nivelRisco === 'baixíssimo' ? 'hsl(160 84% 39%)' :
+                        operationData.nivelRisco === 'muito baixo' ? 'hsl(160 84% 39%)' :
+                        operationData.nivelRisco === 'baixo' ? 'hsl(142 76% 36%)' :
+                        operationData.nivelRisco === 'médio' ? 'hsl(45 93% 47%)' :
+                        operationData.nivelRisco === 'alto' ? 'hsl(0 84% 60%)' :
+                        operationData.nivelRisco === 'altíssimo' ? 'hsl(0 72% 50%)' :
+                        'hsl(0 72% 50%)'
+                      }
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                      strokeDasharray={`${(operationData.progressValue / 100) * 245.1} 245.1`}
+                      className="transition-all duration-700 ease-in-out"
+                    />
+                  </svg>
+                  
+                  {/* Texto central */}
+                  <div className="absolute inset-0 flex items-end justify-center pb-1">
+                    <span className={`text-sm font-semibold ${operationData.corRisco}`}>
+                      {operationData.nivelRisco}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 44 19% 97%; /* #F9F8F5 */
+    --foreground: 0 0% 0%; /* preto para textos gerais */
+
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 0 0% 0%; /* preto para textos primários */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 44 19% 95%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 44 19% 95%;
+    --muted-foreground: 0 0% 0%; /* alterado de roxo para preto */
+
+    --accent: 0 0% 95%; /* alterado de roxo para cinza claro */
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 44 19% 90%;
+    --input: 0 0% 89%;
+    --ring: 0 0% 0%;
+
+    --radius: 0.75rem;
+
+    /* Financial colors */
+    --profit: 142 76% 36%;
+    --loss: 0 84% 60%;
+    --profit-bg: 142 76% 95%;
+    --loss-bg: 0 84% 95%;
+    
+    /* Modern shadows */
+    --shadow-modern: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.06);
+    --shadow-modern-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -2px hsl(0 0% 0% / 0.05);
+    --shadow-modern-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 10px 10px -5px hsl(0 0% 0% / 0.04);
+
+    --sidebar-background: 0 0% 0%; /* alterado de roxo para preto */
+    --sidebar-foreground: 0 0% 100%; /* branco */
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 0%; /* alterado para preto */
+    --sidebar-accent: 0 0% 100% / 0.15; /* branco com 15% de opacidade */
+    --sidebar-accent-foreground: 0 0% 100%; /* branco */
+    --sidebar-border: 0 0% 20%; /* alterado de roxo para cinza escuro */
+    --sidebar-ring: 0 0% 100%;
+    
+    /* Input placeholders */
+    --placeholder: 0 0% 70%; /* 70% do preto para placeholders - mais claro */
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 142 86% 28%;
+    --primary-foreground: 356 29% 15%;
+
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 28% 17%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 142 86% 28%;
+    
+    /* Financial colors for dark mode */
+    --profit: 142 86% 28%;
+    --loss: 0 84% 60%;
+    --profit-bg: 142 86% 8%;
+    --loss-bg: 0 84% 8%;
+    
+    /* Modern shadows for dark mode */
+    --shadow-modern: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
+    --shadow-modern-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
+    --shadow-modern-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.3), 0 10px 10px -5px hsl(0 0% 0% / 0.2);
+    
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Input placeholders for dark mode */
+    --placeholder: 240 4.8% 60%; /* 60% para dark mode */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Utility classes for profit/loss colors */
+  .text-profit {
+    color: hsl(var(--profit));
+  }
+
+  .text-loss {
+    color: hsl(var(--loss));
+  }
+
+  .bg-profit {
+    background-color: hsl(var(--profit-bg));
+  }
+
+  .bg-loss {
+    background-color: hsl(var(--loss-bg));
+  }
+
+  /* Modern shadow utilities */
+  .shadow-modern {
+    box-shadow: var(--shadow-modern);
+  }
+
+  .shadow-modern-lg {
+    box-shadow: var(--shadow-modern-lg);
+  }
+
+  .shadow-modern-xl {
+    box-shadow: var(--shadow-modern-xl);
+  }
+
+  /* Glass effect */
+  .glass {
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border) / 0.2);
+  }
+
+  /* Gradient backgrounds */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.05));
+  }
+
+  /* Input placeholder styling */
+  .placeholder-subtle::placeholder {
+    color: hsl(var(--placeholder));
+  }
+
+  /* Pill-shaped buttons */
+  .btn-pill {
+    border-radius: 1000px;
+  }
+
+  /* Typography patterns for consistent titles */
+  .dialog-title {
+    text-transform: capitalize;
+  }
+  
+  .dialog-title::first-letter {
+    text-transform: uppercase;
+  }
+}
