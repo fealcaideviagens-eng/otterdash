@@ -17,7 +17,7 @@ export const useMetas = (props?: UseMetasProps) => {
       const { data, error } = await supabase
         .from('goal')
         .select('*')
-        .eq('goal_id', props.userId)
+        .eq('user_id', props.userId)
         .order('goal_ano', { ascending: false });
       
       if (error) throw error;
@@ -38,7 +38,7 @@ export const useMetas = (props?: UseMetasProps) => {
         goal_tipo: meta.tipo,
         goal_valor: meta.valor,
         goal_ano: meta.ano,
-        goal_id: props.userId,
+        user_id: props.userId,
       };
 
       const { data, error } = await supabase

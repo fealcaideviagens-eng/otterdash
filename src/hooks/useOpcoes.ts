@@ -29,7 +29,7 @@ const mapOpsRegistryToOpcao = (data: any): Opcao => ({
   premio: data.ops_premio,
   data: data.ops_vencimento,
   status: 'aberta', // Status padrão
-  user_id: data.id
+  user_id: data.user_id
 });
 
 const mapOpsCompletedToVenda = (data: any): Venda => ({
@@ -65,7 +65,7 @@ export const useOpcoes = (userId?: string) => {
       const { data, error } = await supabase
         .from('ops_registry')
         .select('*')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .order('ops_criado_em', { ascending: false });
         
       if (error) throw error;
@@ -87,6 +87,7 @@ export const useOpcoes = (userId?: string) => {
       const { data, error } = await supabase
         .from('ops_completed')
         .select('*')
+        .eq('user_id', userId)
         .order('completed_criado_em', { ascending: false });
         
       if (error) throw error;
@@ -108,7 +109,7 @@ export const useOpcoes = (userId?: string) => {
       
       // Mapear dados antigos para o novo formato
       const novoFormatoOpcao = {
-        id: userId, // Campo que liga com a tabela client
+        user_id: userId, // Campo para RLS
         ops_ticker: dadosOpcao.opcao,
         ops_operacao: dadosOpcao.operacao,
         ops_tipo: dadosOpcao.tipo,
@@ -161,7 +162,8 @@ export const useOpcoes = (userId?: string) => {
       const { error } = await supabase
         .from('ops_registry')
         .update(dadosFormatados)
-        .eq('ops_id', opcaoId);
+        .eq('ops_id', opcaoId)
+        .eq('user_id', userId);
 
       if (error) throw error;
       
@@ -179,7 +181,8 @@ export const useOpcoes = (userId?: string) => {
       const { error } = await supabase
         .from('ops_registry')
         .delete()
-        .eq('ops_id', opcaoId);
+        .eq('ops_id', opcaoId)
+        .eq('user_id', userId);
 
       if (error) throw error;
       
@@ -197,6 +200,7 @@ export const useOpcoes = (userId?: string) => {
       // Inserir dados no ops_completed
       const dadosEncerramento = {
         ops_id: opcaoId,
+        user_id: userId,
         completed_premio: vendaData.premio,
         completed_data: vendaData.encerramento,
         completed_quanti: vendaData.quantidade,

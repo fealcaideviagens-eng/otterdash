@@ -9,19 +9,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Lock, User, UserPlus } from "lucide-react";
 
 interface LoginFormData {
-  login: string;
+  email: string;
   senha: string;
 }
 
 interface CadastroFormData {
-  usuario: string;
+  email: string;
   senha: string;
   confirmacaoSenha: string;
 }
 
 interface LoginProps {
-  onLogin: (nome: string, senha: string) => Promise<boolean>;
-  onRegister: (nome: string, senha: string) => Promise<boolean>;
+  onLogin: (email: string, senha: string) => Promise<boolean>;
+  onRegister: (email: string, senha: string) => Promise<boolean>;
   onGoogleLogin: () => Promise<boolean>;
 }
 
@@ -33,7 +33,7 @@ export default function Login({ onLogin, onRegister, onGoogleLogin }: LoginProps
   
   const loginForm = useForm<LoginFormData>({
     defaultValues: {
-      login: "",
+      email: "",
       senha: "",
     },
     mode: "onChange", // Permite mudanças em tempo real
@@ -41,7 +41,7 @@ export default function Login({ onLogin, onRegister, onGoogleLogin }: LoginProps
 
   const cadastroForm = useForm<CadastroFormData>({
     defaultValues: {
-      usuario: "",
+      email: "",
       senha: "",
       confirmacaoSenha: "",
     },
@@ -50,7 +50,7 @@ export default function Login({ onLogin, onRegister, onGoogleLogin }: LoginProps
 
   const onLoginSubmit = async (data: LoginFormData) => {
     console.log('Formulário de login enviado:', data);
-    const success = await onLogin(data.login, data.senha);
+    const success = await onLogin(data.email, data.senha);
     if (!success) {
       // Error handling is done in the login function
     }
@@ -68,7 +68,7 @@ export default function Login({ onLogin, onRegister, onGoogleLogin }: LoginProps
       return;
     }
 
-    const success = await onRegister(data.usuario, data.senha);
+    const success = await onRegister(data.email, data.senha);
     if (success) {
       setIsRegistering(false);
       cadastroForm.reset();
@@ -104,25 +104,26 @@ export default function Login({ onLogin, onRegister, onGoogleLogin }: LoginProps
               <form onSubmit={cadastroForm.handleSubmit(onCadastroSubmit)} className="space-y-4">
                 <FormField
                   control={cadastroForm.control}
-                  name="usuario"
+                  name="email"
                   rules={{ 
-                    required: "Usuário é obrigatório",
-                    minLength: { 
-                      value: 3, 
-                      message: "Usuário deve ter pelo menos 3 caracteres" 
+                    required: "Email é obrigatório",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Email inválido"
                     }
                   }}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <User className="w-4 h-4" style={{ color: '#61005D' }} />
-                        Usuário
+                        Email
                       </FormLabel>
                        <FormControl>
                           <Input
-                            placeholder="Digite seu usuário"
+                            type="email"
+                            placeholder="Digite seu email"
                             className="placeholder-subtle"
-                            autoComplete="username"
+                            autoComplete="email"
                             {...field}
                           />
                        </FormControl>
@@ -233,24 +234,26 @@ export default function Login({ onLogin, onRegister, onGoogleLogin }: LoginProps
               <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
                 <FormField
                   control={loginForm.control}
-                  name="login"
+                  name="email"
                   rules={{ 
-                    required: "Login é obrigatório",
-                    minLength: { 
-                      value: 3, 
-                      message: "Login deve ter pelo menos 3 caracteres" 
+                    required: "Email é obrigatório",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Email inválido"
                     }
                   }}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <User className="w-4 h-4" style={{ color: '#61005D' }} />
-                        Login
+                        Email
                       </FormLabel>
                       <FormControl>
                          <Input
-                           placeholder="Digite seu login"
+                           type="email"
+                           placeholder="Digite seu email"
                            className="placeholder-subtle"
+                           autoComplete="email"
                            {...field}
                          />
                       </FormControl>
@@ -366,11 +369,11 @@ export default function Login({ onLogin, onRegister, onGoogleLogin }: LoginProps
               }
             </Button>
             
-            {!isRegistering && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Dados para teste: <strong>teste</strong> / <strong>123</strong>
-                </p>
-            )}
+             {!isRegistering && (
+                 <p className="text-sm text-muted-foreground mt-2">
+                   Agora usando autenticação Supabase segura
+                 </p>
+             )}
           </div>
         </CardContent>
       </Card>

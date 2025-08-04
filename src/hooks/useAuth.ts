@@ -1,24 +1,13 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 
-// Tipo de usuário simples para teste
+// Tipo de usuário para autenticação Supabase
 interface User {
   "user-id": string;
   nome: string;
-  senha?: number;
   email?: string;
 }
-
-// Banco de dados simples em memória para teste
-const testUsers: User[] = [
-  {
-    "user-id": "550e8400-e29b-41d4-a716-446655440000",
-    nome: "teste",
-    senha: 123,
-  }
-];
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -37,12 +26,6 @@ export const useAuth = () => {
           email: session.user.email,
         };
         setUser(supabaseUser);
-      } else {
-        // Fallback para autenticação local
-        const savedUser = localStorage.getItem("currentUser");
-        if (savedUser) {
-          setUser(JSON.parse(savedUser));
-        }
       }
       setLoading(false);
     };
@@ -60,52 +43,39 @@ export const useAuth = () => {
         setUser(supabaseUser);
       } else {
         setUser(null);
-        localStorage.removeItem("currentUser");
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (nome: string, senha: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      console.log('Tentando fazer login:', { nome, senha });
+      console.log('Tentando fazer login:', { email });
       
-      // Buscar usuário no "banco" interno
-      const foundUser = testUsers.find(u => u.nome === nome);
-      
-      if (!foundUser) {
-        toast({
-          title: "Erro no login",
-          description: "Nome ou senha incorretos",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Verificar senha
-      const senhaCorreta = foundUser.senha === Number(senha);
-      
-      if (!senhaCorreta) {
-        toast({
-          title: "Erro no login",
-          description: "Nome ou senha incorretos",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      console.log('Login bem-sucedido!');
-      
-      setUser(foundUser);
-      localStorage.setItem("currentUser", JSON.stringify(foundUser));
-      
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta ao dashboard.",
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      
-      return true;
+
+      if (error) {
+        toast({
+          title: "Erro no login",
+          description: error.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (data.user) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Bem-vindo de volta ao dashboard.",
+        });
+        return true;
+      }
+
+      return false;
     } catch (error) {
       console.error('Erro no login:', error);
       toast({
@@ -117,46 +87,33 @@ export const useAuth = () => {
     }
   };
 
-  const register = async (nome: string, senha: string) => {
+  const register = async (email: string, password: string) => {
     try {
-      console.log('Tentando registrar:', { nome, senha });
+      console.log('Tentando registrar:', { email });
       
-      // Verificar se usuário já existe
-      const existingUser = testUsers.find(u => u.nome === nome);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-      if (existingUser) {
+      if (error) {
         toast({
           title: "Erro no cadastro",
-          description: "Usuário já existe",
+          description: error.message,
           variant: "destructive",
         });
         return false;
       }
 
-      // Criar novo usuário no "banco" interno  
-      // Gerar UUID v4 simples para compatibilidade com Supabase
-      const generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0;
-          const v = c == 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
+      if (data.user) {
+        toast({
+          title: "Conta criada com sucesso!",
+          description: "Verifique seu email para confirmar a conta.",
         });
-      };
+        return true;
+      }
 
-      const newUser: User = {
-        "user-id": generateUUID(),
-        nome,
-        senha: Number(senha),
-      };
-      
-      testUsers.push(newUser);
-
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Agora você pode fazer login com suas credenciais.",
-      });
-
-      return true;
+      return false;
     } catch (error) {
       console.error('Erro no cadastro:', error);
       toast({
@@ -207,7 +164,6 @@ export const useAuth = () => {
       }
       
       setUser(null);
-      localStorage.removeItem("currentUser");
       
       toast({
         title: "Logout realizado",

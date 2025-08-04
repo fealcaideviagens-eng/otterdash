@@ -46,6 +46,7 @@ export type Database = {
           goal_tipo: string | null
           goal_valor: number | null
           id: string | null
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -54,6 +55,7 @@ export type Database = {
           goal_tipo?: string | null
           goal_valor?: number | null
           id?: string | null
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -62,6 +64,7 @@ export type Database = {
           goal_tipo?: string | null
           goal_valor?: number | null
           id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -81,6 +84,7 @@ export type Database = {
           completed_premio: number | null
           completed_quanti: number | null
           ops_id: string | null
+          user_id: string | null
         }
         Insert: {
           completed_criado_em?: string
@@ -89,6 +93,7 @@ export type Database = {
           completed_premio?: number | null
           completed_quanti?: number | null
           ops_id?: string | null
+          user_id?: string | null
         }
         Update: {
           completed_criado_em?: string
@@ -97,8 +102,16 @@ export type Database = {
           completed_premio?: number | null
           completed_quanti?: number | null
           ops_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_ops_completed_ops_registry"
+            columns: ["ops_id"]
+            isOneToOne: false
+            referencedRelation: "ops_registry"
+            referencedColumns: ["ops_id"]
+          },
           {
             foreignKeyName: "ops_completed_ops_id_fkey"
             columns: ["ops_id"]
@@ -122,6 +135,7 @@ export type Database = {
           ops_ticker: string | null
           ops_tipo: string | null
           ops_vencimento: string | null
+          user_id: string | null
         }
         Insert: {
           acao_cotacao?: number | null
@@ -136,6 +150,7 @@ export type Database = {
           ops_ticker?: string | null
           ops_tipo?: string | null
           ops_vencimento?: string | null
+          user_id?: string | null
         }
         Update: {
           acao_cotacao?: number | null
@@ -150,6 +165,7 @@ export type Database = {
           ops_ticker?: string | null
           ops_tipo?: string | null
           ops_vencimento?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
