@@ -103,20 +103,25 @@ export const useOpcoes = (userId?: string) => {
     if (!userId) throw new Error('Usuário não autenticado');
     
     try {
+      console.log('Dados recebidos para adicionar:', dadosOpcao);
+      console.log('User ID:', userId);
+      
       // Mapear dados antigos para o novo formato
       const novoFormatoOpcao = {
-        id: userId,
+        id: userId, // Campo que liga com a tabela client
         ops_ticker: dadosOpcao.opcao,
         ops_operacao: dadosOpcao.operacao,
         ops_tipo: dadosOpcao.tipo,
         ops_acao: dadosOpcao.acao,
-        ops_strike: dadosOpcao.strike,
-        acao_cotacao: dadosOpcao.cotacao,
-        ops_quanti: dadosOpcao.quantidade,
-        ops_premio: dadosOpcao.premio,
+        ops_strike: dadosOpcao.strike ? parseFloat(dadosOpcao.strike.toString()) : null,
+        acao_cotacao: dadosOpcao.cotacao ? parseFloat(dadosOpcao.cotacao.toString()) : null,
+        ops_quanti: dadosOpcao.quantidade ? parseFloat(dadosOpcao.quantidade.toString()) : null,
+        ops_premio: dadosOpcao.premio ? parseFloat(dadosOpcao.premio.toString()) : null,
         ops_vencimento: dadosOpcao.data,
         ops_criado_em: new Date().toISOString()
       };
+      
+      console.log('Dados formatados para inserir:', novoFormatoOpcao);
 
       const { data, error } = await supabase
         .from('ops_registry')
