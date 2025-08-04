@@ -151,15 +151,7 @@ export type Database = {
           ops_tipo?: string | null
           ops_vencimento?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "registry_id_fkey"
-            columns: ["id"]
-            isOneToOne: false
-            referencedRelation: "client"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

@@ -128,8 +128,11 @@ export const useOpcoes = (userId?: string) => {
         .insert([novoFormatoOpcao])
         .select();
 
+      console.log('Resposta do Supabase:', { data, error });
+
       if (error) throw error;
       
+      console.log('Opção cadastrada com sucesso:', data);
       await carregarOpcoes();
       return data;
     } catch (error) {
