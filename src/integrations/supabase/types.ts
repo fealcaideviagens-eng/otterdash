@@ -45,7 +45,7 @@ export type Database = {
           goal_id: string
           goal_tipo: string | null
           goal_valor: number | null
-          id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -53,7 +53,7 @@ export type Database = {
           goal_id?: string
           goal_tipo?: string | null
           goal_valor?: number | null
-          id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -61,7 +61,7 @@ export type Database = {
           goal_id?: string
           goal_tipo?: string | null
           goal_valor?: number | null
-          id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -72,8 +72,8 @@ export type Database = {
           completed_id: string
           completed_premio: number | null
           completed_quanti: number | null
-          id: string | null
           ops_id: string | null
+          user_id: string
         }
         Insert: {
           completed_criado_em?: string
@@ -81,8 +81,8 @@ export type Database = {
           completed_id?: string
           completed_premio?: number | null
           completed_quanti?: number | null
-          id?: string | null
           ops_id?: string | null
+          user_id: string
         }
         Update: {
           completed_criado_em?: string
@@ -90,8 +90,8 @@ export type Database = {
           completed_id?: string
           completed_premio?: number | null
           completed_quanti?: number | null
-          id?: string | null
           ops_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -103,7 +103,7 @@ export type Database = {
           },
           {
             foreignKeyName: "ops_completed_id_fkey"
-            columns: ["id"]
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "client"
             referencedColumns: ["id"]
@@ -120,7 +120,6 @@ export type Database = {
       ops_registry: {
         Row: {
           acao_cotacao: number | null
-          id: string | null
           ops_acao: string | null
           ops_criado_em: string | null
           ops_id: string
@@ -131,10 +130,10 @@ export type Database = {
           ops_ticker: string | null
           ops_tipo: string | null
           ops_vencimento: string | null
+          user_id: string
         }
         Insert: {
           acao_cotacao?: number | null
-          id?: string | null
           ops_acao?: string | null
           ops_criado_em?: string | null
           ops_id?: string
@@ -145,10 +144,10 @@ export type Database = {
           ops_ticker?: string | null
           ops_tipo?: string | null
           ops_vencimento?: string | null
+          user_id: string
         }
         Update: {
           acao_cotacao?: number | null
-          id?: string | null
           ops_acao?: string | null
           ops_criado_em?: string | null
           ops_id?: string
@@ -159,6 +158,7 @@ export type Database = {
           ops_ticker?: string | null
           ops_tipo?: string | null
           ops_vencimento?: string | null
+          user_id?: string
         }
         Relationships: []
       }
