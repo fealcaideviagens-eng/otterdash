@@ -6,7 +6,7 @@ import { Opcao, Venda } from "@/types/database";
 const mapOpsRegistryToOpcao = (data: any): Opcao => ({
   // Novos campos
   ops_id: data.ops_id,
-  id: data.id,
+  id: data.user_id, // Usar user_id para o campo id
   ops_ticker: data.ops_ticker,
   ops_operacao: data.ops_operacao,
   ops_tipo: data.ops_tipo,
@@ -57,9 +57,12 @@ export const useOpcoes = (userId?: string) => {
 
   const carregarOpcoes = async () => {
     if (!userId) {
+      console.log('useOpcoes: userId não fornecido');
       setLoading(false);
       return;
     }
+    
+    console.log('useOpcoes: Carregando opções para userId:', userId);
     
     try {
       const { data, error } = await supabase
@@ -68,9 +71,12 @@ export const useOpcoes = (userId?: string) => {
         .eq('user_id', userId)
         .order('ops_criado_em', { ascending: false });
         
+      console.log('useOpcoes: Resposta do supabase:', { data, error });
+        
       if (error) throw error;
       
       const opcoesFormatadas = (data || []).map(mapOpsRegistryToOpcao);
+      console.log('useOpcoes: Opções formatadas:', opcoesFormatadas);
       setOpcoes(opcoesFormatadas);
     } catch (error) {
       console.error('Erro ao buscar opções:', error);

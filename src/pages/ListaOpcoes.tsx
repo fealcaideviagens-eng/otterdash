@@ -16,12 +16,14 @@ import { EncerrarOpcaoModal } from "@/components/opcoes/EncerrarOpcaoModal";
 import { EditarOpcaoModal } from "@/components/opcoes/EditarOpcaoModal";
 import { DeleteOpcaoModal } from "@/components/opcoes/DeleteOpcaoModal";
 import { useOpcoes } from "@/hooks/useOpcoes";
+import { useAuth } from "@/context/AuthContext";
 import { Opcao } from "@/types/database";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { Edit, Trash2 } from "lucide-react";
 
 export default function ListaOpcoes() {
-  const { opcoes, vendas, loading, encerrarOpcao, editarOpcao, deletarOpcao, refreshData } = useOpcoes();
+  const { user } = useAuth();
+  const { opcoes, vendas, loading, encerrarOpcao, editarOpcao, deletarOpcao, refreshData } = useOpcoes(user?.["user-id"]);
   const [selectedOpcao, setSelectedOpcao] = useState<Opcao | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);

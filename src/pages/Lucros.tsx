@@ -5,12 +5,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Calendar } from "lucide-react";
 import { useOpcoes } from "@/hooks/useOpcoes";
+import { useAuth } from "@/context/AuthContext";
 import { formatCurrency } from "@/utils/formatters";
 
 type ViewMode = "monthly" | "yearly";
 
 export default function Lucros() {
-  const { opcoes, vendas, loading } = useOpcoes();
+  const { user } = useAuth();
+  const { opcoes, vendas, loading } = useOpcoes(user?.["user-id"]);
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
 
   if (loading) {

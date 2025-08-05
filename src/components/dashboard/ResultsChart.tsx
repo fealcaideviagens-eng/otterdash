@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useOpcoes } from "@/hooks/useOpcoes";
+import { useAuth } from "@/context/AuthContext";
 import { formatCurrency } from "@/utils/formatters";
 import { Opcao } from "@/types/database";
 
@@ -17,7 +18,8 @@ interface ResultsChartProps {
 }
 
 export const ResultsChart = ({ viewType }: ResultsChartProps) => {
-  const { opcoes, vendas } = useOpcoes();
+  const { user } = useAuth();
+  const { opcoes, vendas } = useOpcoes(user?.["user-id"]);
 
   // Calcular o resultado real da operação (igual à página Lucros)
   const calculateLucroPrejuizoReais = (opcao: any, venda: any): number => {
