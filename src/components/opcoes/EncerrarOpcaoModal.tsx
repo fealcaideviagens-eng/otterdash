@@ -9,11 +9,15 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Opcao } from "@/types/database";
 import { formatCurrency, formatDateForInput } from "@/utils/formatters";
 import { formatCurrency as formatCurrencyInput, parseCurrencyToNumber } from "@/utils/inputFormatters";
 import { CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface EncerrarOpcaoModalProps {
   opcao: Opcao | null;
@@ -169,26 +173,47 @@ export const EncerrarOpcaoModal = ({
 
             <div>
               <Label htmlFor="data">Data de encerramento</Label>
-              <div className="relative">
-                <Input
-                  id="data"
-                  type="date"
-                  value={formData.data}
-                  onChange={(e) => setFormData(prev => ({ ...prev, data: e.target.value }))}
-                  onInvalid={(e) => {
-                    const date = new Date(e.currentTarget.value);
-                    const dayOfWeek = date.getDay();
-                    if (dayOfWeek === 0 || dayOfWeek === 6) {
-                      e.currentTarget.setCustomValidity('Não é possível selecionar fins de semana');
-                    } else {
-                      e.currentTarget.setCustomValidity('');
-                    }
-                  }}
-                  className="pr-10"
-                  required
-                />
-                <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50 pointer-events-none" />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                      !formData.data && "text-muted-foreground"
+                    )}
+                  >
+                    {formData.data ? (
+                      format(new Date(formData.data), "dd/MM/yyyy")
+                    ) : (
+                      <span>Selecione a data</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.data ? new Date(formData.data) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        // Usar formato ISO sem conversão de fuso horário
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const dateString = `${year}-${month}-${day}`;
+                        setFormData(prev => ({ ...prev, data: dateString }));
+                      }
+                    }}
+                    disabled={(date) => {
+                      // Desabilitar sábados (6) e domingos (0)
+                      const dayOfWeek = date.getDay();
+                      return dayOfWeek === 0 || dayOfWeek === 6;
+                    }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             {ganho && (
