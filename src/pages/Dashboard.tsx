@@ -26,6 +26,18 @@ const getGreeting = () => {
   }
 };
 
+const getShortName = (fullName: string) => {
+  if (!fullName) return 'usuário';
+  
+  const names = fullName.trim().split(' ');
+  if (names.length === 1) {
+    return names[0];
+  }
+  
+  // Retorna primeiro e segundo nome
+  return `${names[0]} ${names[1]}`;
+};
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { loading, getDashboardMetrics, opcoes } = useOpcoes(user?.['user-id']);
@@ -79,7 +91,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">{getGreeting()}, {user?.nome || 'usuário'}</h1>
+          <h1 className="text-3xl font-bold text-foreground">{getGreeting()}, {getShortName(user?.nome || '')}</h1>
           <p className="text-muted-foreground">
             Acompanhe suas opções de qualquer lugar
           </p>
