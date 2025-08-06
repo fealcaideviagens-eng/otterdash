@@ -31,6 +31,23 @@ export default function CadastroOpcao() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
+  // Função para obter a próxima data útil (não fim de semana)
+  const getNextBusinessDay = () => {
+    const today = new Date();
+    let nextBusinessDay = new Date(today);
+    
+    // Se hoje é sábado (6), adicionar 2 dias para segunda
+    // Se hoje é domingo (0), adicionar 1 dia para segunda
+    const dayOfWeek = today.getDay();
+    if (dayOfWeek === 6) {
+      nextBusinessDay.setDate(today.getDate() + 2);
+    } else if (dayOfWeek === 0) {
+      nextBusinessDay.setDate(today.getDate() + 1);
+    }
+    
+    return nextBusinessDay;
+  };
+  
   const [formData, setFormData] = useState({
     opcao: "",
     operacao: "",
@@ -40,7 +57,7 @@ export default function CadastroOpcao() {
     cotacao: "",
     quantidade: "",
     premio: "",
-    data: formatDateForInput(new Date()),
+    data: formatDateForInput(getNextBusinessDay()),
     status: "aberta",
   });
 
@@ -81,7 +98,7 @@ export default function CadastroOpcao() {
         cotacao: "",
         quantidade: "",
         premio: "",
-        data: formatDateForInput(new Date()),
+        data: formatDateForInput(getNextBusinessDay()),
         status: "aberta",
       });
     } catch (error) {
@@ -448,6 +465,11 @@ export default function CadastroOpcao() {
                             const dateString = `${year}-${month}-${day}`;
                             handleInputChange("data", dateString);
                           }
+                        }}
+                        disabled={(date) => {
+                          // Desabilitar sábados (6) e domingos (0)
+                          const dayOfWeek = date.getDay();
+                          return dayOfWeek === 0 || dayOfWeek === 6;
                         }}
                         initialFocus
                         className={cn("p-3 pointer-events-auto")}

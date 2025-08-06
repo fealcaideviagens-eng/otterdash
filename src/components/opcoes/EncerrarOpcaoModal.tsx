@@ -45,6 +45,18 @@ export const EncerrarOpcaoModal = ({
     e.preventDefault();
     if (!opcao) return;
 
+    // Validar se não é fim de semana
+    const selectedDate = new Date(formData.data);
+    const dayOfWeek = selectedDate.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      toast({
+        title: "❌ Erro",
+        description: "Não é possível encerrar opções em finais de semana.",
+        className: "border-red-200 bg-red-50 text-red-900",
+      });
+      return;
+    }
+
     const premioValue = parseCurrencyToNumber(formData.premio);
     
     // Validação para não aceitar valores negativos
@@ -163,6 +175,15 @@ export const EncerrarOpcaoModal = ({
                   type="date"
                   value={formData.data}
                   onChange={(e) => setFormData(prev => ({ ...prev, data: e.target.value }))}
+                  onInvalid={(e) => {
+                    const date = new Date(e.currentTarget.value);
+                    const dayOfWeek = date.getDay();
+                    if (dayOfWeek === 0 || dayOfWeek === 6) {
+                      e.currentTarget.setCustomValidity('Não é possível selecionar fins de semana');
+                    } else {
+                      e.currentTarget.setCustomValidity('');
+                    }
+                  }}
                   className="pr-10"
                   required
                 />
