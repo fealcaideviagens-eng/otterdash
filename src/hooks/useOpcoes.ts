@@ -28,7 +28,7 @@ const mapOpsRegistryToOpcao = (data: any): Opcao => ({
   quantidade: data.ops_quanti,
   premio: data.ops_premio,
   data: data.ops_vencimento,
-  status: 'aberta', // Status padrão
+  status: data.status || 'aberta', // Status baseado nos dados ou padrão
   user_id: data.user_id
 });
 
@@ -65,17 +65,34 @@ export const useOpcoes = (userId?: string) => {
     console.log('useOpcoes: Carregando opções para userId:', userId);
     
     try {
-      const { data, error } = await supabase
+      // Buscar opções
+      const { data: opcoesData, error: opcoesError } = await supabase
         .from('ops_registry')
         .select('*')
         .eq('user_id', userId)
         .order('ops_criado_em', { ascending: false });
         
-      console.log('useOpcoes: Resposta do supabase:', { data, error });
-        
-      if (error) throw error;
+      if (opcoesError) throw opcoesError;
       
-      const opcoesFormatadas = (data || []).map(mapOpsRegistryToOpcao);
+      // Buscar vendas/encerramentos
+      const { data: vendasData, error: vendasError } = await supabase
+        .from('ops_completed')
+        .select('*')
+        .eq('user_id', userId);
+        
+      if (vendasError) throw vendasError;
+      
+      console.log('useOpcoes: Resposta do supabase:', { opcoes: opcoesData, vendas: vendasData });
+      
+      // Mapear opções com status correto
+      const opcoesFormatadas = (opcoesData || []).map(opcaoData => {
+        const temVenda = vendasData?.some(venda => venda.ops_id === opcaoData.ops_id);
+        return mapOpsRegistryToOpcao({
+          ...opcaoData,
+          status: temVenda ? 'encerrada' : 'aberta'
+        });
+      });
+      
       console.log('useOpcoes: Opções formatadas:', opcoesFormatadas);
       setOpcoes(opcoesFormatadas);
     } catch (error) {
@@ -208,7 +225,7 @@ export const useOpcoes = (userId?: string) => {
         ops_id: opcaoId,
         user_id: userId,
         completed_premio: vendaData.premio,
-        completed_data: vendaData.encerramento,
+        completed_data: vendaData.data || vendaData.encerramento,
         completed_quanti: vendaData.quantidade,
         completed_criado_em: new Date().toISOString()
       };
