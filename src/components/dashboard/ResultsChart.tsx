@@ -41,8 +41,8 @@ export const ResultsChart = ({ viewType }: ResultsChartProps) => {
     const monthlyResults: { [key: string]: number } = {};
     
     vendas.forEach(venda => {
-      // Encontrar a opção correspondente
-      const opcao = opcoes.find(o => o.opcao === venda.opcao_id);
+      // Encontrar a opção correspondente usando o ops_id correto
+      const opcao = opcoes.find(o => o.ops_id === venda.ops_id);
       if (!opcao) return;
 
       // Calcular o resultado real da operação
@@ -88,8 +88,8 @@ export const ResultsChart = ({ viewType }: ResultsChartProps) => {
     const yearlyResults: { [key: string]: number } = {};
     
     vendas.forEach(venda => {
-      // Encontrar a opção correspondente
-      const opcao = opcoes.find(o => o.opcao === venda.opcao_id);
+      // Encontrar a opção correspondente usando o ops_id correto
+      const opcao = opcoes.find(o => o.ops_id === venda.ops_id);
       if (!opcao) return;
 
       // Calcular o resultado real da operação

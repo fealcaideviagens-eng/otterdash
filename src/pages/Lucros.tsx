@@ -44,8 +44,8 @@ export default function Lucros() {
     const anoAtual = new Date().getFullYear();
 
     vendas.forEach(venda => {
-      // Encontrar a opção correspondente
-      const opcao = opcoes.find(o => o.opcao === venda.opcao_id);
+      // Encontrar a opção correspondente usando o ops_id correto
+      const opcao = opcoes.find(o => o.ops_id === venda.ops_id);
       if (!opcao) return;
 
       // Calcular o resultado real da operação
@@ -73,7 +73,7 @@ export default function Lucros() {
         lucros[monthKey].total += resultado;
         lucros[monthKey].operacoes.push({
           ...venda,
-          opcao: opcao.opcao,
+          opcao: opcao.ops_ticker, // Usar o ticker correto
           resultado
         });
       }
