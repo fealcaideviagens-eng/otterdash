@@ -249,22 +249,39 @@ export const useOpcoes = (userId?: string) => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
+    // Filtrar vendas do mês atual com correção de fuso horário
     const vendasMes = vendas.filter(venda => {
-      const vendaDate = new Date(venda.encerramento);
+      let vendaDate: Date;
+      if (venda.encerramento.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = venda.encerramento.split('-').map(Number);
+        vendaDate = new Date(year, month - 1, day);
+      } else {
+        vendaDate = new Date(venda.encerramento);
+      }
       return vendaDate.getMonth() === currentMonth && vendaDate.getFullYear() === currentYear;
     });
     
+    // Calcular valor ganho no mês usando a mesma lógica das outras páginas
     const valorGanhoMes = vendasMes.reduce((total, venda) => {
       const opcaoOriginal = opcoes.find(opcao => opcao.ops_id === venda.ops_id);
-      if (opcaoOriginal?.premio && venda.premio) {
-        return total + (opcaoOriginal.premio - venda.premio) * venda.quantidade;
+      if (opcaoOriginal?.ops_premio && opcaoOriginal?.ops_quanti) {
+        // Valor inicial: Quantidade * Prêmio inicial
+        const valorInicial = opcaoOriginal.ops_quanti * opcaoOriginal.ops_premio;
+        
+        // Valor final: Quantidade * Novo prêmio (do encerramento)  
+        const valorFinal = venda.completed_quanti * venda.completed_premio;
+        
+        // Para vendas: lucro = valor inicial - valor final
+        // Para compras: lucro = valor final - valor inicial
+        const resultado = opcaoOriginal.ops_operacao === 'venda' ? valorInicial - valorFinal : valorFinal - valorInicial;
+        return total + resultado;
       }
       return total;
     }, 0);
     
     const lucroMaximoEstimado = opcoes
       .filter(opcao => opcao.status === 'aberta')
-      .reduce((total, opcao) => total + (opcao.premio || 0) * (opcao.quantidade || 0), 0);
+      .reduce((total, opcao) => total + (opcao.ops_premio || 0) * (opcao.ops_quanti || 0), 0);
 
     return { opcoesAbertas, valorGanhoMes, lucroMaximoEstimado };
   };
