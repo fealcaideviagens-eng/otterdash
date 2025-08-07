@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Opcao } from "@/types/database";
-import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
+import { formatCurrency, formatNumber, formatCurrencyValue, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
 import { CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -57,10 +57,10 @@ export function EditarOpcaoModal({
       });
       
       setFormattedValues({
-        strike: opcao.ops_strike ? formatCurrency(opcao.ops_strike.toString()) : "",
-        cotacao: opcao.acao_cotacao ? formatCurrency(opcao.acao_cotacao.toString()) : "",
+        strike: opcao.ops_strike ? formatCurrencyValue(opcao.ops_strike) : "",
+        cotacao: opcao.acao_cotacao ? formatCurrencyValue(opcao.acao_cotacao) : "",
         quantidade: opcao.ops_quanti ? formatNumber(opcao.ops_quanti.toString()) : "",
-        premio: opcao.ops_premio ? formatCurrency(opcao.ops_premio.toString()) : "",
+        premio: opcao.ops_premio ? formatCurrencyValue(opcao.ops_premio) : "",
       });
     }
   }, [opcao]);

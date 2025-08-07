@@ -16,6 +16,17 @@ export const formatCurrency = (value: string): string => {
   });
 };
 
+// Nova função para formatar valores que já estão em reais (para exibição em inputs)
+export const formatCurrencyValue = (value: number): string => {
+  if (!value && value !== 0) return '';
+  
+  // Formata o valor em reais para exibição no input
+  return value.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
 export const formatNumber = (value: string): string => {
   // Remove tudo que não for número
   const numbers = value.replace(/\D/g, '');
