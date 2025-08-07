@@ -49,8 +49,8 @@ export default function ListaOpcoes() {
   const opcoesFinalizadas = opcoes
     .filter(opcao => opcao.status === 'encerrada')
     .sort((a, b) => {
-      const vendaA = vendas.find(v => v.opcao_id === a.opcao);
-      const vendaB = vendas.find(v => v.opcao_id === b.opcao);
+      const vendaA = vendas.find(v => v.ops_id === a.ops_id);
+      const vendaB = vendas.find(v => v.ops_id === b.ops_id);
       
       if (!vendaA?.encerramento || !vendaB?.encerramento) return 0;
       
@@ -93,7 +93,7 @@ export default function ListaOpcoes() {
     if (!opcao.quantidade || !opcao.premio) return 0;
     
     // Encontrar a venda correspondente a essa opção
-    const venda = vendas.find(v => v.opcao_id === opcao.opcao);
+    const venda = vendas.find(v => v.ops_id === opcao.ops_id);
     if (!venda) return 0;
     
     // Valor inicial: Quantidade * Prêmio inicial
@@ -109,7 +109,7 @@ export default function ListaOpcoes() {
 
   const calculateDiferencaPremio = (opcao: Opcao): number => {
     // Encontrar a venda correspondente a essa opção
-    const venda = vendas.find(v => v.opcao_id === opcao.opcao);
+    const venda = vendas.find(v => v.ops_id === opcao.ops_id);
     if (!venda || !opcao.premio) return 0;
     
     // Diferença entre prêmio inicial e novo prêmio
@@ -120,7 +120,7 @@ export default function ListaOpcoes() {
     if (!opcao.quantidade || !opcao.premio || !opcao.operacao) return '-';
     
     // Encontrar a venda correspondente a essa opção
-    const venda = vendas.find(v => v.opcao_id === opcao.opcao);
+    const venda = vendas.find(v => v.ops_id === opcao.ops_id);
     if (!venda) return '-';
     
     const premioOriginal = opcao.premio;
@@ -140,7 +140,7 @@ export default function ListaOpcoes() {
   };
 
   const getDataEncerramento = (opcao: Opcao): string => {
-    const venda = vendas.find(v => v.opcao_id === opcao.opcao);
+    const venda = vendas.find(v => v.ops_id === opcao.ops_id);
     return venda?.encerramento ? formatDate(venda.encerramento) : '-';
   };
 
@@ -149,7 +149,7 @@ export default function ListaOpcoes() {
     const groups: { [key: string]: Opcao[] } = {};
     
     opcoesFinalizadas.forEach(opcao => {
-      const venda = vendas.find(v => v.opcao_id === opcao.opcao);
+      const venda = vendas.find(v => v.ops_id === opcao.ops_id);
       if (venda?.encerramento) {
         // Criar a data localmente para evitar problemas de fuso horário
         const [year, month, day] = venda.encerramento.split('-').map(Number);
@@ -207,20 +207,22 @@ export default function ListaOpcoes() {
     data: string;
     quantidade: number;
   }) => {
-    await encerrarOpcao(data.opcao_id, data);
-    await refreshData();
+    if (selectedOpcao?.ops_id) {
+      await encerrarOpcao(selectedOpcao.ops_id, data);
+      await refreshData();
+    }
   };
 
   const handleConfirmEdit = async (data: Partial<Opcao>) => {
-    if (selectedOpcao?.opcao) {
-      await editarOpcao(selectedOpcao.opcao, data);
+    if (selectedOpcao?.ops_id) {
+      await editarOpcao(selectedOpcao.ops_id, data);
       await refreshData();
     }
   };
 
   const handleConfirmDelete = async () => {
-    if (selectedOpcao?.opcao) {
-      await deletarOpcao(selectedOpcao.opcao);
+    if (selectedOpcao?.ops_id) {
+      await deletarOpcao(selectedOpcao.ops_id);
       await refreshData();
     }
   };
@@ -366,7 +368,7 @@ export default function ListaOpcoes() {
                       </h3>
                       <Accordion type="multiple" className="w-full">
                         {monthGroup.opcoes.map((opcao, index) => {
-                          const venda = vendas.find(v => v.opcao_id === opcao.opcao);
+                          const venda = vendas.find(v => v.ops_id === opcao.ops_id);
                           return (
                             <AccordionItem key={`${opcao.opcao}-${index}`} value={`${monthGroup.key}-item-${index}`}>
                               <AccordionTrigger className="hover:no-underline">

@@ -255,7 +255,7 @@ export const useOpcoes = (userId?: string) => {
     });
     
     const valorGanhoMes = vendasMes.reduce((total, venda) => {
-      const opcaoOriginal = opcoes.find(opcao => opcao.opcao === venda.opcao_id);
+      const opcaoOriginal = opcoes.find(opcao => opcao.ops_id === venda.ops_id);
       if (opcaoOriginal?.premio && venda.premio) {
         return total + (opcaoOriginal.premio - venda.premio) * venda.quantidade;
       }
