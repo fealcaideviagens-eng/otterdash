@@ -45,22 +45,22 @@ export function EditarOpcaoModal({
   useEffect(() => {
     if (opcao) {
       setFormData({
-        opcao: opcao.opcao,
-        operacao: opcao.operacao,
-        tipo: opcao.tipo,
-        acao: opcao.acao,
-        strike: opcao.strike,
-        cotacao: opcao.cotacao,
-        quantidade: opcao.quantidade,
-        premio: opcao.premio,
-        data: opcao.data,
+        opcao: opcao.ops_ticker,      // Usar campo real da tabela
+        operacao: opcao.ops_operacao, // Usar campo real da tabela
+        tipo: opcao.ops_tipo,         // Usar campo real da tabela
+        acao: opcao.ops_acao,         // Usar campo real da tabela
+        strike: opcao.ops_strike,     // Usar campo real da tabela
+        cotacao: opcao.acao_cotacao,  // Usar campo real da tabela
+        quantidade: opcao.ops_quanti, // Usar campo real da tabela
+        premio: opcao.ops_premio,     // Usar campo real da tabela
+        data: opcao.ops_vencimento,   // Usar campo real da tabela
       });
       
       setFormattedValues({
-        strike: opcao.strike ? formatCurrency(opcao.strike.toString()) : "",
-        cotacao: opcao.cotacao ? formatCurrency(opcao.cotacao.toString()) : "",
-        quantidade: opcao.quantidade ? formatNumber(opcao.quantidade.toString()) : "",
-        premio: opcao.premio ? formatCurrency(opcao.premio.toString()) : "",
+        strike: opcao.ops_strike ? formatCurrency(opcao.ops_strike.toString()) : "",
+        cotacao: opcao.acao_cotacao ? formatCurrency(opcao.acao_cotacao.toString()) : "",
+        quantidade: opcao.ops_quanti ? formatNumber(opcao.ops_quanti.toString()) : "",
+        premio: opcao.ops_premio ? formatCurrency(opcao.ops_premio.toString()) : "",
       });
     }
   }, [opcao]);
