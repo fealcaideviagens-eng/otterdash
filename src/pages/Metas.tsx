@@ -26,17 +26,17 @@ const Metas = () => {
 
   // Calcular o resultado real da operação (igual à página ResultsChart)
   const calculateLucroPrejuizoReais = (opcao: any, venda: any): number => {
-    if (!opcao?.quantidade || !opcao?.premio) return 0;
+    if (!opcao?.ops_premio || !opcao?.ops_quanti) return 0;
     
     // Valor inicial: Quantidade * Prêmio inicial
-    const valorInicial = opcao.quantidade * opcao.premio;
+    const valorInicial = opcao.ops_quanti * opcao.ops_premio;
     
     // Valor final: Quantidade * Novo prêmio (do encerramento)
-    const valorFinal = venda.quantidade * venda.premio;
+    const valorFinal = venda.completed_quanti * venda.completed_premio;
     
     // Para vendas: lucro = valor inicial - valor final
     // Para compras: lucro = valor final - valor inicial
-    return opcao.operacao === 'venda' ? valorInicial - valorFinal : valorFinal - valorInicial;
+    return opcao.ops_operacao === 'venda' ? valorInicial - valorFinal : valorFinal - valorInicial;
   };
 
   const calcularProgresso = (meta: Meta) => {
@@ -53,7 +53,7 @@ const Metas = () => {
       
       vendas.forEach(venda => {
         // Encontrar a opção correspondente
-        const opcao = opcoes.find(o => o.opcao === venda.opcao_id);
+        const opcao = opcoes.find(o => o.ops_id === venda.ops_id);
         if (!opcao) return;
 
         // Calcular o resultado real da operação
@@ -93,7 +93,7 @@ const Metas = () => {
       
       vendas.forEach(venda => {
         // Encontrar a opção correspondente
-        const opcao = opcoes.find(o => o.opcao === venda.opcao_id);
+        const opcao = opcoes.find(o => o.ops_id === venda.ops_id);
         if (!opcao) return;
 
         // Calcular o resultado real da operação
