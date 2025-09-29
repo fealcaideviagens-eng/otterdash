@@ -1,8 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { Plus, List, Home, TrendingUp, LogOut, Target } from "lucide-react";
+import { Plus, List, Home, TrendingUp, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
 
 const navigation = [
   { name: "Visão geral", href: "/", icon: Home },
@@ -13,12 +11,6 @@ const navigation = [
 ];
 
 export const Sidebar = () => {
-  const { logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-  };
-
   return (
     <>
       {/* Desktop Sidebar */}
@@ -48,18 +40,6 @@ export const Sidebar = () => {
             </NavLink>
           ))}
         </nav>
-        
-        {/* Logout Button */}
-        <div className="p-4 border-t border-purple-300">
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            className="w-full justify-start text-white hover:bg-white/5 hover:text-white active:text-white focus:text-white btn-pill"
-          >
-            <LogOut className="mr-3 h-5 w-5 text-white" />
-            Sair
-          </Button>
-        </div>
       </div>
 
       {/* Mobile Bottom Navigation */}

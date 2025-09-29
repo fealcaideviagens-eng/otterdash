@@ -16,14 +16,15 @@ import { EncerrarOpcaoModal } from "@/components/opcoes/EncerrarOpcaoModal";
 import { EditarOpcaoModal } from "@/components/opcoes/EditarOpcaoModal";
 import { DeleteOpcaoModal } from "@/components/opcoes/DeleteOpcaoModal";
 import { useOpcoes } from "@/hooks/useOpcoes";
-import { useAuth } from "@/context/AuthContext";
 import { Opcao } from "@/types/database";
+
+// ID de usuário fixo para uso sem autenticação
+const FIXED_USER_ID = "00000000-0000-0000-0000-000000000000";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { Edit, Trash2 } from "lucide-react";
 
 export default function ListaOpcoes() {
-  const { user } = useAuth();
-  const { opcoes, vendas, loading, encerrarOpcao, editarOpcao, deletarOpcao, refreshData } = useOpcoes(user?.["user-id"]);
+  const { opcoes, vendas, loading, encerrarOpcao, editarOpcao, deletarOpcao, refreshData } = useOpcoes(FIXED_USER_ID);
   const [selectedOpcao, setSelectedOpcao] = useState<Opcao | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);

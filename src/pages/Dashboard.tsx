@@ -5,13 +5,15 @@ import { EditarGarantiaModal } from "@/components/dashboard/EditarGarantiaModal"
 import { ResultsChart } from "@/components/dashboard/ResultsChart";
 import { OptionsDistributionChart } from "@/components/dashboard/OptionsDistributionChart";
 import { AlertasCard } from "@/components/dashboard/AlertasCard";
-import { useAuth } from "@/context/AuthContext";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { formatCurrency } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+
+// ID de usuário fixo para uso sem autenticação
+const FIXED_USER_ID = "00000000-0000-0000-0000-000000000000";
 
 const getGreeting = () => {
   const now = new Date();
@@ -39,8 +41,7 @@ const getShortName = (fullName: string) => {
 };
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const { loading, getDashboardMetrics, opcoes } = useOpcoes(user?.['user-id']);
+  const { loading, getDashboardMetrics, opcoes } = useOpcoes(FIXED_USER_ID);
   const navigate = useNavigate();
   const [chartPeriod, setChartPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [garantiaPut, setGarantiaPut] = useState<number>(0);
@@ -91,7 +92,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">{getGreeting()}, {getShortName(user?.nome || '')}</h1>
+          <h1 className="text-3xl font-bold text-foreground">{getGreeting()}</h1>
           <p className="text-muted-foreground">
             Acompanhe suas opções de qualquer lugar
           </p>

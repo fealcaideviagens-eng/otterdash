@@ -5,14 +5,15 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Calendar } from "lucide-react";
 import { useOpcoes } from "@/hooks/useOpcoes";
-import { useAuth } from "@/context/AuthContext";
 import { formatCurrency } from "@/utils/formatters";
+
+// ID de usuário fixo para uso sem autenticação
+const FIXED_USER_ID = "00000000-0000-0000-0000-000000000000";
 
 type ViewMode = "monthly" | "yearly";
 
 export default function Lucros() {
-  const { user } = useAuth();
-  const { opcoes, vendas, loading } = useOpcoes(user?.["user-id"]);
+  const { opcoes, vendas, loading } = useOpcoes(FIXED_USER_ID);
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
 
   if (loading) {
