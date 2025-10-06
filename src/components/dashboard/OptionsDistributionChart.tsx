@@ -2,9 +2,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recha
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useOpcoes } from "@/hooks/useOpcoes";
 
-// ID de usuário fixo para uso sem autenticação
-const FIXED_USER_ID = "00000000-0000-0000-0000-000000000000";
-
 interface PieData {
   name: string;
   value: number;
@@ -12,8 +9,12 @@ interface PieData {
   color: string;
 }
 
-export const OptionsDistributionChart = () => {
-  const { opcoes } = useOpcoes(FIXED_USER_ID);
+interface OptionsDistributionChartProps {
+  userId?: string;
+}
+
+export const OptionsDistributionChart = ({ userId }: OptionsDistributionChartProps) => {
+  const { opcoes } = useOpcoes(userId || '');
 
   // Filtrar opções abertas e contar por tipo
   const opcoesAbertas = opcoes.filter(opcao => opcao.status === 'aberta');

@@ -3,9 +3,6 @@ import { useOpcoes } from "@/hooks/useOpcoes";
 import { formatCurrency } from "@/utils/formatters";
 import { Opcao } from "@/types/database";
 
-// ID de usuário fixo para uso sem autenticação
-const FIXED_USER_ID = "00000000-0000-0000-0000-000000000000";
-
 type ViewType = 'monthly' | 'yearly';
 
 interface ChartData {
@@ -17,10 +14,11 @@ interface ChartData {
 
 interface ResultsChartProps {
   viewType: ViewType;
+  userId?: string;
 }
 
-export const ResultsChart = ({ viewType }: ResultsChartProps) => {
-  const { opcoes, vendas } = useOpcoes(FIXED_USER_ID);
+export const ResultsChart = ({ viewType, userId }: ResultsChartProps) => {
+  const { opcoes, vendas } = useOpcoes(userId || '');
 
   // Calcular o resultado real da operação (igual à página Lucros)
   const calculateLucroPrejuizoReais = (opcao: any, venda: any): number => {

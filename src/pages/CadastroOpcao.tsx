@@ -13,10 +13,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useOpcoes } from "@/hooks/useOpcoes";
+import { useAuth } from "@/context/AuthContext";
 import { Opcao } from "@/types/database";
-
-// ID de usuário fixo para uso sem autenticação
-const FIXED_USER_ID = "00000000-0000-0000-0000-000000000000";
 import { formatDateForInput, formatCurrency as formatCurrencyDisplay } from "@/utils/formatters";
 import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
 import { CalendarIcon, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
@@ -27,8 +25,9 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CadastroOpcao() {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const { addOpcao } = useOpcoes(FIXED_USER_ID);
+  const { addOpcao } = useOpcoes(user?.id || '');
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   

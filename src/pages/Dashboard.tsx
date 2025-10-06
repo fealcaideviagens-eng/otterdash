@@ -6,14 +6,13 @@ import { ResultsChart } from "@/components/dashboard/ResultsChart";
 import { OptionsDistributionChart } from "@/components/dashboard/OptionsDistributionChart";
 import { AlertasCard } from "@/components/dashboard/AlertasCard";
 import { useOpcoes } from "@/hooks/useOpcoes";
+import { useMetas } from "@/hooks/useMetas";
+import { useAuth } from "@/context/AuthContext";
 import { formatCurrency } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-
-// ID de usuário fixo para uso sem autenticação
-const FIXED_USER_ID = "00000000-0000-0000-0000-000000000000";
 
 const getGreeting = () => {
   const now = new Date();
@@ -41,7 +40,8 @@ const getShortName = (fullName: string) => {
 };
 
 export default function Dashboard() {
-  const { loading, getDashboardMetrics, opcoes } = useOpcoes(FIXED_USER_ID);
+  const { user } = useAuth();
+  const { loading, getDashboardMetrics, opcoes } = useOpcoes(user?.id || '');
   const navigate = useNavigate();
   const [chartPeriod, setChartPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [garantiaPut, setGarantiaPut] = useState<number>(0);
@@ -155,7 +155,7 @@ export default function Dashboard() {
             </TabsList>
           </Tabs>
         </div>
-        <ResultsChart viewType={chartPeriod} />
+        <ResultsChart viewType={chartPeriod} userId={user?.id} />
       </div>
 
       {/* Card de Alertas */}

@@ -12,13 +12,12 @@ import { formatCurrency } from "@/utils/formatters";
 import { formatCurrency as formatCurrencyInput, parseCurrencyToNumber } from "@/utils/inputFormatters";
 import { Plus, Target, TrendingUp, Calendar, CalendarDays } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
-// ID de usuário fixo para uso sem autenticação
-const FIXED_USER_ID = "00000000-0000-0000-0000-000000000000";
+import { useAuth } from "@/context/AuthContext";
 
 const Metas = () => {
-  const { metas, addMeta, loading } = useMetas({ userId: FIXED_USER_ID });
-  const { opcoes, vendas } = useOpcoes(FIXED_USER_ID);
+  const { user } = useAuth();
+  const { metas, addMeta, loading } = useMetas({ userId: user?.id });
+  const { opcoes, vendas } = useOpcoes(user?.id || '');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [novaMetaValor, setNovaMetaValor] = useState("");
   const [novaMetaTipo, setNovaMetaTipo] = useState<"mensal" | "anual">("mensal");
