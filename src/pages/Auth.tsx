@@ -100,6 +100,7 @@ export default function Auth() {
 
             <Button 
               type="submit" 
+              variant="default"
               className="w-full"
               disabled={isLoading}
             >
