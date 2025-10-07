@@ -12,88 +12,94 @@ import {
   ArrowRight,
   Star,
 } from "lucide-react";
+import laptopMockup from "@/assets/laptop-mockup.png";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-background via-background to-muted">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 py-20 relative">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
-              <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+              <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
                 Gerencie suas{" "}
-                <span className="text-brand-purple">Opções</span> com{" "}
-                <span className="text-brand-purple">Simplicidade</span>
+                <span className="text-white/90 underline decoration-white/40">Opções</span> com{" "}
+                <span className="text-white/90 underline decoration-white/40">Simplicidade</span>
               </h1>
-              <p className="text-xl text-muted-foreground">
+              <p className="text-xl text-white/90">
                 Acompanhe seus lucros, metas e opções em aberto com facilidade.
                 A ferramenta ideal para traders iniciantes.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
                   size="lg"
-                  className="bg-brand-purple hover-brand-purple text-white text-lg px-8"
+                  className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 font-semibold"
                 >
                   Experimente por R$19,90/mês
                   <ArrowRight className="ml-2" />
                 </Button>
-                <Link to="/auth">
+                <Link to="/auth" className="w-full sm:w-auto">
                   <Button
                     size="lg"
                     variant="outline"
-                    className="text-lg px-8 w-full sm:w-auto"
+                    className="text-lg px-8 w-full border-white/30 text-white hover:bg-white/10 hover:text-white"
                   >
                     Já tenho conta
                   </Button>
                 </Link>
               </div>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4 text-sm text-white/80">
                 <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-brand-purple" />
+                  <CheckCircle className="w-4 h-4 text-white" />
                   <span>Sem taxas ocultas</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4 text-brand-purple" />
+                  <CheckCircle className="w-4 h-4 text-white" />
                   <span>Cancele quando quiser</span>
                 </div>
               </div>
             </div>
             <div className="relative">
-              <div className="relative z-10 rounded-2xl shadow-modern-xl overflow-hidden border-2 border-border">
+              <div className="relative z-10 rounded-2xl shadow-2xl overflow-hidden">
                 <img
-                  src="/placeholder.svg"
-                  alt="Dashboard Preview"
+                  src={laptopMockup}
+                  alt="Dashboard Preview - Sistema ALCA+ em Laptop"
                   className="w-full h-auto"
                 />
               </div>
-              <div className="absolute -top-4 -right-4 w-72 h-72 bg-brand-purple opacity-10 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-4 -left-4 w-72 h-72 bg-brand-purple opacity-10 rounded-full blur-3xl"></div>
+              <div className="absolute -top-8 -right-8 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-8 -left-8 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl"></div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Apresentação do Produto */}
-      <section className="py-20 bg-muted/50">
+      <section className="py-20 bg-gradient-to-b from-muted/50 via-background to-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
+            <div className="inline-block px-4 py-2 bg-brand-purple/10 rounded-full mb-4">
+              <span className="text-brand-purple font-semibold">Controle Total</span>
+            </div>
             <h2 className="text-4xl font-bold mb-4">
-              Controle Total das Suas Operações
+              Gerencie Suas Operações com Inteligência
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Cadastre opções realizadas, acompanhe lucros, metas e o andamento
               de suas operações em tempo real.
             </p>
-            <p className="text-sm text-muted-foreground mt-4">
+            <p className="text-sm text-muted-foreground mt-4 flex items-center justify-center gap-2">
+              <AlertCircle className="w-4 h-4 text-brand-purple" />
               <strong>Importante:</strong> Foco em compra e venda de CALL e PUT
               — sem recomendações de investimento.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <Card className="shadow-modern hover:shadow-modern-lg transition-shadow">
+            <Card className="shadow-modern hover:shadow-modern-lg transition-all hover:-translate-y-1 border-t-4 border-t-brand-purple">
               <CardContent className="pt-6">
                 <div className="rounded-xl bg-brand-purple/10 w-12 h-12 flex items-center justify-center mb-4">
                   <BarChart3 className="w-6 h-6 text-brand-purple" />
@@ -108,7 +114,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-modern hover:shadow-modern-lg transition-shadow">
+            <Card className="shadow-modern hover:shadow-modern-lg transition-all hover:-translate-y-1 border-t-4 border-t-brand-purple">
               <CardContent className="pt-6">
                 <div className="rounded-xl bg-brand-purple/10 w-12 h-12 flex items-center justify-center mb-4">
                   <Target className="w-6 h-6 text-brand-purple" />
@@ -123,7 +129,7 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-modern hover:shadow-modern-lg transition-shadow">
+            <Card className="shadow-modern hover:shadow-modern-lg transition-all hover:-translate-y-1 border-t-4 border-t-brand-purple">
               <CardContent className="pt-6">
                 <div className="rounded-xl bg-brand-purple/10 w-12 h-12 flex items-center justify-center mb-4">
                   <TrendingUp className="w-6 h-6 text-brand-purple" />
@@ -142,11 +148,16 @@ const Index = () => {
       </section>
 
       {/* Benefícios e Funcionalidades */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
+      <section className="py-20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-purple/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-purple/5 rounded-full blur-3xl"></div>
+        <div className="container mx-auto px-4 relative">
           <div className="text-center mb-16">
+            <div className="inline-block px-4 py-2 bg-brand-purple/10 rounded-full mb-4">
+              <span className="text-brand-purple font-semibold">Recursos Poderosos</span>
+            </div>
             <h2 className="text-4xl font-bold mb-4">
-              Recursos que Fazem a Diferença
+              Funcionalidades que Fazem a Diferença
             </h2>
             <p className="text-xl text-muted-foreground">
               Ferramentas essenciais para gerenciar suas opções com confiança
@@ -154,9 +165,9 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="shadow-modern">
+            <Card className="shadow-modern hover:shadow-modern-lg transition-all hover:scale-105 border border-brand-purple/10">
               <CardContent className="pt-6 text-center">
-                <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-brand-purple/20">
                   <AlertCircle className="w-8 h-8 text-brand-purple" />
                 </div>
                 <h3 className="font-semibold mb-2">Alertas Inteligentes</h3>
@@ -167,9 +178,9 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-modern">
+            <Card className="shadow-modern hover:shadow-modern-lg transition-all hover:scale-105 border border-brand-purple/10">
               <CardContent className="pt-6 text-center">
-                <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-brand-purple/20">
                   <DollarSign className="w-8 h-8 text-brand-purple" />
                 </div>
                 <h3 className="font-semibold mb-2">Valor de Garantia</h3>
@@ -179,9 +190,9 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-modern">
+            <Card className="shadow-modern hover:shadow-modern-lg transition-all hover:scale-105 border border-brand-purple/10">
               <CardContent className="pt-6 text-center">
-                <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-brand-purple/20">
                   <TrendingUp className="w-8 h-8 text-brand-purple" />
                 </div>
                 <h3 className="font-semibold mb-2">Termômetro de Opções</h3>
@@ -191,9 +202,9 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-modern">
+            <Card className="shadow-modern hover:shadow-modern-lg transition-all hover:scale-105 border border-brand-purple/10">
               <CardContent className="pt-6 text-center">
-                <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-brand-purple/20">
                   <BarChart3 className="w-8 h-8 text-brand-purple" />
                 </div>
                 <h3 className="font-semibold mb-2">Interface Simples</h3>
@@ -207,11 +218,12 @@ const Index = () => {
       </section>
 
       {/* Seção de Preço */}
-      <section className="py-20 bg-muted/50">
+      <section className="py-20 bg-gradient-to-br from-brand-purple/5 via-brand-purple/10 to-background">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
-            <Card className="shadow-modern-xl border-2 border-brand-purple/20">
-              <CardContent className="pt-12 pb-12 text-center">
+            <Card className="shadow-modern-xl border-2 border-brand-purple/30 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 to-transparent"></div>
+              <CardContent className="pt-12 pb-12 text-center relative">
                 <div className="mb-6">
                   <h2 className="text-3xl font-bold mb-2">Plano Mensal</h2>
                   <p className="text-muted-foreground">
@@ -311,8 +323,10 @@ const Index = () => {
       </section>
 
       {/* CTA Final */}
-      <section className="py-20 bg-gradient-to-br from-brand-purple to-brand-purple-dark">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-20 bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
+        <div className="container mx-auto px-4 text-center relative">
           <h2 className="text-4xl font-bold text-white mb-4">
             Comece Hoje Mesmo
           </h2>
@@ -322,7 +336,7 @@ const Index = () => {
           </p>
           <Button
             size="lg"
-            className="bg-white text-brand-purple hover:bg-white/90 text-xl px-12"
+            className="bg-white text-brand-purple hover:bg-white/90 text-xl px-12 font-semibold"
           >
             Experimente por R$19,90/mês
             <ArrowRight className="ml-2" />
@@ -331,24 +345,25 @@ const Index = () => {
       </section>
 
       {/* Rodapé */}
-      <footer className="py-12 bg-foreground text-background">
-        <div className="container mx-auto px-4">
+      <footer className="py-12 bg-foreground text-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 to-transparent"></div>
+        <div className="container mx-auto px-4 relative">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
-              <h3 className="font-bold mb-4">Sobre</h3>
+              <h3 className="font-bold mb-4 text-white">Sobre</h3>
               <p className="text-sm text-background/80">
                 Sistema de gerenciamento de opções focado em simplicidade e
                 eficiência para traders iniciantes.
               </p>
             </div>
             <div>
-              <h3 className="font-bold mb-4">Contato</h3>
+              <h3 className="font-bold mb-4 text-white">Contato</h3>
               <p className="text-sm text-background/80">
                 Email: contato@opcoes.com
               </p>
             </div>
             <div>
-              <h3 className="font-bold mb-4">Legal</h3>
+              <h3 className="font-bold mb-4 text-white">Legal</h3>
               <p className="text-sm text-background/80">
                 Termos de Uso | Política de Privacidade
               </p>
@@ -356,14 +371,14 @@ const Index = () => {
           </div>
           <div className="border-t border-background/20 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-white">
                 <Shield className="w-5 h-5" />
                 <span className="text-sm">Pagamentos seguros</span>
               </div>
               <p className="text-sm text-background/60 text-center">
                 © 2025 Sistema de Opções. Todos os direitos reservados.
               </p>
-              <p className="text-xs text-background/60 text-center">
+              <p className="text-xs text-background/60 text-center max-w-xs">
                 Este sistema não fornece recomendações de compra ou venda de
                 opções.
               </p>
