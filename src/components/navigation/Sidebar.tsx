@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
 const navigation = [
-  { name: "Visão geral", href: "/", icon: Home },
+  { name: "Visão geral", href: "/dashboard", icon: Home },
   { name: "Cadastro", href: "/cadastro", icon: Plus },
   { name: "Portfólio", href: "/opcoes", icon: List },
   { name: "Lucros", href: "/lucros", icon: TrendingUp },

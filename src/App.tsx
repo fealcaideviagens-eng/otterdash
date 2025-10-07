@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Sidebar } from "@/components/navigation/Sidebar";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import CadastroOpcao from "./pages/CadastroOpcao";
 import ListaOpcoes from "./pages/ListaOpcoes";
@@ -54,9 +55,10 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
+      <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <div className="flex h-screen bg-background">

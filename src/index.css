@@ -37,6 +37,12 @@ All colors MUST be HSL.
     --ring: 0 0% 0%;
 
     --radius: 0.75rem;
+    
+    /* Brand colors - Purple accent */
+    --brand-purple: 262 83% 58%;
+    --brand-purple-light: 262 83% 68%;
+    --brand-purple-dark: 262 83% 48%;
+    --brand-gradient: linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 48%));
 
     /* Financial colors */
     --profit: 142 76% 36%;
@@ -185,5 +191,22 @@ All colors MUST be HSL.
   
   .dialog-title::first-letter {
     text-transform: uppercase;
+  }
+  
+  /* Brand purple utilities */
+  .bg-brand-purple {
+    background-color: hsl(var(--brand-purple));
+  }
+  
+  .text-brand-purple {
+    color: hsl(var(--brand-purple));
+  }
+  
+  .hover-brand-purple:hover {
+    background-color: hsl(var(--brand-purple-dark));
+  }
+  
+  .gradient-brand {
+    background: var(--brand-gradient);
   }
 }
