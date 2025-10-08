@@ -37,24 +37,26 @@ const Index = () => {
                 <span className="text-white font-semibold text-sm">🚀 Versão Beta - 100% Gratuito</span>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                <Link to="/auth?mode=signup" className="w-full sm:w-auto">
-                  <Button
-                    size="lg"
-                    className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 font-semibold w-full"
-                  >
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 font-semibold w-full sm:w-auto"
+                >
+                  <Link to="/auth?mode=signup">
                     Comece Grátis Agora
                     <ArrowRight className="ml-2" />
-                  </Button>
-                </Link>
-                <Link to="/auth?mode=login" className="w-full sm:w-auto">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="text-lg px-8 w-full border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-                  >
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="text-lg px-8 w-full sm:w-auto border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                >
+                  <Link to="/auth?mode=login">
                     Já tenho conta
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
               <div className="flex items-center gap-4 text-sm text-white/80">
                 <div className="flex items-center gap-1">
@@ -244,14 +246,15 @@ const Index = () => {
                   </div>
                   <div className="text-muted-foreground">Enquanto em beta</div>
                 </div>
-                <Link to="/auth">
-                  <Button
-                    size="lg"
-                    className="bg-brand-purple hover-brand-purple text-white text-xl px-12 mb-6"
-                  >
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-brand-purple hover-brand-purple text-white text-xl px-12 mb-6"
+                >
+                  <Link to="/auth?mode=signup">
                     Começar Agora
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
                 <p className="text-sm text-muted-foreground">
                   Sem necessidade de cartão de crédito. Acesso imediato.
                 </p>
@@ -386,15 +389,16 @@ const Index = () => {
             Junte-se aos traders que já estão gerenciando suas opções
             de forma profissional com nossa plataforma 100% gratuita
           </p>
-          <Link to="/auth">
-            <Button
-              size="lg"
-              className="bg-white text-brand-purple hover:bg-white/90 text-xl px-12 font-semibold"
-            >
+          <Button
+            asChild
+            size="lg"
+            className="bg-white text-brand-purple hover:bg-white/90 text-xl px-12 font-semibold"
+          >
+            <Link to="/auth?mode=signup">
               Começar Grátis Agora
               <ArrowRight className="ml-2" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </section>
 
