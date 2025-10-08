@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { DollarSign, Heart } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode');
+  const [isLogin, setIsLogin] = useState(mode === 'login');
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nome, setNome] = useState("");
@@ -22,6 +25,14 @@ export default function Auth() {
       navigate('/');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (mode === 'login') {
+      setIsLogin(true);
+    } else if (mode === 'signup') {
+      setIsLogin(false);
+    }
+  }, [mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,6 +130,15 @@ export default function Auth() {
                 : 'Já tem uma conta? Entrar'}
             </button>
           </div>
+
+          <Alert className="mt-6 border-brand-purple/20 bg-brand-purple/5">
+            <Heart className="h-4 w-4 text-brand-purple" />
+            <AlertDescription className="text-sm">
+              <strong className="text-brand-purple">Apoie o projeto!</strong> Esta plataforma é 100% gratuita.
+              Se quiser contribuir, faça uma doação via PIX:{" "}
+              <span className="font-mono font-semibold">otteropcoes@gmail.com</span>
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     </div>

@@ -37,7 +37,7 @@ const Index = () => {
                 <span className="text-white font-semibold text-sm">🚀 Versão Beta - 100% Gratuito</span>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                <Link to="/auth" className="w-full sm:w-auto">
+                <Link to="/auth?mode=signup" className="w-full sm:w-auto">
                   <Button
                     size="lg"
                     className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 font-semibold w-full"
@@ -46,11 +46,11 @@ const Index = () => {
                     <ArrowRight className="ml-2" />
                   </Button>
                 </Link>
-                <Link to="/auth" className="w-full sm:w-auto">
+                <Link to="/auth?mode=login" className="w-full sm:w-auto">
                   <Button
                     size="lg"
                     variant="outline"
-                    className="text-lg px-8 w-full border-white/30 text-white hover:bg-white/10 hover:text-white"
+                    className="text-lg px-8 w-full border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
                   >
                     Já tenho conta
                   </Button>
