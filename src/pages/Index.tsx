@@ -31,16 +31,21 @@ const Index = () => {
               </h1>
               <p className="text-xl text-white/90">
                 Acompanhe seus lucros, metas e opções em aberto com facilidade.
-                A ferramenta ideal para traders iniciantes.
+                Criado por um investidor de opções para investidores de opções.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 font-semibold"
-                >
-                  Experimente por R$19,90/mês
-                  <ArrowRight className="ml-2" />
-                </Button>
+              <div className="inline-block px-4 py-2 bg-white/20 rounded-full">
+                <span className="text-white font-semibold text-sm">🚀 Versão Beta - 100% Gratuito</span>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                <Link to="/auth" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 font-semibold w-full"
+                  >
+                    Comece Grátis Agora
+                    <ArrowRight className="ml-2" />
+                  </Button>
+                </Link>
                 <Link to="/auth" className="w-full sm:w-auto">
                   <Button
                     size="lg"
@@ -54,11 +59,11 @@ const Index = () => {
               <div className="flex items-center gap-4 text-sm text-white/80">
                 <div className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-white" />
-                  <span>Sem taxas ocultas</span>
+                  <span>100% Gratuito</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-white" />
-                  <span>Cancele quando quiser</span>
+                  <span>Sem necessidade de cartão</span>
                 </div>
               </div>
             </div>
@@ -217,7 +222,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Seção de Preço */}
+      {/* Seção de Acesso Gratuito */}
       <section className="py-20 bg-gradient-to-br from-brand-purple/5 via-brand-purple/10 to-background">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
@@ -225,25 +230,30 @@ const Index = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 to-transparent"></div>
               <CardContent className="pt-12 pb-12 text-center relative">
                 <div className="mb-6">
-                  <h2 className="text-3xl font-bold mb-2">Plano Mensal</h2>
+                  <div className="inline-block px-4 py-2 bg-brand-purple/10 rounded-full mb-4">
+                    <span className="text-brand-purple font-semibold">Versão Beta</span>
+                  </div>
+                  <h2 className="text-3xl font-bold mb-2">Acesso 100% Gratuito</h2>
                   <p className="text-muted-foreground">
-                    Acesso completo a todas as funcionalidades
+                    Todas as funcionalidades disponíveis sem custo
                   </p>
                 </div>
                 <div className="mb-8">
                   <div className="text-6xl font-bold text-brand-purple mb-2">
-                    R$ 19,90
+                    GRÁTIS
                   </div>
-                  <div className="text-muted-foreground">por mês</div>
+                  <div className="text-muted-foreground">Enquanto em beta</div>
                 </div>
-                <Button
-                  size="lg"
-                  className="bg-brand-purple hover-brand-purple text-white text-xl px-12 mb-6"
-                >
-                  Assinar Agora
-                </Button>
+                <Link to="/auth">
+                  <Button
+                    size="lg"
+                    className="bg-brand-purple hover-brand-purple text-white text-xl px-12 mb-6"
+                  >
+                    Começar Agora
+                  </Button>
+                </Link>
                 <p className="text-sm text-muted-foreground">
-                  Sem taxas ocultas. Cancele quando quiser.
+                  Sem necessidade de cartão de crédito. Acesso imediato.
                 </p>
                 <div className="mt-8 space-y-3">
                   {[
@@ -263,6 +273,48 @@ const Index = () => {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Seção de Doações */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold mb-4">Apoie o Desenvolvimento</h2>
+              <p className="text-lg text-muted-foreground mb-6">
+                Este sistema foi criado por um investidor de opções apaixonado por tecnologia.
+                Atualmente em versão beta, é totalmente gratuito para a comunidade de traders.
+              </p>
+              <p className="text-muted-foreground mb-8">
+                Se você está achando útil e gostaria de contribuir para a evolução da plataforma,
+                considere fazer uma doação. Todo o valor arrecadado será investido em melhorias,
+                novas funcionalidades e manutenção dos servidores.
+              </p>
+            </div>
+            <Card className="shadow-modern border-2 border-brand-purple/20">
+              <CardContent className="pt-8 pb-8">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="rounded-full bg-brand-purple/10 w-12 h-12 flex items-center justify-center">
+                    <DollarSign className="w-6 h-6 text-brand-purple" />
+                  </div>
+                  <h3 className="text-xl font-semibold">Doação via PIX</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Sua contribuição ajuda a manter e evoluir esta plataforma
+                </p>
+                <div className="bg-muted p-4 rounded-lg mb-4">
+                  <p className="text-xs text-muted-foreground mb-2">Chave PIX (E-mail)</p>
+                  <p className="text-lg font-mono font-semibold text-brand-purple break-all">
+                    otteropcoes@gmail.com
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Qualquer valor é bem-vindo e muito apreciado! 🙏
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -290,10 +342,10 @@ const Index = () => {
                 role: "Investidora",
                 text: "Os alertas me salvaram várias vezes. Consigo tomar decisões mais rápidas e assertivas.",
               },
-              {
+               {
                 name: "João Santos",
                 role: "Trader",
-                text: "Melhor custo-benefício do mercado. Por menos de R$20/mês tenho controle total das minhas operações.",
+                text: "Sistema completo e gratuito! Perfeito para quem está começando e quer organizar suas operações.",
               },
             ].map((testimonial, i) => (
               <Card key={i} className="shadow-modern">
@@ -328,19 +380,21 @@ const Index = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 text-center relative">
           <h2 className="text-4xl font-bold text-white mb-4">
-            Comece Hoje Mesmo
+            Comece Grátis Hoje Mesmo
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Junte-se a centenas de traders que já estão gerenciando suas opções
-            de forma profissional
+            Junte-se aos traders que já estão gerenciando suas opções
+            de forma profissional com nossa plataforma 100% gratuita
           </p>
-          <Button
-            size="lg"
-            className="bg-white text-brand-purple hover:bg-white/90 text-xl px-12 font-semibold"
-          >
-            Experimente por R$19,90/mês
-            <ArrowRight className="ml-2" />
-          </Button>
+          <Link to="/auth">
+            <Button
+              size="lg"
+              className="bg-white text-brand-purple hover:bg-white/90 text-xl px-12 font-semibold"
+            >
+              Começar Grátis Agora
+              <ArrowRight className="ml-2" />
+            </Button>
+          </Link>
         </div>
       </section>
 
@@ -352,14 +406,18 @@ const Index = () => {
             <div>
               <h3 className="font-bold mb-4 text-white">Sobre</h3>
               <p className="text-sm text-background/80">
-                Sistema de gerenciamento de opções focado em simplicidade e
-                eficiência para traders iniciantes.
+                Plataforma gratuita de gerenciamento de opções, criada por um investidor
+                para investidores. Atualmente em versão beta, focada em simplicidade
+                e eficiência para traders iniciantes.
               </p>
             </div>
             <div>
-              <h3 className="font-bold mb-4 text-white">Contato</h3>
+              <h3 className="font-bold mb-4 text-white">Contato & Doações</h3>
+              <p className="text-sm text-background/80 mb-2">
+                Email: otteropcoes@gmail.com
+              </p>
               <p className="text-sm text-background/80">
-                Email: contato@opcoes.com
+                PIX: otteropcoes@gmail.com
               </p>
             </div>
             <div>
