@@ -19,11 +19,14 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 py-20 relative">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
+              <div className="inline-block px-4 py-2 bg-white/20 rounded-full">
+                <span className="text-white font-semibold text-sm">🚀 Versão Beta - 100% Gratuito</span>
+              </div>
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
                 Gerencie suas{" "}
                 <span className="text-white/90 underline decoration-white/40">Opções</span> com{" "}
@@ -33,9 +36,6 @@ const Index = () => {
                 Acompanhe seus lucros, metas e opções em aberto com facilidade.
                 Criado por um investidor de opções para investidores de opções.
               </p>
-              <div className="inline-block px-4 py-2 bg-white/20 rounded-full">
-                <span className="text-white font-semibold text-sm">🚀 Versão Beta - 100% Gratuito</span>
-              </div>
               <div className="flex flex-col sm:flex-row gap-4 mt-4">
                 <Button
                   asChild
@@ -50,8 +50,8 @@ const Index = () => {
                 <Button
                   asChild
                   size="lg"
-                  variant="outline"
-                  className="text-lg px-8 w-full sm:w-auto border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                  variant="secondary"
+                  className="text-lg px-8 w-full sm:w-auto"
                 >
                   <Link to="/auth?mode=login">
                     Já tenho conta
