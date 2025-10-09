@@ -1,4 +1,6 @@
 import operaiLogo from "@/assets/operai-logo.png";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const links = [
   { href: "#produto", label: "Produto" },
@@ -13,14 +15,13 @@ export default function TopNav() {
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="container mx-auto px-4">
         <div className="h-16 flex items-center justify-between">
-          <a href="#home" className="flex items-center gap-2">
+          <a href="#home" className="flex items-center">
             <img
               src={operaiLogo}
               alt="operAI logo"
-              className="h-8 w-auto"
+              className="h-12 w-auto"
               loading="eager"
             />
-            <span className="font-bold text-lg">operAI</span>
           </a>
 
           <nav className="hidden md:flex items-center gap-6">
@@ -33,20 +34,15 @@ export default function TopNav() {
                 {link.label}
               </a>
             ))}
+            <Button asChild size="sm">
+              <Link to="/auth">Login</Link>
+            </Button>
           </nav>
 
-          <div className="md:hidden">
-            <nav className="flex items-center gap-3 overflow-x-auto no-scrollbar">
-              {links.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="text-sm whitespace-nowrap text-muted-foreground hover:text-foreground"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
+          <div className="md:hidden flex items-center gap-2">
+            <Button asChild size="sm">
+              <Link to="/auth">Login</Link>
+            </Button>
           </div>
         </div>
       </div>
