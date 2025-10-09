@@ -13,12 +13,14 @@ import {
   Star,
 } from "lucide-react";
 import laptopMockup from "@/assets/laptop-mockup.png";
-
-const Index = () => {
+import TopNav from "@/components/navigation/TopNav";
+ 
+ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <TopNav />
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047]">
+      <section id="home" className="relative overflow-hidden bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047]">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 py-20 relative">
@@ -36,28 +38,7 @@ const Index = () => {
                 Acompanhe seus lucros, metas e opções em aberto com facilidade.
                 Criado por um investidor de opções para investidores de opções.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 font-semibold w-full sm:w-auto"
-                >
-                  <Link to="/auth?mode=signup">
-                    Comece Grátis Agora
-                    <ArrowRight className="ml-2" />
-                  </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="secondary"
-                  className="text-lg px-8 w-full sm:w-auto"
-                >
-                  <Link to="/auth?mode=login">
-                    Já tenho conta
-                  </Link>
-                </Button>
-              </div>
+              {/* CTAs do hero removidos temporariamente */}
               <div className="flex items-center gap-4 text-sm text-white/80">
                 <div className="flex items-center gap-1">
                   <CheckCircle className="w-4 h-4 text-white" />
@@ -85,7 +66,7 @@ const Index = () => {
       </section>
 
       {/* Apresentação do Produto */}
-      <section className="py-20 bg-gradient-to-b from-muted/50 via-background to-muted/30">
+      <section id="produto" className="py-20 bg-gradient-to-b from-muted/50 via-background to-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <div className="inline-block px-4 py-2 bg-brand-purple/10 rounded-full mb-4">
@@ -155,7 +136,7 @@ const Index = () => {
       </section>
 
       {/* Benefícios e Funcionalidades */}
-      <section className="py-20 relative overflow-hidden">
+      <section id="recursos" className="py-20 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-brand-purple/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-purple/5 rounded-full blur-3xl"></div>
         <div className="container mx-auto px-4 relative">
@@ -225,7 +206,7 @@ const Index = () => {
       </section>
 
       {/* Seção de Acesso Gratuito */}
-      <section className="py-20 bg-gradient-to-br from-brand-purple/5 via-brand-purple/10 to-background">
+      <section id="gratuito" className="py-20 bg-gradient-to-br from-brand-purple/5 via-brand-purple/10 to-background">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
             <Card className="shadow-modern-xl border-2 border-brand-purple/30 overflow-hidden">
@@ -283,7 +264,7 @@ const Index = () => {
       </section>
 
       {/* Seção de Doações */}
-      <section className="py-20 bg-muted/30">
+      <section id="doacoes" className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center">
             <div className="mb-8">
@@ -325,7 +306,7 @@ const Index = () => {
       </section>
 
       {/* Depoimentos */}
-      <section className="py-20">
+      <section id="depoimentos" className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
@@ -378,7 +359,7 @@ const Index = () => {
       </section>
 
       {/* CTA Final */}
-      <section className="py-20 bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047] relative overflow-hidden">
+      <section id="cta" className="py-20 bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047] relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 text-center relative">
