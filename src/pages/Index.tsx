@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   TrendingUp,
   Target,
@@ -16,8 +16,6 @@ import laptopMockup from "@/assets/laptop-mockup.png";
 import TopNav from "@/components/navigation/TopNav";
  
  const Index = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
@@ -41,13 +39,14 @@ import TopNav from "@/components/navigation/TopNav";
                 Criado por um investidor de opções para investidores de opções.
               </p>
               <div className="pt-2">
-                <Button
-                  size="lg"
-                  onClick={() => navigate("/auth?mode=signup")}
-                  className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 shadow-lg"
-                >
-                  Comece Grátis Agora <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
+                <Link to="/auth?mode=login">
+                  <Button
+                    size="lg"
+                    className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 shadow-lg"
+                  >
+                    Entrar <ArrowRight className="ml-2 w-5 h-5" />
+                  </Button>
+                </Link>
               </div>
               <div className="flex items-center gap-4 text-sm text-white/80">
                 <div className="flex items-center gap-1">

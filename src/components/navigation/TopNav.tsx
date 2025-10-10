@@ -35,13 +35,13 @@ export default function TopNav() {
               </a>
             ))}
             <Button asChild size="sm">
-              <Link to="/auth">Login</Link>
+              <Link to="/auth?mode=login">Login</Link>
             </Button>
           </nav>
 
           <div className="md:hidden flex items-center gap-2">
             <Button asChild size="sm">
-              <Link to="/auth">Login</Link>
+              <Link to="/auth?mode=login">Login</Link>
             </Button>
           </div>
         </div>
