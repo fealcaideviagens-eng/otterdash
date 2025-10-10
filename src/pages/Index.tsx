@@ -215,102 +215,109 @@ import TopNav from "@/components/navigation/TopNav";
         </div>
       </section>
 
-      {/* Seção de Acesso Gratuito */}
+      {/* Seção de Acesso Gratuito e Doações */}
       <section id="gratuito" className="py-20 bg-gradient-to-br from-brand-purple/5 via-brand-purple/10 to-background">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
-            <Card className="shadow-modern-xl border-2 border-brand-purple/30 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 to-transparent"></div>
-              <CardContent className="pt-12 pb-12 text-center relative">
-                <div className="mb-6">
-                  <div className="inline-block px-4 py-2 bg-brand-purple/10 rounded-full mb-4">
-                    <span className="text-brand-purple font-semibold">Versão Beta</span>
-                  </div>
-                  <h2 className="text-3xl font-bold mb-2">Acesso 100% Gratuito</h2>
-                  <p className="text-muted-foreground">
-                    Todas as funcionalidades disponíveis sem custo
-                  </p>
-                </div>
-                <div className="mb-8">
-                  <div className="text-6xl font-bold text-brand-purple mb-2">
-                    GRÁTIS
-                  </div>
-                  <div className="text-muted-foreground">Enquanto em beta</div>
-                </div>
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-brand-purple hover-brand-purple text-white text-xl px-12 mb-6"
-                >
-                  <Link to="/auth?mode=signup">
-                    Começar Agora
-                  </Link>
-                </Button>
-                <p className="text-sm text-muted-foreground">
-                  Sem necessidade de cartão de crédito. Acesso imediato.
-                </p>
-                <div className="mt-8 space-y-3">
-                  {[
-                    "Dashboard completo com métricas em tempo real",
-                    "Cadastro ilimitado de operações",
-                    "Controle de metas personalizadas",
-                    "Alertas de lucro e prejuízo",
-                    "Histórico completo de operações",
-                    "Suporte por e-mail",
-                  ].map((feature, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-center gap-2"
-                    >
-                      <CheckCircle className="w-5 h-5 text-brand-purple" />
-                      <span className="text-sm">{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Seção de Doações */}
-      <section id="doacoes" className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-4">Apoie o Desenvolvimento</h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                Este sistema foi criado por um investidor de opções apaixonado por tecnologia.
-                Atualmente em versão beta, é totalmente gratuito para a comunidade de traders.
-              </p>
-              <p className="text-muted-foreground mb-8">
-                Se você está achando útil e gostaria de contribuir para a evolução da plataforma,
-                considere fazer uma doação. Todo o valor arrecadado será investido em melhorias,
-                novas funcionalidades e manutenção dos servidores.
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-block px-4 py-2 bg-brand-purple/10 rounded-full mb-4">
+                <span className="text-brand-purple font-semibold">Versão Beta</span>
+              </div>
+              <h2 className="text-4xl font-bold mb-4">Acesso 100% Gratuito</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Todas as funcionalidades disponíveis sem custo. 
+                Criado por um investidor de opções para a comunidade de traders.
               </p>
             </div>
-            <Card className="shadow-modern border-2 border-brand-purple/20">
-              <CardContent className="pt-8 pb-8">
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <div className="rounded-full bg-brand-purple/10 w-12 h-12 flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-brand-purple" />
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Card de Acesso Gratuito */}
+              <Card className="shadow-modern-xl border-2 border-brand-purple/30 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 to-transparent"></div>
+                <CardContent className="pt-8 pb-8 text-center relative">
+                  <div className="mb-6">
+                    <div className="text-5xl font-bold text-brand-purple mb-2">
+                      GRÁTIS
+                    </div>
+                    <div className="text-muted-foreground">Enquanto em beta</div>
                   </div>
-                  <h3 className="text-xl font-semibold">Doação via PIX</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Sua contribuição ajuda a manter e evoluir esta plataforma
-                </p>
-                <div className="bg-muted p-4 rounded-lg mb-4">
-                  <p className="text-xs text-muted-foreground mb-2">Chave PIX (E-mail)</p>
-                  <p className="text-lg font-mono font-semibold text-brand-purple break-all">
-                    otteropcoes@gmail.com
+                  <Button
+                    asChild
+                    size="lg"
+                    className="bg-brand-purple hover-brand-purple text-white text-lg px-8 mb-6 w-full"
+                  >
+                    <Link to="/auth?mode=signup">
+                      Começar Agora
+                    </Link>
+                  </Button>
+                  <p className="text-xs text-muted-foreground mb-6">
+                    Sem necessidade de cartão de crédito. Acesso imediato.
                   </p>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Qualquer valor é bem-vindo e muito apreciado! 🙏
-                </p>
-              </CardContent>
-            </Card>
+                  <div className="space-y-3 text-left">
+                    {[
+                      "Dashboard completo em tempo real",
+                      "Cadastro ilimitado de operações",
+                      "Controle de metas personalizadas",
+                      "Alertas de lucro e prejuízo",
+                      "Histórico completo",
+                      "Suporte por e-mail",
+                    ].map((feature, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2"
+                      >
+                        <CheckCircle className="w-4 h-4 text-brand-purple flex-shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Card de Doações */}
+              <Card className="shadow-modern-xl border-2 border-brand-purple/20">
+                <CardContent className="pt-8 pb-8">
+                  <div className="flex items-center justify-center gap-3 mb-6">
+                    <div className="rounded-full bg-brand-purple/10 w-12 h-12 flex items-center justify-center">
+                      <DollarSign className="w-6 h-6 text-brand-purple" />
+                    </div>
+                    <h3 className="text-xl font-semibold">Apoie o Projeto</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-6 text-center">
+                    Gostou do sistema? Ajude na evolução do dashboard! 
+                    Todo valor arrecadado será investido em melhorias, novas funcionalidades e manutenção.
+                  </p>
+                  <div className="bg-muted p-4 rounded-lg mb-4">
+                    <p className="text-xs text-muted-foreground mb-2 text-center">Doação via PIX</p>
+                    <p className="text-base font-mono font-semibold text-brand-purple break-all text-center">
+                      otteropcoes@gmail.com
+                    </p>
+                  </div>
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <p className="text-center">
+                      <strong className="text-foreground">Por que doar?</strong>
+                    </p>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-brand-purple flex-shrink-0 mt-0.5" />
+                        <span>Novas funcionalidades</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-brand-purple flex-shrink-0 mt-0.5" />
+                        <span>Melhorias contínuas</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-brand-purple flex-shrink-0 mt-0.5" />
+                        <span>Manutenção dos servidores</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center mt-6">
+                    Qualquer valor é bem-vindo! 🙏
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
