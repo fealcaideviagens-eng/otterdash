@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   TrendingUp,
   Target,
@@ -16,6 +16,8 @@ import laptopMockup from "@/assets/laptop-mockup.png";
 import TopNav from "@/components/navigation/TopNav";
  
  const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
@@ -40,13 +42,11 @@ import TopNav from "@/components/navigation/TopNav";
               </p>
               <div className="pt-2">
                 <Button
-                  asChild
                   size="lg"
+                  onClick={() => navigate("/auth?mode=signup")}
                   className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 shadow-lg"
                 >
-                  <Link to="/auth?mode=signup">
-                    Comece Grátis Agora <ArrowRight className="ml-2 w-5 h-5" />
-                  </Link>
+                  Comece Grátis Agora <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
               </div>
               <div className="flex items-center gap-4 text-sm text-white/80">
