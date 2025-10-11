@@ -12,7 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Opcao } from "@/types/database";
-import { formatCurrency, formatDateForInput } from "@/utils/formatters";
+import { formatCurrency, formatDateForInput, parseLocalDate } from "@/utils/formatters";
 import { formatCurrency as formatCurrencyInput, parseCurrencyToNumber } from "@/utils/inputFormatters";
 import { CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -183,7 +183,7 @@ export const EncerrarOpcaoModal = ({
                     )}
                   >
                     {formData.data ? (
-                      format(new Date(formData.data), "dd/MM/yyyy")
+                      format(parseLocalDate(formData.data), "dd/MM/yyyy")
                     ) : (
                       <span>Selecione a data</span>
                     )}
@@ -193,7 +193,7 @@ export const EncerrarOpcaoModal = ({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={formData.data ? new Date(formData.data) : undefined}
+                    selected={formData.data ? parseLocalDate(formData.data) : undefined}
                     onSelect={(date) => {
                       if (date) {
                         // Usar formato ISO sem conversão de fuso horário

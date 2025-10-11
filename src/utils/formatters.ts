@@ -35,3 +35,9 @@ export const formatPercentage = (value: number): string => {
   const formatted = value.toFixed(2);
   return value >= 0 ? `+${formatted}%` : `${formatted}%`;
 };
+
+// Converte string YYYY-MM-DD para Date sem problemas de fuso horário
+export const parseLocalDate = (dateString: string): Date => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};

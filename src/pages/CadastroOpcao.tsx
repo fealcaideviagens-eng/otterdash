@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { useAuth } from "@/context/AuthContext";
 import { Opcao } from "@/types/database";
-import { formatDateForInput, formatCurrency as formatCurrencyDisplay, formatPercentage } from "@/utils/formatters";
+import { formatDateForInput, formatCurrency as formatCurrencyDisplay, formatPercentage, parseLocalDate } from "@/utils/formatters";
 import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
 import { CalendarIcon, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -445,7 +445,7 @@ export default function CadastroOpcao() {
                         )}
                       >
                         {formData.data ? (
-                          format(new Date(formData.data), "dd/MM/yyyy")
+                          format(parseLocalDate(formData.data), "dd/MM/yyyy")
                         ) : (
                           <span>Selecione a data</span>
                         )}
@@ -455,7 +455,7 @@ export default function CadastroOpcao() {
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={formData.data ? new Date(formData.data) : undefined}
+                        selected={formData.data ? parseLocalDate(formData.data) : undefined}
                         onSelect={(date) => {
                           if (date) {
                             // Usar formato ISO sem conversão de fuso horário
