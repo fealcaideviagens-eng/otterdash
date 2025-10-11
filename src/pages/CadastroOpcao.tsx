@@ -15,7 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { useAuth } from "@/context/AuthContext";
 import { Opcao } from "@/types/database";
-import { formatDateForInput, formatCurrency as formatCurrencyDisplay } from "@/utils/formatters";
+import { formatDateForInput, formatCurrency as formatCurrencyDisplay, formatPercentage } from "@/utils/formatters";
 import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
 import { CalendarIcon, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -23,6 +23,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function CadastroOpcao() {
   const { user } = useAuth();
@@ -505,10 +506,36 @@ export default function CadastroOpcao() {
           <CardContent className="space-y-4">
             {/* Diferença percentual Strike vs Cotação */}
             <div>
-              <Label className="text-sm font-medium">Diferença Strike vs Cotação</Label>
-              <p className="text-lg font-bold text-foreground">
-                {operationData.percentualDiferenca.toFixed(2)}%
-              </p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="cursor-help">
+                      <Label className="text-sm font-medium">
+                        Diferença Strike vs Cotação
+                      </Label>
+                      <p className={`text-lg font-bold ${
+                        operationData.percentualDiferenca >= 0 
+                          ? 'text-emerald-600' 
+                          : 'text-orange-600'
+                      }`}>
+                        {formatPercentage(operationData.percentualDiferenca)}
+                      </p>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p className="text-xs">
+                      {formData.tipo === "call" 
+                        ? operationData.percentualDiferenca >= 0
+                          ? "Strike acima da cotação (fora do dinheiro)"
+                          : "Strike abaixo da cotação (dentro do dinheiro)"
+                        : operationData.percentualDiferenca >= 0
+                          ? "Cotação acima do strike (fora do dinheiro)"
+                          : "Cotação abaixo do strike (dentro do dinheiro)"
+                      }
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             {/* Valor total do prêmio */}

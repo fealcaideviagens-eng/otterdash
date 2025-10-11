@@ -30,3 +30,8 @@ export const formatDateForInput = (date: string | Date): string => {
 export const parseInputDate = (dateString: string): string => {
   return new Date(dateString).toISOString().split('T')[0];
 };
+
+export const formatPercentage = (value: number): string => {
+  const formatted = value.toFixed(2);
+  return value >= 0 ? `+${formatted}%` : `${formatted}%`;
+};
