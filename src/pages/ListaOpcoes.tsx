@@ -14,19 +14,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { EncerrarOpcaoModal } from "@/components/opcoes/EncerrarOpcaoModal";
 import { EditarOpcaoModal } from "@/components/opcoes/EditarOpcaoModal";
+import { EditarEncerramentoModal } from "@/components/opcoes/EditarEncerramentoModal";
 import { DeleteOpcaoModal } from "@/components/opcoes/DeleteOpcaoModal";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { useAuth } from "@/context/AuthContext";
-import { Opcao } from "@/types/database";
+import { Opcao, Venda } from "@/types/database";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { Edit, Trash2 } from "lucide-react";
 
 export default function ListaOpcoes() {
   const { user } = useAuth();
-  const { opcoes, vendas, loading, encerrarOpcao, editarOpcao, deletarOpcao, refreshData } = useOpcoes(user?.id || '');
+  const { opcoes, vendas, loading, encerrarOpcao, editarOpcao, editarEncerramento, deletarOpcao, refreshData } = useOpcoes(user?.id || '');
   const [selectedOpcao, setSelectedOpcao] = useState<Opcao | null>(null);
+  const [selectedVenda, setSelectedVenda] = useState<Venda | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editEncerramentoModalOpen, setEditEncerramentoModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Ordenar opções abertas por data de validade (mais próxima da data atual primeiro)
@@ -223,6 +226,22 @@ export default function ListaOpcoes() {
   const handleConfirmDelete = async () => {
     if (selectedOpcao?.ops_id) {
       await deletarOpcao(selectedOpcao.ops_id);
+      await refreshData();
+    }
+  };
+
+  const handleEditEncerramento = (opcao: Opcao) => {
+    const venda = vendas.find(v => v.ops_id === opcao.ops_id);
+    if (venda) {
+      setSelectedOpcao(opcao);
+      setSelectedVenda(venda);
+      setEditEncerramentoModalOpen(true);
+    }
+  };
+
+  const handleConfirmEditEncerramento = async (data: { premio: number; data: string; quantidade: number }) => {
+    if (selectedVenda?.completed_id) {
+      await editarEncerramento(selectedVenda.completed_id, data);
       await refreshData();
     }
   };
@@ -433,7 +452,7 @@ export default function ListaOpcoes() {
                                     </div>
                                   </div>
 
-                                  {/* Dados do Encerramento */}
+                                   {/* Dados do Encerramento */}
                                   <div className="space-y-4">
                                     <h4 className="font-semibold text-base border-b pb-2">Dados do Encerramento</h4>
                                     <div className="space-y-3">
@@ -465,6 +484,34 @@ export default function ListaOpcoes() {
                                       </div>
                                     </div>
                                   </div>
+                                </div>
+                                
+                                {/* Botões de Ação */}
+                                <div className="flex justify-end space-x-2 pt-4 border-t">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleEdit(opcao)}
+                                  >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Editar Opção
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleEditEncerramento(opcao)}
+                                  >
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Editar Encerramento
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleDelete(opcao)}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Deletar
+                                  </Button>
                                 </div>
                               </AccordionContent>
                             </AccordionItem>
@@ -508,6 +555,17 @@ export default function ListaOpcoes() {
           setSelectedOpcao(null);
         }}
         onConfirm={handleConfirmDelete}
+      />
+
+      <EditarEncerramentoModal
+        venda={selectedVenda}
+        isOpen={editEncerramentoModalOpen}
+        onClose={() => {
+          setEditEncerramentoModalOpen(false);
+          setSelectedOpcao(null);
+          setSelectedVenda(null);
+        }}
+        onConfirm={handleConfirmEditEncerramento}
       />
     </div>
   );

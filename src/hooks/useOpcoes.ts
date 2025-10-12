@@ -201,6 +201,14 @@ export const useOpcoes = (userId?: string) => {
     if (!userId) throw new Error('Usuário não autenticado');
     
     try {
+      // Primeiro deletar o encerramento se existir
+      await supabase
+        .from('ops_completed')
+        .delete()
+        .eq('ops_id', opcaoId)
+        .eq('user_id', userId);
+
+      // Depois deletar a opção
       const { error } = await supabase
         .from('ops_registry')
         .delete()
@@ -210,6 +218,7 @@ export const useOpcoes = (userId?: string) => {
       if (error) throw error;
       
       await carregarOpcoes();
+      await carregarVendas();
     } catch (error) {
       console.error('Erro ao deletar opção:', error);
       throw error;
@@ -240,6 +249,32 @@ export const useOpcoes = (userId?: string) => {
       await carregarVendas();
     } catch (error) {
       console.error('Erro ao encerrar opção:', error);
+      throw error;
+    }
+  };
+
+  const editarEncerramento = async (completedId: string, dadosAtualizados: any) => {
+    if (!userId) throw new Error('Usuário não autenticado');
+    
+    try {
+      const dadosFormatados = {
+        completed_premio: dadosAtualizados.premio,
+        completed_data: dadosAtualizados.data,
+        completed_quanti: dadosAtualizados.quantidade,
+      };
+
+      const { error } = await supabase
+        .from('ops_completed')
+        .update(dadosFormatados)
+        .eq('completed_id', completedId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      
+      await carregarOpcoes();
+      await carregarVendas();
+    } catch (error) {
+      console.error('Erro ao editar encerramento:', error);
       throw error;
     }
   };
@@ -307,7 +342,8 @@ export const useOpcoes = (userId?: string) => {
     addOpcao: adicionarOpcao, 
     editarOpcao, 
     deletarOpcao, 
-    encerrarOpcao, 
+    encerrarOpcao,
+    editarEncerramento,
     getDashboardMetrics,
     refreshData
   };
