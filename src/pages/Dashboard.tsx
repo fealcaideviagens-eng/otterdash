@@ -118,7 +118,7 @@ export default function Dashboard() {
         />
         
         <MetricsCard
-          title="Lucro máximo estimado"
+          title="Lucro em aberto"
           value={formatCurrency(metrics.lucroMaximoEstimado)}
           icon={<DollarSign className="h-6 w-6" />}
         />
