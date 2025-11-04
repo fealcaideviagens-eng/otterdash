@@ -288,6 +288,29 @@ export default function CadastroOpcao() {
       }
     }
 
+    // Calcular informações de exercício
+    let valorExercicio = 0;
+    let quantidadeAcoes = 0;
+    let mostrarValorExercicio = false;
+    let mostrarQuantidadeAcoes = false;
+
+    if (quantidade > 0 && strike > 0) {
+      valorExercicio = quantidade * strike;
+      quantidadeAcoes = quantidade;
+
+      // Call + Compra ou Put + Venda = mostrar valor em reais
+      if ((formData.tipo === "call" && formData.operacao === "compra") || 
+          (formData.tipo === "put" && formData.operacao === "venda")) {
+        mostrarValorExercicio = true;
+      }
+
+      // Put + Compra ou Call + Venda = mostrar quantidade de ações
+      if ((formData.tipo === "put" && formData.operacao === "compra") || 
+          (formData.tipo === "call" && formData.operacao === "venda")) {
+        mostrarQuantidadeAcoes = true;
+      }
+    }
+
     return {
       percentualDiferenca,
       valorTotal,
@@ -295,7 +318,11 @@ export default function CadastroOpcao() {
       isGanho,
       nivelRisco,
       corRisco,
-      progressValue
+      progressValue,
+      valorExercicio,
+      quantidadeAcoes,
+      mostrarValorExercicio,
+      mostrarQuantidadeAcoes
     };
   };
 
@@ -504,6 +531,59 @@ export default function CadastroOpcao() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Valor de exercício (Call+Compra ou Put+Venda) */}
+            {operationData.mostrarValorExercicio && (
+              <div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help">
+                        <Label className="text-sm font-medium">
+                          Valor de Exercício
+                        </Label>
+                        <p className="text-lg font-bold text-foreground">
+                          {formatCurrencyDisplay(operationData.valorExercicio)}
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">
+                        Valor em reais necessário caso a opção seja exercida (Quantidade × Strike). Não considera taxas da corretora.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
+
+            {/* Quantidade de ações necessárias (Put+Compra ou Call+Venda) */}
+            {operationData.mostrarQuantidadeAcoes && (
+              <div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help">
+                        <Label className="text-sm font-medium">
+                          Ações Necessárias
+                        </Label>
+                        <p className="text-lg font-bold text-foreground">
+                          {operationData.quantidadeAcoes.toLocaleString('pt-BR')} ações
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {formatCurrencyDisplay(operationData.valorExercicio)}
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">
+                        Quantidade de ações que você precisa ter na carteira para esta operação. O valor representa Quantidade × Strike.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
+
             {/* Diferença percentual Strike vs Cotação */}
             <div>
               <TooltipProvider>
