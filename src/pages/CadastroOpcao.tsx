@@ -311,6 +311,28 @@ export default function CadastroOpcao() {
       }
     }
 
+    // Calcular percentual de ganho/perda em relação à garantia
+    let percentualRelativoGarantia = 0;
+    let labelPercentualGarantia = "";
+    let isGanhoGarantia = false;
+
+    if (quantidade > 0 && strike > 0 && premio > 0) {
+      const garantia = strike * quantidade;
+      const premioTotal = premio * quantidade;
+
+      if (formData.operacao === "compra") {
+        // Compra Call ou Compra Put: Perda máxima
+        percentualRelativoGarantia = (-premioTotal / garantia) * 100;
+        labelPercentualGarantia = "Perda máxima";
+        isGanhoGarantia = false;
+      } else {
+        // Venda Put ou Venda Call: Ganho máximo
+        percentualRelativoGarantia = (premioTotal / garantia) * 100;
+        labelPercentualGarantia = "Ganho máximo";
+        isGanhoGarantia = true;
+      }
+    }
+
     return {
       percentualDiferenca,
       valorTotal,
@@ -322,7 +344,10 @@ export default function CadastroOpcao() {
       valorExercicio,
       quantidadeAcoes,
       mostrarValorExercicio,
-      mostrarQuantidadeAcoes
+      mostrarQuantidadeAcoes,
+      percentualRelativoGarantia,
+      labelPercentualGarantia,
+      isGanhoGarantia
     };
   };
 
@@ -625,6 +650,34 @@ export default function CadastroOpcao() {
                 {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
               </p>
             </div>
+
+            {/* Percentual em relação à garantia */}
+            {operationData.percentualRelativoGarantia !== 0 && (
+              <div className="mb-8">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help">
+                        <Label className="text-sm font-medium">
+                          {operationData.labelPercentualGarantia} (% garantia)
+                        </Label>
+                        <p className={`text-lg font-bold ${operationData.isGanhoGarantia ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatPercentage(operationData.percentualRelativoGarantia)}
+                        </p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">
+                        {operationData.isGanhoGarantia 
+                          ? "Percentual de ganho máximo em relação ao valor da garantia (Strike × Quantidade)"
+                          : "Percentual de perda máxima em relação ao valor da garantia (Strike × Quantidade)"
+                        }
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
 
             {/* Nível de risco */}
             <div>
