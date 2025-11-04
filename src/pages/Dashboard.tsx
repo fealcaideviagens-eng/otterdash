@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { formatCurrency } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -62,20 +63,39 @@ export default function Dashboard() {
   const callAbertas = opcoesAbertas.filter(opcao => opcao.tipo?.toLowerCase() === 'call').length;
   const putAbertas = opcoesAbertas.filter(opcao => opcao.tipo?.toLowerCase() === 'put').length;
 
-  // Calcular Notional (opções Put de venda)
-  const calcularNotional = () => {
-    const putVendas = opcoes.filter(opcao => 
-      opcao.tipo?.toLowerCase() === 'put' && 
-      opcao.operacao?.toLowerCase() === 'venda' &&
-      opcao.status === 'aberta'
+  // Calcular Garantia (Compra de Call + Venda de Put)
+  const calcularGarantia = () => {
+    const opcoesGarantia = opcoes.filter(opcao => 
+      opcao.status === 'aberta' &&
+      (
+        (opcao.tipo?.toLowerCase() === 'call' && opcao.operacao?.toLowerCase() === 'compra') ||
+        (opcao.tipo?.toLowerCase() === 'put' && opcao.operacao?.toLowerCase() === 'venda')
+      )
     );
     
-    const notionalTotal = putVendas.reduce((total, opcao) => {
+    const garantiaTotal = opcoesGarantia.reduce((total, opcao) => {
       if (opcao.strike && opcao.quantidade) {
-        const valorInicial = opcao.strike * opcao.quantidade;
-        const valorExercicio = valorInicial * 0.0025; // 0,25%
-        const valorFinal = valorInicial + valorExercicio;
-        return total + valorFinal;
+        return total + (opcao.strike * opcao.quantidade);
+      }
+      return total;
+    }, 0);
+    
+    return garantiaTotal;
+  };
+
+  // Calcular Notional em ativos (Venda de Call + Compra de Put)
+  const calcularNotionalAtivos = () => {
+    const opcoesNotional = opcoes.filter(opcao => 
+      opcao.status === 'aberta' &&
+      (
+        (opcao.tipo?.toLowerCase() === 'call' && opcao.operacao?.toLowerCase() === 'venda') ||
+        (opcao.tipo?.toLowerCase() === 'put' && opcao.operacao?.toLowerCase() === 'compra')
+      )
+    );
+    
+    const notionalTotal = opcoesNotional.reduce((total, opcao) => {
+      if (opcao.strike && opcao.quantidade) {
+        return total + (opcao.strike * opcao.quantidade);
       }
       return total;
     }, 0);
@@ -83,10 +103,11 @@ export default function Dashboard() {
     return notionalTotal;
   };
 
-  const notional = calcularNotional();
+  const garantia = calcularGarantia();
+  const notionalAtivos = calcularNotionalAtivos();
 
   // Verificar se garantia é menor que notional para mostrar alerta
-  const isGarantiaInsuficiente = garantiaPut < notional;
+  const isGarantiaInsuficiente = garantiaPut < notionalAtivos;
 
   return (
     <div className="space-y-6">
@@ -108,35 +129,57 @@ export default function Dashboard() {
       </div>
 
       {/* Primeira linha - 4 cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <MetricsCard
-          title="Ganho no mês"
-          value={formatCurrency(metrics.valorGanhoMes)}
-          icon={<TrendingUp className="h-6 w-6" />}
-          isProfit={metrics.valorGanhoMes > 0}
-          isLoss={metrics.valorGanhoMes < 0}
-        />
-        
-        <MetricsCard
-          title="Lucro em aberto"
-          value={formatCurrency(metrics.lucroMaximoEstimado)}
-          icon={<DollarSign className="h-6 w-6" />}
-        />
+      <TooltipProvider>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <MetricsCard
+            title="Ganho no mês"
+            value={formatCurrency(metrics.valorGanhoMes)}
+            icon={<TrendingUp className="h-6 w-6" />}
+            isProfit={metrics.valorGanhoMes > 0}
+            isLoss={metrics.valorGanhoMes < 0}
+          />
+          
+          <MetricsCard
+            title="Lucro em aberto"
+            value={formatCurrency(metrics.lucroMaximoEstimado)}
+            icon={<DollarSign className="h-6 w-6" />}
+          />
 
-        <MetricsCard
-          title="Notional"
-          value={formatCurrency(notional)}
-          icon={<PieChart className="h-6 w-6" />}
-        />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <MetricsCard
+                  title="Garantia"
+                  value={formatCurrency(garantia)}
+                  icon={<Shield className="h-6 w-6" />}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Soma das garantias necessárias para Compra de Call e Venda de Put</p>
+              <p className="text-xs text-muted-foreground mt-1">(Strike × Quantidade)</p>
+            </TooltipContent>
+          </Tooltip>
 
-        <EditableMetricsCard
-          title="Garantia para put"
-          value={formatCurrency(garantiaPut)}
-          icon={isGarantiaInsuficiente ? <Siren className="h-6 w-6" /> : <Shield className="h-6 w-6" />}
-          onEdit={() => setIsGarantiaModalOpen(true)}
-          isAlert={isGarantiaInsuficiente}
-        />
-      </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <EditableMetricsCard
+                  title="Notional (em ativos)"
+                  value={formatCurrency(garantiaPut)}
+                  icon={isGarantiaInsuficiente ? <Siren className="h-6 w-6" /> : <PieChart className="h-6 w-6" />}
+                  onEdit={() => setIsGarantiaModalOpen(true)}
+                  isAlert={isGarantiaInsuficiente}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Valor total dos ativos necessários em carteira para Venda de Call e Compra de Put</p>
+              <p className="text-xs text-muted-foreground mt-1">(Strike × Quantidade)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
 
       {/* Segunda linha - Resultado anual */}
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
