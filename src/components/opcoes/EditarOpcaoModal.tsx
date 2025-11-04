@@ -15,9 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Opcao } from "@/types/database";
 import { formatCurrency, formatNumber, formatCurrencyValue, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
+import { formatDateForInput, parseLocalDate } from "@/utils/formatters";
 import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface EditarOpcaoModalProps {
@@ -210,17 +215,38 @@ export function EditarOpcaoModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="data">Vencimento</Label>
-            <div className="relative">
-              <Input
-                id="data"
-                type="date"
-                value={formData.data || ""}
-                onChange={(e) => handleInputChange("data", e.target.value)}
-                className="pr-10"
-              />
-              <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50 pointer-events-none" />
-            </div>
+            <Label>Vencimento</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !formData.data && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.data ? (
+                    format(parseLocalDate(formData.data), "dd/MM/yyyy")
+                  ) : (
+                    <span>Selecione a data</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={formData.data ? parseLocalDate(formData.data) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      const dateStr = formatDateForInput(date);
+                      handleInputChange("data", dateStr);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
