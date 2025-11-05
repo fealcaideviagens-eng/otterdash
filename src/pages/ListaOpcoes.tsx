@@ -115,8 +115,8 @@ export default function ListaOpcoes() {
     const venda = vendas.find(v => v.ops_id === opcao.ops_id);
     if (!venda || !opcao.premio) return 0;
     
-    // Diferença entre prêmio inicial e novo prêmio
-    return opcao.premio - venda.premio;
+    // Diferença: Prêmio final - Prêmio inicial
+    return venda.premio - opcao.premio;
   };
 
   const calculateLucroPrejuizoPorcentagem = (opcao: Opcao): string => {
@@ -443,7 +443,9 @@ export default function ListaOpcoes() {
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Prêmio inicial:</span>
-                                        <span className="font-medium">{opcao.premio ? formatCurrency(opcao.premio) : '-'}</span>
+                                        <span className="font-medium">
+                                          {opcao.premio ? formatCurrency(opcao.operacao === 'compra' ? -opcao.premio : opcao.premio) : '-'}
+                                        </span>
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Data de abertura:</span>
@@ -458,7 +460,9 @@ export default function ListaOpcoes() {
                                     <div className="space-y-3">
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Prêmio final:</span>
-                                        <span className="font-medium">{venda?.premio !== undefined ? formatCurrency(venda.premio) : '-'}</span>
+                                        <span className="font-medium">
+                                          {venda?.premio !== undefined ? formatCurrency(opcao.operacao === 'venda' ? -venda.premio : venda.premio) : '-'}
+                                        </span>
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Diferença de prêmio:</span>
