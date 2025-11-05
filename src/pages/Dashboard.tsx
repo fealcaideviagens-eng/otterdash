@@ -1,7 +1,5 @@
-import { TrendingUp, PieChart, DollarSign, Plus, TrendingDown, BarChart, Calendar, Shield, Siren, AlertTriangle } from "lucide-react";
+import { TrendingUp, PieChart, DollarSign, Plus, TrendingDown, BarChart, Calendar, Shield, Wallet } from "lucide-react";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
-import { EditableMetricsCard } from "@/components/dashboard/EditableMetricsCard";
-import { EditarGarantiaModal } from "@/components/dashboard/EditarGarantiaModal";
 import { ResultsChart } from "@/components/dashboard/ResultsChart";
 import { OptionsDistributionChart } from "@/components/dashboard/OptionsDistributionChart";
 import { AlertasCard } from "@/components/dashboard/AlertasCard";
@@ -45,8 +43,6 @@ export default function Dashboard() {
   const { loading, getDashboardMetrics, opcoes } = useOpcoes(user?.id || '');
   const navigate = useNavigate();
   const [chartPeriod, setChartPeriod] = useState<'monthly' | 'yearly'>('monthly');
-  const [garantiaPut, setGarantiaPut] = useState<number>(0);
-  const [isGarantiaModalOpen, setIsGarantiaModalOpen] = useState(false);
 
   if (loading) {
     return (
@@ -83,9 +79,9 @@ export default function Dashboard() {
     return garantiaTotal;
   };
 
-  // Calcular Notional em ativos (Venda de Call + Compra de Put)
-  const calcularNotionalAtivos = () => {
-    const opcoesNotional = opcoes.filter(opcao => 
+  // Calcular Garantia em ativos (Venda de Call + Compra de Put)
+  const calcularGarantiaAtivos = () => {
+    const opcoesGarantiaAtivos = opcoes.filter(opcao => 
       opcao.status === 'aberta' &&
       (
         (opcao.tipo?.toLowerCase() === 'call' && opcao.operacao?.toLowerCase() === 'venda') ||
@@ -93,21 +89,18 @@ export default function Dashboard() {
       )
     );
     
-    const notionalTotal = opcoesNotional.reduce((total, opcao) => {
+    const garantiaAtivosTotal = opcoesGarantiaAtivos.reduce((total, opcao) => {
       if (opcao.strike && opcao.quantidade) {
         return total + (opcao.strike * opcao.quantidade);
       }
       return total;
     }, 0);
     
-    return notionalTotal;
+    return garantiaAtivosTotal;
   };
 
   const garantia = calcularGarantia();
-  const notionalAtivos = calcularNotionalAtivos();
-
-  // Verificar se garantia é menor que notional para mostrar alerta
-  const isGarantiaInsuficiente = garantiaPut < notionalAtivos;
+  const garantiaAtivos = calcularGarantiaAtivos();
 
   return (
     <div className="space-y-6">
@@ -164,18 +157,16 @@ export default function Dashboard() {
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
-                <EditableMetricsCard
-                  title="Notional (em ativos)"
-                  value={formatCurrency(garantiaPut)}
-                  icon={isGarantiaInsuficiente ? <Siren className="h-6 w-6" /> : <PieChart className="h-6 w-6" />}
-                  onEdit={() => setIsGarantiaModalOpen(true)}
-                  isAlert={isGarantiaInsuficiente}
+                <MetricsCard
+                  title="Garantia (em ativos)"
+                  value={formatCurrency(garantiaAtivos)}
+                  icon={<Wallet className="h-6 w-6" />}
                 />
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Valor total dos ativos necessários em carteira para Venda de Call e Compra de Put</p>
-              <p className="text-xs text-muted-foreground mt-1">(Strike × Quantidade)</p>
+              <p>Valor total dos ativos necessários em carteira</p>
+              <p className="text-xs text-muted-foreground mt-1">Venda de Call e Compra de Put (Strike × Quantidade)</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -203,13 +194,6 @@ export default function Dashboard() {
 
       {/* Card de Alertas */}
       <AlertasCard opcoes={opcoes} />
-
-      <EditarGarantiaModal
-        isOpen={isGarantiaModalOpen}
-        onClose={() => setIsGarantiaModalOpen(false)}
-        valorAtual={garantiaPut}
-        onSalvar={setGarantiaPut}
-      />
     </div>
   );
 }
