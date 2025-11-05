@@ -35,6 +35,42 @@ export type Database = {
         }
         Relationships: []
       }
+      garantias: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          garantia_id: string
+          quantidade: number | null
+          ticker: string | null
+          tipo: string
+          tipo_renda_fixa: string | null
+          user_id: string
+          valor_reais: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          garantia_id?: string
+          quantidade?: number | null
+          ticker?: string | null
+          tipo: string
+          tipo_renda_fixa?: string | null
+          user_id: string
+          valor_reais?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          garantia_id?: string
+          quantidade?: number | null
+          ticker?: string | null
+          tipo?: string
+          tipo_renda_fixa?: string | null
+          user_id?: string
+          valor_reais?: number | null
+        }
+        Relationships: []
+      }
       goal: {
         Row: {
           created_at: string
