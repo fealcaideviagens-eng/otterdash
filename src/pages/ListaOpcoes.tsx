@@ -115,8 +115,13 @@ export default function ListaOpcoes() {
     const venda = vendas.find(v => v.ops_id === opcao.ops_id);
     if (!venda || !opcao.premio) return 0;
     
-    // Diferença: Prêmio final - Prêmio inicial
-    return venda.premio - opcao.premio;
+    // Para Venda: Prêmio inicial - Prêmio final
+    // Para Compra: Prêmio final - Prêmio inicial
+    if (opcao.operacao === 'venda') {
+      return opcao.premio - venda.premio;
+    } else {
+      return venda.premio - opcao.premio;
+    }
   };
 
   const calculateLucroPrejuizoPorcentagem = (opcao: Opcao): string => {
