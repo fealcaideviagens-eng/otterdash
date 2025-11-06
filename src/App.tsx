@@ -12,6 +12,7 @@ import CadastroOpcao from "./pages/CadastroOpcao";
 import ListaOpcoes from "./pages/ListaOpcoes";
 import Lucros from "./pages/Lucros";
 import Metas from "./pages/Metas";
+import Garantias from "./pages/Garantias";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -117,6 +118,19 @@ function AppRoutes() {
               <Sidebar />
               <main className="flex-1 overflow-auto p-6 lg:ml-4 pb-20 lg:pb-6">
                 <Metas />
+              </main>
+            </div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/garantias"
+        element={
+          <ProtectedRoute>
+            <div className="flex h-screen bg-background">
+              <Sidebar />
+              <main className="flex-1 overflow-auto p-6 lg:ml-4 pb-20 lg:pb-6">
+                <Garantias />
               </main>
             </div>
           </ProtectedRoute>

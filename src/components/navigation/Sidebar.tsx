@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Plus, List, Home, TrendingUp, Target, LogOut } from "lucide-react";
+import { Plus, List, Home, TrendingUp, Target, Shield, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -10,6 +10,7 @@ const navigation = [
   { name: "Portfólio", href: "/opcoes", icon: List },
   { name: "Lucros", href: "/lucros", icon: TrendingUp },
   { name: "Metas", href: "/metas", icon: Target },
+  { name: "Garantias", href: "/garantias", icon: Shield },
 ];
 
 export const Sidebar = () => {
