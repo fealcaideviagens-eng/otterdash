@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useGarantias } from "@/hooks/useGarantias";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Pencil, Trash2, TrendingUp, Landmark } from "lucide-react";
+import { Pencil, Trash2, TrendingUp, Landmark, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency, parseCurrencyToNumber } from "@/utils/inputFormatters";
 import { Garantia } from "@/types/garantia";
@@ -36,6 +36,7 @@ export default function Garantias() {
   // Estados do formulário de ações
   const [ticker, setTicker] = useState("");
   const [quantidade, setQuantidade] = useState("");
+  const tickerInputRef = useRef<HTMLInputElement>(null);
 
   // Estados do formulário de renda fixa
   const [tipoRendaFixa, setTipoRendaFixa] = useState<"tesouro_selic" | "caixa">("tesouro_selic");
@@ -45,6 +46,10 @@ export default function Garantias() {
   const [editarAcaoModal, setEditarAcaoModal] = useState<Garantia | null>(null);
   const [editarRendaFixaModal, setEditarRendaFixaModal] = useState<Garantia | null>(null);
   const [deleteModal, setDeleteModal] = useState<Garantia | null>(null);
+
+  // Estados de ordenação
+  const [sortTickerOrder, setSortTickerOrder] = useState<'asc' | 'desc' | null>(null);
+  const [sortQuantidadeOrder, setSortQuantidadeOrder] = useState<'asc' | 'desc' | null>(null);
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCurrency(e.target.value);
@@ -70,6 +75,10 @@ export default function Garantias() {
       toast.success("Ação cadastrada com sucesso!");
       setTicker("");
       setQuantidade("");
+      // Focar no campo Ticker após cadastro
+      setTimeout(() => {
+        tickerInputRef.current?.focus();
+      }, 0);
     } catch (error) {
       toast.error("Erro ao cadastrar ação");
     }
@@ -107,8 +116,49 @@ export default function Garantias() {
     }
   };
 
-  const acoes = garantias.filter(g => g.tipo === 'acao');
+  const handleSortTicker = () => {
+    if (sortTickerOrder === 'asc') {
+      setSortTickerOrder('desc');
+    } else {
+      setSortTickerOrder('asc');
+    }
+    setSortQuantidadeOrder(null);
+  };
+
+  const handleSortQuantidade = () => {
+    if (sortQuantidadeOrder === 'asc') {
+      setSortQuantidadeOrder('desc');
+    } else {
+      setSortQuantidadeOrder('asc');
+    }
+    setSortTickerOrder(null);
+  };
+
+  let acoes = garantias.filter(g => g.tipo === 'acao');
   const rendasFixas = garantias.filter(g => g.tipo === 'renda_fixa');
+
+  // Aplicar ordenação
+  if (sortTickerOrder) {
+    acoes = [...acoes].sort((a, b) => {
+      const tickerA = a.ticker || '';
+      const tickerB = b.ticker || '';
+      if (sortTickerOrder === 'asc') {
+        return tickerA.localeCompare(tickerB);
+      } else {
+        return tickerB.localeCompare(tickerA);
+      }
+    });
+  } else if (sortQuantidadeOrder) {
+    acoes = [...acoes].sort((a, b) => {
+      const qtdA = a.quantidade || 0;
+      const qtdB = b.quantidade || 0;
+      if (sortQuantidadeOrder === 'asc') {
+        return qtdA - qtdB;
+      } else {
+        return qtdB - qtdA;
+      }
+    });
+  }
 
   if (loading) {
     return <div className="container mx-auto p-6">Carregando...</div>;
@@ -150,6 +200,7 @@ export default function Garantias() {
                     <Label htmlFor="ticker">Ticker</Label>
                     <Input
                       id="ticker"
+                      ref={tickerInputRef}
                       value={ticker}
                       onChange={(e) => setTicker(e.target.value.toUpperCase())}
                       placeholder="Ex: PETR4"
@@ -189,8 +240,38 @@ export default function Garantias() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Ticker</TableHead>
-                      <TableHead>Quantidade</TableHead>
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          onClick={handleSortTicker}
+                          className="h-8 px-2 lg:px-3"
+                        >
+                          Ticker
+                          {sortTickerOrder === 'asc' ? (
+                            <ArrowUp className="ml-2 h-4 w-4" />
+                          ) : sortTickerOrder === 'desc' ? (
+                            <ArrowDown className="ml-2 h-4 w-4" />
+                          ) : (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button
+                          variant="ghost"
+                          onClick={handleSortQuantidade}
+                          className="h-8 px-2 lg:px-3"
+                        >
+                          Quantidade
+                          {sortQuantidadeOrder === 'asc' ? (
+                            <ArrowUp className="ml-2 h-4 w-4" />
+                          ) : sortQuantidadeOrder === 'desc' ? (
+                            <ArrowDown className="ml-2 h-4 w-4" />
+                          ) : (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
