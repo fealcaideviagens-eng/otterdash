@@ -76,7 +76,7 @@ export function EditarAcaoModal({
               <Input
                 id="ticker"
                 value={ticker}
-                onChange={(e) => setTicker(e.target.value)}
+                onChange={(e) => setTicker(e.target.value.toUpperCase())}
                 placeholder="Ex: PETR4"
                 maxLength={6}
                 required
