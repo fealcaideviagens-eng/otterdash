@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Pencil, Trash2, TrendingUp, Landmark, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatCurrency, parseCurrencyToNumber } from "@/utils/inputFormatters";
 import { Garantia } from "@/types/garantia";
@@ -272,6 +273,7 @@ export default function Garantias() {
                           )}
                         </Button>
                       </TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -280,6 +282,13 @@ export default function Garantias() {
                       <TableRow key={acao.garantia_id}>
                         <TableCell className="font-medium">{acao.ticker}</TableCell>
                         <TableCell>{acao.quantidade}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={acao.status?.includes('Em garantia') ? 'default' : 'secondary'}
+                          >
+                            {acao.status || 'Livre'}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button

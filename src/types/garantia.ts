@@ -11,6 +11,9 @@ export interface Garantia {
   tipo_renda_fixa?: 'tesouro_selic' | 'caixa';
   valor_reais?: number;
   
+  // Status calculado (em garantia ou livre)
+  status?: string;
+  
   criado_em?: string;
   atualizado_em?: string;
 }
