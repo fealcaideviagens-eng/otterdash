@@ -316,7 +316,12 @@ export const useOpcoes = (userId?: string) => {
     
     const lucroMaximoEstimado = opcoes
       .filter(opcao => opcao.status === 'aberta')
-      .reduce((total, opcao) => total + (opcao.ops_premio || 0) * (opcao.ops_quanti || 0), 0);
+      .reduce((total, opcao) => {
+        if (!opcao.ops_quanti || !opcao.ops_premio) return total;
+        const ganho = opcao.ops_quanti * opcao.ops_premio;
+        // Para operações de compra, o ganho máximo é negativo (subtrai do total)
+        return opcao.ops_operacao === 'compra' ? total - ganho : total + ganho;
+      }, 0);
 
     return { opcoesAbertas, valorGanhoMes, lucroMaximoEstimado };
   };
