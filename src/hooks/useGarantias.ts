@@ -10,8 +10,11 @@ export const useGarantias = (props?: UseGarantiasProps) => {
   const [garantias, setGarantias] = useState<Garantia[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const calcularStatusGarantias = async (): Promise<Map<string, number>> => {
-    if (!props?.userId) return new Map();
+  const calcularStatusGarantias = async (): Promise<{
+    quantidadesPorTicker: Map<string, number>;
+    valorRendaFixaEmGarantia: number;
+  }> => {
+    if (!props?.userId) return { quantidadesPorTicker: new Map(), valorRendaFixaEmGarantia: 0 };
     
     try {
       // Buscar todas as opções do usuário
@@ -35,23 +38,30 @@ export const useGarantias = (props?: UseGarantiasProps) => {
         (completedData || []).map(c => c.ops_id)
       );
       
-      // Filtrar opções abertas que usam garantia
-      const opcoesAbertas = (opcoesData || []).filter(opcao => {
-        // Verificar se não está encerrada
+      // Filtrar opções abertas que usam garantia de ações (Venda de Call ou Compra de Put)
+      const opcoesAbertasAcoes = (opcoesData || []).filter(opcao => {
         const naoEncerrada = !opcoesEncerradas.has(opcao.ops_id);
-        
-        // Verificar se usa garantia: Venda de Call ou Compra de Put
-        const usaGarantia = 
+        const usaGarantiaAcao = 
           (opcao.ops_operacao?.toLowerCase() === 'venda' && opcao.ops_tipo?.toLowerCase() === 'call') ||
           (opcao.ops_operacao?.toLowerCase() === 'compra' && opcao.ops_tipo?.toLowerCase() === 'put');
         
-        return naoEncerrada && usaGarantia;
+        return naoEncerrada && usaGarantiaAcao;
       });
       
-      // Agrupar por ticker (ops_acao) e somar quantidades
+      // Filtrar opções abertas que usam garantia de renda fixa (Compra de Call ou Venda de Put)
+      const opcoesAbertasRendaFixa = (opcoesData || []).filter(opcao => {
+        const naoEncerrada = !opcoesEncerradas.has(opcao.ops_id);
+        const usaGarantiaRendaFixa = 
+          (opcao.ops_operacao?.toLowerCase() === 'compra' && opcao.ops_tipo?.toLowerCase() === 'call') ||
+          (opcao.ops_operacao?.toLowerCase() === 'venda' && opcao.ops_tipo?.toLowerCase() === 'put');
+        
+        return naoEncerrada && usaGarantiaRendaFixa;
+      });
+      
+      // Agrupar por ticker (ops_acao) e somar quantidades para garantia de ações
       const quantidadesPorTicker = new Map<string, number>();
       
-      opcoesAbertas.forEach(opcao => {
+      opcoesAbertasAcoes.forEach(opcao => {
         const ticker = opcao.ops_acao?.toUpperCase() || '';
         const quantidade = Number(opcao.ops_quanti) || 0;
         
@@ -61,10 +71,19 @@ export const useGarantias = (props?: UseGarantiasProps) => {
         }
       });
       
-      return quantidadesPorTicker;
+      // Calcular valor em garantia de renda fixa (Strike * Quantidade)
+      let valorRendaFixaEmGarantia = 0;
+      
+      opcoesAbertasRendaFixa.forEach(opcao => {
+        const strike = Number(opcao.ops_strike) || 0;
+        const quantidade = Number(opcao.ops_quanti) || 0;
+        valorRendaFixaEmGarantia += strike * quantidade;
+      });
+      
+      return { quantidadesPorTicker, valorRendaFixaEmGarantia };
     } catch (error) {
       console.error('Erro ao calcular status das garantias:', error);
-      return new Map();
+      return { quantidadesPorTicker: new Map(), valorRendaFixaEmGarantia: 0 };
     }
   };
 
@@ -81,7 +100,7 @@ export const useGarantias = (props?: UseGarantiasProps) => {
       if (error) throw error;
       
       // Calcular status para cada garantia
-      const quantidadesPorTicker = await calcularStatusGarantias();
+      const { quantidadesPorTicker, valorRendaFixaEmGarantia } = await calcularStatusGarantias();
       
       const garantiasComStatus = (data || []).map(garantia => {
         if (garantia.tipo === 'acao' && garantia.ticker) {
@@ -97,6 +116,15 @@ export const useGarantias = (props?: UseGarantiasProps) => {
               : 'Livre',
             quantidadeEmGarantia,
             quantidadeLivre
+          } as Garantia;
+        } else if (garantia.tipo === 'renda_fixa') {
+          const valorTotal = garantia.valor_reais || 0;
+          const valorLivre = Math.max(0, valorTotal - valorRendaFixaEmGarantia);
+          
+          return {
+            ...garantia,
+            valorEmGarantia: valorRendaFixaEmGarantia,
+            valorLivre
           } as Garantia;
         }
         return garantia as Garantia;

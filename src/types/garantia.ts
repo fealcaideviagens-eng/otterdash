@@ -13,8 +13,12 @@ export interface Garantia {
   
   // Status calculado (em garantia ou livre)
   status?: string;
-  quantidadeEmGarantia?: number; // Quantidade já em uso
-  quantidadeLivre?: number; // Quantidade disponível
+  quantidadeEmGarantia?: number; // Quantidade já em uso (ações)
+  quantidadeLivre?: number; // Quantidade disponível (ações)
+  
+  // Campos calculados para renda fixa
+  valorEmGarantia?: number; // Valor já usado como garantia (renda fixa)
+  valorLivre?: number; // Valor disponível (renda fixa)
   
   criado_em?: string;
   atualizado_em?: string;

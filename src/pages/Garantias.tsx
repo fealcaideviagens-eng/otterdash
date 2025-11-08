@@ -369,7 +369,9 @@ export default function Garantias() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Tipo</TableHead>
-                      <TableHead>Valor</TableHead>
+                      <TableHead>Valor em investimento</TableHead>
+                      <TableHead>Em garantia</TableHead>
+                      <TableHead>Livre</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -381,6 +383,12 @@ export default function Garantias() {
                         </TableCell>
                         <TableCell>
                           R$ {rf.valor_reais?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </TableCell>
+                        <TableCell>
+                          R$ {rf.valorEmGarantia?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'}
+                        </TableCell>
+                        <TableCell>
+                          R$ {rf.valorLivre?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00'}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
