@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useOpcoes } from "@/hooks/useOpcoes";
+import { useGarantias } from "@/hooks/useGarantias";
 import { useAuth } from "@/context/AuthContext";
 import { Opcao } from "@/types/database";
 import { formatDateForInput, formatCurrency as formatCurrencyDisplay, formatPercentage, parseLocalDate } from "@/utils/formatters";
@@ -29,6 +30,7 @@ export default function CadastroOpcao() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { addOpcao } = useOpcoes(user?.id || '');
+  const { garantias } = useGarantias({ userId: user?.id });
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
@@ -333,6 +335,38 @@ export default function CadastroOpcao() {
       }
     }
 
+    // Calcular alavancagem (apenas para Venda de Call ou Compra de Put)
+    let mostrarAlavancagem = false;
+    let statusAlavancagem = "";
+    let isAlavancado = false;
+    let quantidadeAlavancada = 0;
+
+    if (quantidade > 0 && formData.acao) {
+      const precisaGarantia = 
+        (formData.operacao === "venda" && formData.tipo === "call") ||
+        (formData.operacao === "compra" && formData.tipo === "put");
+
+      if (precisaGarantia) {
+        mostrarAlavancagem = true;
+        
+        // Buscar garantia cadastrada para esse ticker
+        const garantiaAcao = garantias.find(g => 
+          g.tipo === 'acao' && g.ticker === formData.acao
+        );
+        
+        const quantidadeGarantia = garantiaAcao?.quantidade || 0;
+        
+        if (quantidade <= quantidadeGarantia) {
+          statusAlavancagem = "Coberto";
+          isAlavancado = false;
+        } else {
+          quantidadeAlavancada = quantidade - quantidadeGarantia;
+          statusAlavancagem = `Alavancado em ${quantidadeAlavancada} ações`;
+          isAlavancado = true;
+        }
+      }
+    }
+
     return {
       percentualDiferenca,
       valorTotal,
@@ -347,7 +381,11 @@ export default function CadastroOpcao() {
       mostrarQuantidadeAcoes,
       percentualRelativoGarantia,
       labelPercentualGarantia,
-      isGanhoGarantia
+      isGanhoGarantia,
+      mostrarAlavancagem,
+      statusAlavancagem,
+      isAlavancado,
+      quantidadeAlavancada
     };
   };
 
@@ -671,6 +709,46 @@ export default function CadastroOpcao() {
                         {operationData.isGanhoGarantia 
                           ? "Percentual de ganho máximo em relação ao valor da garantia (Strike × Quantidade)"
                           : "Percentual de perda máxima em relação ao valor da garantia (Strike × Quantidade)"
+                        }
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
+
+            {/* Alavancagem */}
+            {operationData.mostrarAlavancagem && (
+              <div className="mb-8">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help">
+                        <Label className="text-sm font-medium">Alavancagem</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          {operationData.isAlavancado ? (
+                            <>
+                              <AlertTriangle className="h-5 w-5 text-orange-600" />
+                              <p className="text-lg font-bold text-orange-600">
+                                {operationData.statusAlavancagem}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-5 w-5 text-green-600" />
+                              <p className="text-lg font-bold text-green-600">
+                                {operationData.statusAlavancagem}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-xs">
+                        {operationData.isAlavancado 
+                          ? `Você não possui ações suficientes cadastradas em garantia para cobrir esta operação. Está alavancado em ${operationData.quantidadeAlavancada} ações.`
+                          : "Você possui ações suficientes cadastradas em garantia para cobrir esta operação."
                         }
                       </p>
                     </TooltipContent>
