@@ -354,13 +354,14 @@ export default function CadastroOpcao() {
           g.tipo === 'acao' && g.ticker === formData.acao
         );
         
-        const quantidadeGarantia = garantiaAcao?.quantidade || 0;
+        // Usar quantidade LIVRE (descontando o que já está em garantia)
+        const quantidadeLivre = garantiaAcao?.quantidadeLivre || 0;
         
-        if (quantidade <= quantidadeGarantia) {
+        if (quantidade <= quantidadeLivre) {
           statusAlavancagem = "Coberto";
           isAlavancado = false;
         } else {
-          quantidadeAlavancada = quantidade - quantidadeGarantia;
+          quantidadeAlavancada = quantidade - quantidadeLivre;
           statusAlavancagem = `Alavancado em ${quantidadeAlavancada} ações`;
           isAlavancado = true;
         }

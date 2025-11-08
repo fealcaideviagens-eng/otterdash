@@ -87,12 +87,16 @@ export const useGarantias = (props?: UseGarantiasProps) => {
         if (garantia.tipo === 'acao' && garantia.ticker) {
           const tickerUpper = garantia.ticker.toUpperCase();
           const quantidadeEmGarantia = quantidadesPorTicker.get(tickerUpper) || 0;
+          const quantidadeTotal = garantia.quantidade || 0;
+          const quantidadeLivre = Math.max(0, quantidadeTotal - quantidadeEmGarantia);
           
           return {
             ...garantia,
             status: quantidadeEmGarantia > 0 
               ? `Em garantia (${quantidadeEmGarantia})` 
-              : 'Livre'
+              : 'Livre',
+            quantidadeEmGarantia,
+            quantidadeLivre
           } as Garantia;
         }
         return garantia as Garantia;

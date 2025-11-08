@@ -13,6 +13,8 @@ export interface Garantia {
   
   // Status calculado (em garantia ou livre)
   status?: string;
+  quantidadeEmGarantia?: number; // Quantidade já em uso
+  quantidadeLivre?: number; // Quantidade disponível
   
   criado_em?: string;
   atualizado_em?: string;
