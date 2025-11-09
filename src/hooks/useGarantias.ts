@@ -126,9 +126,15 @@ export const useGarantias = (props?: UseGarantiasProps) => {
         return garantia as Garantia;
       });
       
-      // Processar rendas fixas - distribuir o valor em garantia entre elas
+      // Processar rendas fixas - ordenar cronologicamente (mais antigas primeiro) para distribuição
+      const rendasFixasOrdenadas = [...rendasFixas].sort((a, b) => {
+        const dataA = new Date(a.criado_em || 0).getTime();
+        const dataB = new Date(b.criado_em || 0).getTime();
+        return dataA - dataB; // Ordem crescente (mais antigas primeiro)
+      });
+      
       let valorRestante = valorRendaFixaEmGarantia;
-      const rendasFixasComStatus = rendasFixas.map(garantia => {
+      const rendasFixasComStatus = rendasFixasOrdenadas.map(garantia => {
         const valorTotal = garantia.valor_reais || 0;
         
         let valorEmGarantiaAtual = 0;
