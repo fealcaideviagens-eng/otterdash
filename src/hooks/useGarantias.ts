@@ -102,12 +102,17 @@ export const useGarantias = (props?: UseGarantiasProps) => {
       // Calcular status para cada garantia
       const { quantidadesPorTicker, valorRendaFixaEmGarantia } = await calcularStatusGarantias();
       
-      const garantiasComStatus = (data || []).map(garantia => {
-        if (garantia.tipo === 'acao' && garantia.ticker) {
+      // Separar ações e rendas fixas
+      const acoes = (data || []).filter(g => g.tipo === 'acao');
+      const rendasFixas = (data || []).filter(g => g.tipo === 'renda_fixa');
+      
+      // Processar ações
+      const acoesComStatus = acoes.map(garantia => {
+        if (garantia.ticker) {
           const tickerUpper = garantia.ticker.toUpperCase();
           const quantidadeEmGarantia = quantidadesPorTicker.get(tickerUpper) || 0;
           const quantidadeTotal = garantia.quantidade || 0;
-          const quantidadeLivre = Math.max(0, quantidadeTotal - quantidadeEmGarantia);
+          const quantidadeLivre = quantidadeTotal - quantidadeEmGarantia;
           
           return {
             ...garantia,
@@ -117,18 +122,48 @@ export const useGarantias = (props?: UseGarantiasProps) => {
             quantidadeEmGarantia,
             quantidadeLivre
           } as Garantia;
-        } else if (garantia.tipo === 'renda_fixa') {
-          const valorTotal = garantia.valor_reais || 0;
-          const valorLivre = Math.max(0, valorTotal - valorRendaFixaEmGarantia);
-          
-          return {
-            ...garantia,
-            valorEmGarantia: valorRendaFixaEmGarantia,
-            valorLivre
-          } as Garantia;
         }
         return garantia as Garantia;
       });
+      
+      // Processar rendas fixas - distribuir o valor em garantia entre elas
+      let valorRestante = valorRendaFixaEmGarantia;
+      const rendasFixasComStatus = rendasFixas.map(garantia => {
+        const valorTotal = garantia.valor_reais || 0;
+        
+        let valorEmGarantiaAtual = 0;
+        let valorLivreAtual = valorTotal;
+        
+        if (valorRestante > 0) {
+          if (valorRestante >= valorTotal) {
+            // Usa toda essa renda fixa
+            valorEmGarantiaAtual = valorTotal;
+            valorLivreAtual = 0;
+            valorRestante -= valorTotal;
+          } else {
+            // Usa apenas parte dessa renda fixa
+            valorEmGarantiaAtual = valorRestante;
+            valorLivreAtual = valorTotal - valorRestante;
+            valorRestante = 0;
+          }
+        }
+        
+        return {
+          ...garantia,
+          valorEmGarantia: valorEmGarantiaAtual,
+          valorLivre: valorLivreAtual
+        } as Garantia;
+      });
+      
+      // Se ainda sobrou valor em garantia necessário e não há mais rendas fixas, 
+      // mostrar o negativo na última renda fixa (ou primeira se houver apenas uma)
+      if (valorRestante > 0 && rendasFixasComStatus.length > 0) {
+        const ultimaRendaFixa = rendasFixasComStatus[rendasFixasComStatus.length - 1];
+        ultimaRendaFixa.valorEmGarantia = (ultimaRendaFixa.valorEmGarantia || 0) + valorRestante;
+        ultimaRendaFixa.valorLivre = (ultimaRendaFixa.valorLivre || 0) - valorRestante;
+      }
+      
+      const garantiasComStatus = [...acoesComStatus, ...rendasFixasComStatus];
       
       setGarantias(garantiasComStatus);
     } catch (error) {
