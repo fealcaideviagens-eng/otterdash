@@ -335,18 +335,24 @@ export default function CadastroOpcao() {
       }
     }
 
-    // Calcular alavancagem (apenas para Venda de Call ou Compra de Put)
+    // Calcular alavancagem
     let mostrarAlavancagem = false;
     let statusAlavancagem = "";
     let isAlavancado = false;
     let quantidadeAlavancada = 0;
 
-    if (quantidade > 0 && formData.acao) {
-      const precisaGarantia = 
+    if (quantidade > 0 && strike > 0) {
+      // Venda de Call ou Compra de Put = precisa garantia em AÇÕES
+      const precisaGarantiaAcao = 
         (formData.operacao === "venda" && formData.tipo === "call") ||
         (formData.operacao === "compra" && formData.tipo === "put");
 
-      if (precisaGarantia) {
+      // Venda de Put ou Compra de Call = precisa garantia em RENDA FIXA
+      const precisaGarantiaRendaFixa = 
+        (formData.operacao === "venda" && formData.tipo === "put") ||
+        (formData.operacao === "compra" && formData.tipo === "call");
+
+      if (precisaGarantiaAcao && formData.acao) {
         mostrarAlavancagem = true;
         
         // Buscar garantia cadastrada para esse ticker
@@ -363,6 +369,25 @@ export default function CadastroOpcao() {
         } else {
           quantidadeAlavancada = quantidade - quantidadeLivre;
           statusAlavancagem = `Alavancado em ${quantidadeAlavancada} ações`;
+          isAlavancado = true;
+        }
+      } else if (precisaGarantiaRendaFixa) {
+        mostrarAlavancagem = true;
+        
+        // Calcular valor necessário
+        const valorNecessario = strike * quantidade;
+        
+        // Somar todo o valor LIVRE de todas as rendas fixas
+        const valorRendaFixaLivre = garantias
+          .filter(g => g.tipo === 'renda_fixa')
+          .reduce((total, g) => total + (g.valorLivre || 0), 0);
+        
+        if (valorNecessario <= valorRendaFixaLivre) {
+          statusAlavancagem = "Coberto";
+          isAlavancado = false;
+        } else {
+          const valorAlavancado = valorNecessario - valorRendaFixaLivre;
+          statusAlavancagem = `Alavancado em ${formatCurrencyDisplay(valorAlavancado)}`;
           isAlavancado = true;
         }
       }
