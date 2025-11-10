@@ -772,10 +772,21 @@ export default function CadastroOpcao() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <p className="text-xs">
-                        {operationData.isAlavancado 
-                          ? `Você não possui ações suficientes cadastradas em garantia para cobrir esta operação. Está alavancado em ${operationData.quantidadeAlavancada} ações.`
-                          : "Você possui ações suficientes cadastradas em garantia para cobrir esta operação."
-                        }
+                        {(() => {
+                          const precisaRendaFixa = 
+                            (formData.operacao === "venda" && formData.tipo === "put") ||
+                            (formData.operacao === "compra" && formData.tipo === "call");
+                          
+                          if (operationData.isAlavancado) {
+                            return precisaRendaFixa
+                              ? "Você não possui renda fixa suficiente cadastrada em garantia para cobrir esta operação."
+                              : `Você não possui ações suficientes cadastradas em garantia para cobrir esta operação. Está alavancado em ${operationData.quantidadeAlavancada} ações.`;
+                          } else {
+                            return precisaRendaFixa
+                              ? "Você possui renda fixa suficiente cadastrada em garantia para cobrir esta operação."
+                              : "Você possui ações suficientes cadastradas em garantia para cobrir esta operação.";
+                          }
+                        })()}
                       </p>
                     </TooltipContent>
                   </Tooltip>
