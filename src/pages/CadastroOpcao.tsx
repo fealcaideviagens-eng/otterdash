@@ -134,13 +134,13 @@ export default function CadastroOpcao() {
     // Converte para maiúsculo
     const upperValue = value.toUpperCase();
     
-    // Permite apenas letras e números
-    const cleanValue = upperValue.replace(/[^A-Z0-9]/g, '');
+    // Permite apenas letras, números e W
+    const cleanValue = upperValue.replace(/[^A-Z0-9W]/g, '');
     
-    // Valida formato: 5 letras seguidas de até 3 números
-    const regex = /^[A-Z]{0,5}[0-9]{0,3}$/;
+    // Valida formato: 5 letras seguidas de até 3 números, opcionalmente seguido de W e 1 número
+    const regex = /^[A-Z]{0,5}[0-9]{0,3}(W[0-9])?$/;
     
-    if (regex.test(cleanValue) && cleanValue.length <= 8) {
+    if (regex.test(cleanValue) && cleanValue.length <= 10) {
       setFormData(prev => ({ 
         ...prev, 
         opcao: cleanValue,
@@ -441,9 +441,9 @@ export default function CadastroOpcao() {
                     id="opcao"
                     value={formData.opcao}
                     onChange={(e) => handleOpcaoChange(e.target.value)}
-                    placeholder="ex: PETRH123"
+                    placeholder="ex: PETRH123 ou PETRH123W4"
                     className="placeholder-subtle"
-                    maxLength={8}
+                    maxLength={10}
                     required
                   />
                 </div>
