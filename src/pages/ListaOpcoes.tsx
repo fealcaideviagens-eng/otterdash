@@ -20,7 +20,8 @@ import { useOpcoes } from "@/hooks/useOpcoes";
 import { useAuth } from "@/context/AuthContext";
 import { Opcao, Venda } from "@/types/database";
 import { formatCurrency, formatDate } from "@/utils/formatters";
-import { Edit, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, Trash2 } from "lucide-react";
+import { CardOpcao } from "@/components/opcoes/CardOpcao";
 
 export default function ListaOpcoes() {
   const { user } = useAuth();
@@ -287,99 +288,21 @@ export default function ListaOpcoes() {
               </TabsList>
               
               <TabsContent value="abertas" className="mt-4">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">{/* Remove hover do header */}
-                        <TableHead className="text-black font-semibold">Opção</TableHead>
-                        <TableHead className="text-black font-semibold">Operação</TableHead>
-                        <TableHead className="text-black font-semibold">Tipo</TableHead>
-                        <TableHead className="text-black font-semibold">Ação</TableHead>
-                        <TableHead className="text-black font-semibold">Strike</TableHead>
-                        <TableHead className="text-black font-semibold">Cotação</TableHead>
-                        <TableHead className="text-black font-semibold">Diferença</TableHead>
-                        <TableHead className="text-black font-semibold">Quantidade</TableHead>
-                        <TableHead className="text-black font-semibold">Prêmio</TableHead>
-                        <TableHead className="text-black font-semibold">Ganho/Perda máxima</TableHead>
-                        <TableHead className="text-black font-semibold">Rentabilidade máxima</TableHead>
-                        <TableHead className="text-black font-semibold">Validade</TableHead>
-                        <TableHead className="text-black font-semibold">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {opcoesAbertas.map((opcao, index) => (
-                        <TableRow key={`${opcao.opcao}-${index}`}>
-                          <TableCell className="font-medium">{opcao.opcao}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              variant={opcao.operacao === 'compra' ? 'default' : 'destructive'}
-                              className={opcao.operacao === 'compra' ? 'bg-blue-500 hover:bg-blue-600' : ''}
-                            >
-                              {opcao.operacao?.charAt(0).toUpperCase() + opcao.operacao?.slice(1) || '-'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {opcao.tipo ? (
-                              <Badge 
-                                variant={opcao.tipo === 'put' ? 'secondary' : 'outline'}
-                                className={opcao.tipo === 'put' ? 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-0' : ''}
-                              >
-                                {opcao.tipo.charAt(0).toUpperCase() + opcao.tipo.slice(1)}
-                              </Badge>
-                            ) : '-'}
-                          </TableCell>
-                          <TableCell>{opcao.acao || '-'}</TableCell>
-                          <TableCell>
-                            {opcao.strike ? formatCurrency(opcao.strike) : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {opcao.cotacao ? formatCurrency(opcao.cotacao) : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {calculateDiferencaPercentual(opcao)}
-                          </TableCell>
-                          <TableCell>{opcao.quantidade ? (opcao.operacao === 'venda' ? `-${opcao.quantidade}` : opcao.quantidade) : '-'}</TableCell>
-                          <TableCell>
-                            {opcao.premio ? formatCurrency(opcao.premio) : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {calculateGanhoMaximo(opcao) !== 0 ? formatCurrency(calculateGanhoMaximo(opcao)) : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {calculateRentabilidadeMaxima(opcao)}
-                          </TableCell>
-                          <TableCell>
-                            {opcao.data ? formatDate(opcao.data) : '-'}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEncerrar(opcao)}
-                              >
-                                Encerrar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEdit(opcao)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(opcao)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {opcoesAbertas.map((opcao, index) => (
+                    <CardOpcao
+                      key={`${opcao.opcao}-${index}`}
+                      opcao={opcao}
+                      onEncerrar={handleEncerrar}
+                      onEditar={handleEdit}
+                      onDeletar={handleDelete}
+                      calculateDiferencaPercentual={calculateDiferencaPercentual}
+                      calculateGanhoMaximo={calculateGanhoMaximo}
+                      calculateRentabilidadeMaxima={calculateRentabilidadeMaxima}
+                      formatCurrency={formatCurrency}
+                      formatDate={formatDate}
+                    />
+                  ))}
                 </div>
               </TabsContent>
               
@@ -436,7 +359,7 @@ export default function ListaOpcoes() {
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Strike:</span>
-                                        <span className="font-medium">{opcao.strike ? formatCurrency(opcao.strike) : '-'}</span>
+                                        <span className="font-semibold text-xs">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Cotação no cadastro:</span>
@@ -448,8 +371,8 @@ export default function ListaOpcoes() {
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Prêmio inicial:</span>
-                                        <span className="font-medium">
-                                          {opcao.premio ? formatCurrency(opcao.operacao === 'compra' ? -opcao.premio : opcao.premio) : '-'}
+                                        <span className="font-semibold text-xs">
+                                          {opcao.premio ? formatCurrency(opcao.operacao === 'compra' ? -opcao.premio : opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
@@ -466,7 +389,7 @@ export default function ListaOpcoes() {
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Prêmio final:</span>
                                         <span className="font-medium">
-                                          {venda?.premio !== undefined ? formatCurrency(opcao.operacao === 'venda' ? -venda.premio : venda.premio) : '-'}
+                                          {venda?.premio !== undefined ? formatCurrency(opcao.operacao === 'venda' ? -venda.premio : venda.premio).replace(/^R\$\s*/, 'R$ ') : '-'}
                                         </span>
                                       </div>
                                       <div className="flex justify-between">
@@ -576,6 +499,114 @@ export default function ListaOpcoes() {
         }}
         onConfirm={handleConfirmEditEncerramento}
       />
+    </div>
+  );
+}
+
+function CardOpcao({ opcao, onEncerrar, onEditar, onDeletar, calculateDiferencaPercentual, calculateGanhoMaximo, calculateRentabilidadeMaxima, formatCurrency, formatDate }) {
+  const [expandido, setExpandido] = useState(false);
+  return (
+    <div className={`relative bg-white rounded-2xl shadow
+      transition-all duration-300 flex flex-col
+      ${expandido ? 'min-h-[250px] py-6' : 'min-h-[100px] py-6 '}
+      px-5
+    `}>
+      {/* Header e controles */}
+      <div className="flex items-center justify-between">
+        <span className="font-bold text-base text-black">{opcao.opcao}</span>
+        <div className="flex space-x-2 items-center">
+          {/* Tag Operação */}
+          <span
+            className={`text-xs font-semibold px-3 py-0.5 rounded-full 
+              ${opcao.operacao === 'compra' ? 'bg-blue-900 text-white' : ''}
+              ${opcao.operacao === 'venda' ? 'bg-orange-500 text-white' : ''}
+            `}
+          >
+            {opcao.operacao === 'compra' ? 'Compra' : 'Venda'}
+          </span>
+          {/* Tag Tipo */}
+          <span
+            className={`text-xs font-semibold px-3 py-0.5 rounded-full 
+              ${opcao.tipo === 'put' ? 'bg-gray-200 text-gray-700' : ''}
+              ${opcao.tipo === 'call' ? 'bg-gray-400 text-gray-50' : ''}
+            `}
+          >
+            {opcao.tipo ? (opcao.tipo.charAt(0).toUpperCase() + opcao.tipo.slice(1)) : '-'}
+          </span>
+          <button type="button" className="ml-2 p-1 rounded-full hover:bg-gray-200 transition" onClick={() => setExpandido(e => !e)}>
+            {expandido ? (
+              <ChevronUp size={22} />
+            ) : (
+              <ChevronDown size={22} />
+            )}
+          </button>
+        </div>
+      </div>
+      {/* Infos principais - espaçamento compacto fechado, flexível aberto */}
+      <div className="flex justify-between mt-3 mb-1">
+        {/* Bloco Strike */}
+        <div className="flex-1 flex flex-col items-center">
+          <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Strike</span>
+          <span className="font-semibold text-xs">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
+        </div>
+        <div className="w-px bg-gray-200 mx-2 self-stretch" />
+        {/* Bloco Qnt */}
+        <div className="flex-1 flex flex-col items-center">
+          <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Qnt</span>
+          <span className="font-semibold text-xs">{opcao.quantidade}</span>
+        </div>
+        <div className="w-px bg-gray-200 mx-2 self-stretch" />
+        {/* Bloco Validade */}
+        <div className="flex-1 flex flex-col items-center">
+          <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Validade</span>
+          <span className="font-semibold text-xs">{opcao.data ? formatDate(opcao.data) : '-'}</span>
+        </div>
+        <div className="w-px bg-gray-200 mx-2 self-stretch" />
+        {/* Bloco Prêmio */}
+        <div className="flex-1 flex flex-col items-center">
+          <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Prêmio</span>
+          <span className="font-semibold text-xs">{opcao.premio ? formatCurrency(opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
+        </div>
+      </div>
+      {/* Detalhes - exibidos apenas quando expandido */}
+      {expandido && (
+        <div className="mt-4 border-t border-dotted border-gray-300 pt-3 pb-1 flex flex-col gap-2">  
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-[11px] text-gray-500 uppercase font-semibold">Ação</span>
+            <span className="font-semibold text-sm">{opcao.acao || '-'}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-[11px] text-gray-500 uppercase font-semibold">Cotação</span>
+            <span className="text-sm font-bold">R$ {opcao.cotacao ? formatCurrency(opcao.cotacao) : '-'}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-[11px] text-gray-500 uppercase font-semibold">% Diferença</span>
+            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-green-50 text-green-600 border border-green-200 ml-1">{calculateDiferencaPercentual(opcao)}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-[11px] text-gray-500 uppercase font-semibold">Ganho/perda máx.</span>
+            <span className="text-sm font-semibold">{calculateGanhoMaximo(opcao) !== 0 ? 'R$ ' + formatCurrency(calculateGanhoMaximo(opcao)) : '-'}</span>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-[11px] text-gray-500 uppercase font-semibold">Rentab. máx.</span>
+            <span className="text-sm font-semibold">{calculateRentabilidadeMaxima(opcao)}</span>
+          </div>
+        </div>
+      )}
+      {/* Rodapé ações */}
+      <div className={`flex items-center justify-between ${expandido ? 'mt-6' : 'mt-2'} pt-2 gap-2`}>
+        <Button
+          className="text-white text-sm font-semibold rounded-full px-5 py-2 transition whitespace-nowrap border-0 shadow-none"
+          style={{ backgroundColor: '#61005D' }}
+          onClick={() => onEncerrar(opcao)}
+        >
+          Encerrar opção
+        </Button>
+        <div className="flex space-x-2">
+          <button className="p-2 hover:bg-gray-100 rounded-full transition" onClick={() => onEditar(opcao)}><Edit size={18} /></button>
+          <button className="p-2 hover:bg-gray-100 rounded-full transition" onClick={() => onDeletar(opcao)}><Trash2 size={18} /></button>
+        </div>
+      </div>
     </div>
   );
 }
