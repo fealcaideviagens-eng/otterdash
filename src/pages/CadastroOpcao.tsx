@@ -137,15 +137,51 @@ export default function CadastroOpcao() {
     // Permite apenas letras, números e W
     const cleanValue = upperValue.replace(/[^A-Z0-9W]/g, '');
     
-    // Valida formato: 5 letras seguidas de até 3 números, opcionalmente seguido de W e 1 número
-    const regex = /^[A-Z]{0,5}[0-9]{0,3}(W[0-9])?$/;
+    // Validação progressiva baseada na regra:
+    // - 5 letras obrigatórias + 3 números obrigatórios (mínimo 8 caracteres)
+    // - Opcionalmente: + W + 1 número (máximo 10 caracteres)
+    // - Se tiver W, é obrigatório ter o número após ele
+    let isValid = false;
+    let validValue = '';
     
-    if (regex.test(cleanValue) && cleanValue.length <= 10) {
+    if (cleanValue.length === 0) {
+      // Permite campo vazio
+      isValid = true;
+      validValue = '';
+    } else if (cleanValue.length <= 5) {
+      // Primeiros 5 caracteres devem ser apenas letras
+      if (/^[A-Z]{1,5}$/.test(cleanValue)) {
+        isValid = true;
+        validValue = cleanValue;
+      }
+    } else if (cleanValue.length <= 8) {
+      // 5 letras + 1 a 3 números (obrigatório ter exatamente 3 números no final)
+      // Mas durante a digitação, permite progressivamente 1, 2 ou 3 números
+      if (/^[A-Z]{5}[0-9]{1,3}$/.test(cleanValue)) {
+        isValid = true;
+        validValue = cleanValue;
+      }
+    } else if (cleanValue.length === 9) {
+      // 5 letras + 3 números + W (opcional, mas se tiver W precisa ter número)
+      if (/^[A-Z]{5}[0-9]{3}W$/.test(cleanValue)) {
+        isValid = true;
+        validValue = cleanValue;
+      }
+    } else if (cleanValue.length === 10) {
+      // 5 letras + 3 números + W + 1 número (opcional completo)
+      if (/^[A-Z]{5}[0-9]{3}W[0-9]{1}$/.test(cleanValue)) {
+        isValid = true;
+        validValue = cleanValue;
+      }
+    }
+    
+    if (isValid) {
       setFormData(prev => ({ 
         ...prev, 
-        opcao: cleanValue,
+        opcao: validValue,
         // Preencher automaticamente o campo ação com as 4 primeiras letras
-        acao: cleanValue.substring(0, 4)
+        // Só preenche se tiver pelo menos 4 letras
+        acao: validValue.length >= 4 ? validValue.substring(0, 4) : prev.acao
       }));
     }
   };
@@ -441,7 +477,7 @@ export default function CadastroOpcao() {
                     id="opcao"
                     value={formData.opcao}
                     onChange={(e) => handleOpcaoChange(e.target.value)}
-                    placeholder="ex: PETRH123 ou PETRH123W4"
+                    placeholder="ex: PETRH123"
                     className="placeholder-subtle"
                     maxLength={10}
                     required

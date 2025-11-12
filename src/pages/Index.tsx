@@ -27,16 +27,13 @@ import TopNav from "@/components/navigation/TopNav";
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 relative z-10">
               <div className="inline-block px-4 py-2 bg-white/20 rounded-full">
-                <span className="text-white font-semibold text-sm">🚀 Versão Beta - 100% Gratuito</span>
+                <span className="text-white font-semibold text-sm">VERSÃO BETA - 100% GRATUITO</span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
-                Gerencie suas{" "}
-                <span className="text-white/90 underline decoration-white/40">Opções</span> com{" "}
-                <span className="text-white/90 underline decoration-white/40">Simplicidade</span>
+                Gerencie suas opções com simplicidade{" "}
               </h1>
               <p className="text-xl text-white/90">
-                Acompanhe seus lucros, metas e opções em aberto com facilidade.
-                Criado por um investidor de opções para investidores de opções.
+                Acompanhe seus lucros, metas e opções em aberto com facilidade e inteligência.
               </p>
               <div className="pt-2">
                 <Button
@@ -80,10 +77,10 @@ import TopNav from "@/components/navigation/TopNav";
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <div className="inline-block px-4 py-2 bg-brand-purple/10 rounded-full mb-4">
-              <span className="text-brand-purple font-semibold">Controle Total</span>
+              <span className="text-brand-purple font-semibold">CONTROLE TOTAL</span>
             </div>
             <h2 className="text-4xl font-bold mb-4">
-              Gerencie Suas Operações com Inteligência
+              Gerencie suas operações com inteligência
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Cadastre opções realizadas, acompanhe lucros, metas e o andamento
@@ -103,7 +100,7 @@ import TopNav from "@/components/navigation/TopNav";
                   <BarChart3 className="w-6 h-6 text-brand-purple" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">
-                  Dashboard Intuitivo
+                  Dashboard intuitivo
                 </h3>
                 <p className="text-muted-foreground">
                   Visualize todas as suas operações, lucros e prejuízos em uma
@@ -118,7 +115,7 @@ import TopNav from "@/components/navigation/TopNav";
                   <Target className="w-6 h-6 text-brand-purple" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">
-                  Controle de Metas
+                  Controle de metas
                 </h3>
                 <p className="text-muted-foreground">
                   Defina metas de lucro diário, semanal e mensal e acompanhe
@@ -133,7 +130,7 @@ import TopNav from "@/components/navigation/TopNav";
                   <TrendingUp className="w-6 h-6 text-brand-purple" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">
-                  Histórico Completo
+                  Histórico completo
                 </h3>
                 <p className="text-muted-foreground">
                   Acesse todas as suas operações passadas para análise e
@@ -155,7 +152,7 @@ import TopNav from "@/components/navigation/TopNav";
               <span className="text-brand-purple font-semibold">Recursos Poderosos</span>
             </div>
             <h2 className="text-4xl font-bold mb-4">
-              Funcionalidades que Fazem a Diferença
+              Funcionalidades que fazem a diferença
             </h2>
             <p className="text-xl text-muted-foreground">
               Ferramentas essenciais para gerenciar suas opções com confiança
@@ -168,7 +165,7 @@ import TopNav from "@/components/navigation/TopNav";
                 <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-brand-purple/20">
                   <AlertCircle className="w-8 h-8 text-brand-purple" />
                 </div>
-                <h3 className="font-semibold mb-2">Alertas Inteligentes</h3>
+                <h3 className="font-semibold mb-2">Alertas inteligentes</h3>
                 <p className="text-sm text-muted-foreground">
                   Receba alertas de lucro e prejuízo alto para tomar decisões
                   rápidas
@@ -181,7 +178,7 @@ import TopNav from "@/components/navigation/TopNav";
                 <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-brand-purple/20">
                   <DollarSign className="w-8 h-8 text-brand-purple" />
                 </div>
-                <h3 className="font-semibold mb-2">Valor de Garantia</h3>
+                <h3 className="font-semibold mb-2">Valor de garantia</h3>
                 <p className="text-sm text-muted-foreground">
                   Acompanhe o valor de garantia em uso em tempo real
                 </p>
@@ -193,7 +190,7 @@ import TopNav from "@/components/navigation/TopNav";
                 <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-brand-purple/20">
                   <TrendingUp className="w-8 h-8 text-brand-purple" />
                 </div>
-                <h3 className="font-semibold mb-2">Termômetro de Opções</h3>
+                <h3 className="font-semibold mb-2">Termômetro de opções</h3>
                 <p className="text-sm text-muted-foreground">
                   Indica o quão agressiva está sua operação atual
                 </p>
@@ -205,7 +202,7 @@ import TopNav from "@/components/navigation/TopNav";
                 <div className="rounded-full bg-brand-purple/10 w-16 h-16 flex items-center justify-center mx-auto mb-4 border-2 border-brand-purple/20">
                   <BarChart3 className="w-8 h-8 text-brand-purple" />
                 </div>
-                <h3 className="font-semibold mb-2">Interface Simples</h3>
+                <h3 className="font-semibold mb-2">Interface simples</h3>
                 <p className="text-sm text-muted-foreground">
                   Design intuitivo, ideal para traders iniciantes
                 </p>
@@ -221,7 +218,7 @@ import TopNav from "@/components/navigation/TopNav";
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <div className="inline-block px-4 py-2 bg-brand-purple/10 rounded-full mb-4">
-                <span className="text-brand-purple font-semibold">Versão Beta</span>
+                <span className="text-brand-purple font-semibold">Versão beta</span>
               </div>
               <h2 className="text-4xl font-bold mb-4">Acesso 100% Gratuito</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -247,7 +244,7 @@ import TopNav from "@/components/navigation/TopNav";
                     className="bg-brand-purple hover-brand-purple text-white text-lg px-8 mb-6 w-full"
                   >
                     <Link to="/auth?mode=signup">
-                      Começar Agora
+                      Começar agora
                     </Link>
                   </Button>
                   <p className="text-xs text-muted-foreground mb-6">
@@ -281,7 +278,7 @@ import TopNav from "@/components/navigation/TopNav";
                     <div className="rounded-full bg-brand-purple/10 w-12 h-12 flex items-center justify-center">
                       <DollarSign className="w-6 h-6 text-brand-purple" />
                     </div>
-                    <h3 className="text-xl font-semibold">Apoie o Projeto</h3>
+                    <h3 className="text-xl font-semibold">Apoie o projeto</h3>
                   </div>
                   <p className="text-sm text-muted-foreground mb-6 text-center">
                     Gostou do sistema? Ajude na evolução do dashboard! 
@@ -327,7 +324,7 @@ import TopNav from "@/components/navigation/TopNav";
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
-              O Que Nossos Usuários Dizem
+              O que nossos usuários dizem
             </h2>
           </div>
 
@@ -381,7 +378,7 @@ import TopNav from "@/components/navigation/TopNav";
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
         <div className="container mx-auto px-4 text-center relative">
           <h2 className="text-4xl font-bold text-white mb-4">
-            Comece Grátis Hoje Mesmo
+            Comece grátis hoje mesmo
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Junte-se aos traders que já estão gerenciando suas opções
@@ -393,7 +390,7 @@ import TopNav from "@/components/navigation/TopNav";
             className="bg-white text-brand-purple hover:bg-white/90 text-xl px-12 font-semibold"
           >
             <Link to="/auth?mode=signup">
-              Começar Grátis Agora
+              Começar grátis agora
               <ArrowRight className="ml-2" />
             </Link>
           </Button>

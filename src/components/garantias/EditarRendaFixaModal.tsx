@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Garantia } from "@/types/garantia";
 import { toast } from "sonner";
-import { formatCurrency, parseCurrencyToNumber } from "@/utils/inputFormatters";
+import { formatCurrency, formatCurrencyValue, parseCurrencyToNumber } from "@/utils/inputFormatters";
 
 interface EditarRendaFixaModalProps {
   garantia: Garantia | null;
@@ -40,7 +40,7 @@ export function EditarRendaFixaModal({
   useEffect(() => {
     if (garantia) {
       setTipoRendaFixa(garantia.tipo_renda_fixa || "tesouro_selic");
-      setValorReais(garantia.valor_reais ? formatCurrency(garantia.valor_reais.toString()) : "");
+      setValorReais(garantia.valor_reais ? formatCurrencyValue(garantia.valor_reais) : "");
     }
   }, [garantia]);
 

@@ -171,7 +171,7 @@ export default function Garantias() {
         <TabsContent value="acoes" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Cadastrar Ação</CardTitle>
+              <CardTitle>Cadastrar ação</CardTitle>
               <CardDescription>
                 Adicione ações que fazem parte das suas garantias
               </CardDescription>
@@ -188,14 +188,14 @@ export default function Garantias() {
                     <Input id="quantidade" type="number" value={quantidade} onChange={e => setQuantidade(e.target.value)} placeholder="100" step="1" min="0" required />
                   </div>
                 </div>
-                <Button type="submit" className="text-[590051] bg-[#61055d] text-white">Cadastrar Ação</Button>
+                <Button type="submit" className="text-[590051] bg-[#61055d] text-white">Cadastrar ação</Button>
               </form>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Ações Cadastradas</CardTitle>
+              <CardTitle>Ações cadastradas</CardTitle>
             </CardHeader>
             <CardContent>
               {acoes.length === 0 ? <p className="text-muted-foreground text-center py-8">
@@ -273,14 +273,14 @@ export default function Garantias() {
                     <Input id="valor" value={valorReais} onChange={handleCurrencyChange} placeholder="0,00" required />
                   </div>
                 </div>
-                <Button type="submit">Cadastrar Renda Fixa</Button>
+                <Button type="submit" className="text-[590051] bg-[#61055d] text-white">Cadastrar renda fixa</Button>
               </form>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Rendas Fixas Cadastradas</CardTitle>
+              <CardTitle>Rendas fixas cadastradas</CardTitle>
             </CardHeader>
             <CardContent>
               {rendasFixas.length === 0 ? <p className="text-muted-foreground text-center py-8">
