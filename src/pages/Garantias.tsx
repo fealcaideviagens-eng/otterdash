@@ -188,7 +188,7 @@ export default function Garantias() {
                     <Input id="quantidade" type="number" value={quantidade} onChange={e => setQuantidade(e.target.value)} placeholder="100" step="1" min="0" required />
                   </div>
                 </div>
-                <Button type="submit" className="text-[590051] bg-[#61055d] text-white">Cadastrar ação</Button>
+                <Button type="submit" className="text-[590051] bg-[#263C64] text-white">Cadastrar ação</Button>
               </form>
             </CardContent>
           </Card>
@@ -273,7 +273,7 @@ export default function Garantias() {
                     <Input id="valor" value={valorReais} onChange={handleCurrencyChange} placeholder="0,00" required />
                   </div>
                 </div>
-                <Button type="submit" className="text-[590051] bg-[#61055d] text-white">Cadastrar renda fixa</Button>
+                <Button type="submit" className="text-[590051] bg-[#263C64] text-white">Cadastrar renda fixa</Button>
               </form>
             </CardContent>
           </Card>

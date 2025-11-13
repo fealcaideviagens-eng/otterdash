@@ -1,12 +1,10 @@
-import operaiLogo from "@/assets/operai-logo.png";
+import otterLogo from "@/assets/logo-otter.png";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 const links = [
-  { href: "#produto", label: "Produto" },
-  { href: "#recursos", label: "Recursos" },
-  { href: "#gratuito", label: "Gratuito" },
-  { href: "#doacoes", label: "Doações" },
+  { href: "#produto", label: "Recursos" },
+  { href: "#gratuito", label: "Apoie o projeto" },
   { href: "#depoimentos", label: "Depoimentos" },
 ];
 
@@ -17,8 +15,8 @@ export default function TopNav() {
         <div className="h-16 flex items-center justify-between">
           <a href="#home" className="flex items-center">
             <img
-              src={operaiLogo}
-              alt="operAI logo"
+              src={otterLogo}
+              alt="Otter Logo"
               className="h-12 w-auto"
               loading="eager"
             />
@@ -34,14 +32,14 @@ export default function TopNav() {
                 {link.label}
               </a>
             ))}
-            <Button asChild size="sm">
-              <Link to="/auth?mode=login">Login</Link>
+            <Button asChild size="sm" className="rounded-full">
+              <Link to="/auth?mode=login">Entrar / Cadastrar</Link>
             </Button>
           </nav>
 
           <div className="md:hidden flex items-center gap-2">
-            <Button asChild size="sm">
-              <Link to="/auth?mode=login">Login</Link>
+            <Button asChild size="sm" className="rounded-full">
+              <Link to="/auth?mode=login">Entrar / Cadastrar</Link>
             </Button>
           </div>
         </div>

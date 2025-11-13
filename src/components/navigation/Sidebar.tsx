@@ -3,6 +3,7 @@ import { Plus, List, Home, TrendingUp, Target, Shield, LogOut } from "lucide-rea
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import otterLogoNegativo from "@/assets/logo-otter-negativo.png";
 
 const navigation = [
   { name: "Visão geral", href: "/dashboard", icon: Home },
@@ -19,10 +20,15 @@ export const Sidebar = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-64 h-screen flex-col border-r border-purple-200" style={{ backgroundColor: '#61005D' }}>
-        <div className="flex h-16 items-center justify-center border-b border-purple-300 px-6">
+      <div className="hidden lg:flex w-64 h-screen flex-col border-r border-blue-200" style={{ backgroundColor: '#263C64' }}>
+        <div className="flex h-16 items-center justify-center border-b border-blue-300 px-6">
           <div className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold text-white">ALCA+</h1>
+          <img
+              src={otterLogoNegativo}
+              alt="Otter Logo Negativo"
+              className="h-8 w-auto"
+              loading="eager"
+            />
           </div>
         </div>
         
@@ -47,7 +53,7 @@ export const Sidebar = () => {
             ))}
           </div>
           
-          <div className="mt-auto pt-4 border-t border-purple-300">
+          <div className="mt-auto pt-4 border-t border-blue-300">
             <div className="px-3 py-2 text-sm text-white/70 truncate mb-2">
               {user?.email}
             </div>
@@ -64,7 +70,7 @@ export const Sidebar = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-purple-200" style={{ backgroundColor: '#61005D' }}>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-blue-200" style={{ backgroundColor: '#61005D' }}>
         <nav className="flex justify-around py-2">
           {navigation.map((item) => (
             <NavLink
@@ -74,8 +80,8 @@ export const Sidebar = () => {
                 cn(
                   "flex flex-col items-center px-3 py-2 text-xs font-medium transition-colors text-white min-w-0",
                   isActive
-                    ? "text-purple-300"
-                    : "hover:text-purple-300"
+                    ? "text-blue-300"
+                    : "hover:text-blue-300"
                 )
               }
             >

@@ -38,11 +38,11 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
     
-    /* Brand colors - Purple accent */
-    --brand-purple: 262 83% 58%;
-    --brand-purple-light: 262 83% 68%;
-    --brand-purple-dark: 262 83% 48%;
-    --brand-gradient: linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 48%));
+    /* Brand colors - Blue accent */
+    --brand-purple: 216, 45%, 39%;
+    --brand-purple-light: 216, 50%, 60%;
+    --brand-purple-dark: 216, 43%, 27%;
+    --brand-gradient: linear-gradient(135deg, hsl(216, 50%, 60%), hsl(216, 43%, 27%));
 
     /* Financial colors */
     --profit: 142 76% 36%;

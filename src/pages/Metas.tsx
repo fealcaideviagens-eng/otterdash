@@ -188,7 +188,7 @@ const Metas = () => {
         <h1 className="text-3xl font-bold tracking-tight">Metas</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button style={{ backgroundColor: '#61005D' }}>
+            <Button style={{ backgroundColor: '#263C64' }}>
               <Plus className="mr-2 h-4 w-4" />
               Nova meta
             </Button>

@@ -114,7 +114,7 @@ export default function Dashboard() {
         <Button 
           onClick={() => navigate("/cadastro")}
           className="shadow-modern"
-          style={{ backgroundColor: '#61005D' }}
+          style={{ backgroundColor: '#263C64' }}
         >
           <Plus className="mr-2 h-4 w-4" />
           Nova opção

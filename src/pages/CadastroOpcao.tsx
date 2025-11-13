@@ -639,7 +639,7 @@ export default function CadastroOpcao() {
                   >
                     Cancelar
                   </Button>
-                <Button type="submit" disabled={loading} style={{ backgroundColor: '#61005D' }}>
+                <Button type="submit" disabled={loading} style={{ backgroundColor: '#263C64' }}>
                   {loading ? "Cadastrando..." : "Cadastrar opção"}
                 </Button>
               </div>

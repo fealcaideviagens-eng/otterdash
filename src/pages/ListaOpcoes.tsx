@@ -597,7 +597,7 @@ function CardOpcao({ opcao, onEncerrar, onEditar, onDeletar, calculateDiferencaP
       <div className={`flex items-center justify-between ${expandido ? 'mt-6' : 'mt-2'} pt-2 gap-2`}>
         <Button
           className="text-white text-sm font-semibold rounded-full px-5 py-2 transition whitespace-nowrap border-0 shadow-none"
-          style={{ backgroundColor: '#61005D' }}
+          style={{ backgroundColor: '#263C64' }}
           onClick={() => onEncerrar(opcao)}
         >
           Encerrar opção
