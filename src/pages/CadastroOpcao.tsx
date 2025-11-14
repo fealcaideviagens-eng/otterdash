@@ -239,76 +239,76 @@ export default function CadastroOpcao() {
         if (percentualDiferenca < 0) {
           nivelRisco = "baixíssimo";
           corRisco = "text-green-600";
-          progressValue = 80;
+          progressValue = 10;
         } else if (diferencaAbsoluta <= 4) {
           nivelRisco = "baixo";
           corRisco = "text-green-600";
-          progressValue = 80;
+          progressValue = 50;
         } else if (diferencaAbsoluta <= 6) {
           nivelRisco = "médio";
           corRisco = "text-yellow-600";
-          progressValue = 60;
+          progressValue = 70;
         } else {
           nivelRisco = "alto";
           corRisco = "text-red-600";
-          progressValue = 20;
+          progressValue = 90;
         }
       } else if (formData.operacao === "compra" && formData.tipo === "put") {
         // Compra Put: quanto menor a diferença, menor o risco
         if (percentualDiferenca < 0) {
           nivelRisco = "baixíssimo";
           corRisco = "text-emerald-600";
-          progressValue = 100;
+          progressValue = 10;
         } else if (diferencaAbsoluta <= 4) {
           nivelRisco = "baixo";
           corRisco = "text-green-600";
-          progressValue = 80;
+          progressValue = 50;
         } else if (diferencaAbsoluta <= 6) {
           nivelRisco = "médio";
           corRisco = "text-yellow-600";
-          progressValue = 60;
+          progressValue = 70;
         } else {
           nivelRisco = "alto";
           corRisco = "text-red-600";
-          progressValue = 20;
+          progressValue = 90;
         }
       } else if (formData.operacao === "venda" && formData.tipo === "put") {
         // Venda Put: quanto maior a diferença, menor o risco
         if (percentualDiferenca < 0) {
           nivelRisco = "altíssimo";
           corRisco = "text-red-800";
-          progressValue = 10;
+          progressValue = 90;
         } else if (diferencaAbsoluta <= 4) {
           nivelRisco = "alto";
           corRisco = "text-red-600";
-          progressValue = 20;
+          progressValue = 70;
         } else if (diferencaAbsoluta <= 6) {
           nivelRisco = "médio";
           corRisco = "text-yellow-600";
-          progressValue = 60;
+          progressValue = 50;
         } else {
           nivelRisco = "baixo";
           corRisco = "text-green-600";
-          progressValue = 80;
+          progressValue = 20;
         }
        } else {
          // Venda Call: lógica original
          if (percentualDiferenca < 0) {
            nivelRisco = "altíssimo";
            corRisco = "text-red-800";
-           progressValue = 10;
+           progressValue = 90;
          } else if (percentualDiferenca > 0 && diferencaAbsoluta > 6) {
            nivelRisco = "baixo";
            corRisco = "text-green-600";
-           progressValue = 80;
+           progressValue = 20;
          } else if (percentualDiferenca > 0 && diferencaAbsoluta > 3) {
            nivelRisco = "médio";
            corRisco = "text-yellow-600";
-           progressValue = 60;
+           progressValue = 50;
          } else {
            nivelRisco = "alto";
            corRisco = "text-red-600";
-           progressValue = 20;
+           progressValue = 70;
          }
        }
     }
@@ -462,8 +462,8 @@ export default function CadastroOpcao() {
         </p>
       </div>
 
-      <div className="flex gap-6">
-        <Card className="flex-1 max-w-2xl">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <Card className="flex-1 lg:max-w-2xl w-full">
           <CardHeader>
             <CardTitle>Nova opção</CardTitle>
           </CardHeader>
@@ -631,7 +631,7 @@ export default function CadastroOpcao() {
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-4 pt-4">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-4 pt-4">
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -648,7 +648,7 @@ export default function CadastroOpcao() {
         </Card>
 
         {/* Card lateral com análise de risco */}
-        <Card className="w-80 h-fit">
+        <Card className="w-full lg:w-80 h-fit">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />

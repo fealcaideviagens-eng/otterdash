@@ -170,7 +170,7 @@ export const ResultsChart = ({ viewType, userId }: ResultsChartProps) => {
                 <Bar 
                   dataKey="value" 
                   name="Resultado"
-                  radius={[2, 2, 0, 0]}
+                  radius={[50, 50, 50, 50]}
                 >
                   {data.map((entry, index) => (
                     <Cell 

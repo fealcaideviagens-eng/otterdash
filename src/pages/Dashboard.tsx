@@ -117,7 +117,7 @@ export default function Dashboard() {
           style={{ backgroundColor: '#263C64' }}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Nova opção
+          Cadastrar opção
         </Button>
       </div>
 

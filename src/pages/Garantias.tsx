@@ -146,9 +146,11 @@ export default function Garantias() {
     });
   }
   if (loading) {
-    return <div className="container mx-auto p-6">Carregando...</div>;
+    return       <div className="flex items-center justify-center h-64">
+    <div className="text-lg text-muted-foreground">Carregando suas garantias...</div>
+  </div>;
   }
-  return <div className="container mx-auto p-6 space-y-6">
+  return <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold mb-2">Garantias</h1>
         <p className="text-muted-foreground">

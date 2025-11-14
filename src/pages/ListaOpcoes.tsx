@@ -20,7 +20,7 @@ import { useOpcoes } from "@/hooks/useOpcoes";
 import { useAuth } from "@/context/AuthContext";
 import { Opcao, Venda } from "@/types/database";
 import { formatCurrency, formatDate } from "@/utils/formatters";
-import { ChevronDown, ChevronUp, Edit, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit, Trash2, FileText, FileTextIcon } from "lucide-react";
 
 
 export default function ListaOpcoes() {
@@ -255,7 +255,7 @@ export default function ListaOpcoes() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-muted-foreground">Carregando opções...</div>
+        <div className="text-lg text-muted-foreground">Carregando suas opções...</div>
       </div>
     );
   }
@@ -320,21 +320,24 @@ export default function ListaOpcoes() {
                             <AccordionItem key={`${opcao.opcao}-${index}`} value={`${monthGroup.key}-item-${index}`}>
                               <AccordionTrigger className="hover:no-underline">
                                 <div className="flex items-center justify-between w-full pr-4">
-                                  <div className="flex items-center space-x-4">
+                                 <div className="flex items-center space-x-2 sm:space-x-4">
                                     <span className="font-medium">{opcao.opcao}</span>
                                     <Badge 
                                       variant={opcao.operacao === 'compra' ? 'default' : 'destructive'}
-                                      className={opcao.operacao === 'compra' ? 'bg-blue-500 hover:bg-blue-600' : ''}
+                                      className={`hidden sm:inline-flex ${opcao.operacao === 'compra' ? 'bg-[#307B58] text-white hover:bg-[#225B44]' : ''}`}
                                     >
                                       {opcao.operacao?.charAt(0).toUpperCase() + opcao.operacao?.slice(1) || '-'}
                                     </Badge>
                                     {opcao.tipo && (
                                       <Badge 
-                                        variant={opcao.tipo === 'put' ? 'secondary' : 'outline'}
-                                        className={opcao.tipo === 'put' ? 'bg-gray-100 text-gray-800 hover:bg-gray-200 border-0' : ''}
+                                        variant="secondary"
+                                        className={`hidden sm:inline-flex ${opcao.tipo === 'put' 
+                                          ? 'bg-[#F6F6E6] text-gray-800 hover:bg-gray-200 border-0' 
+                                          : 'bg-[#F6F6E6] text-gray-800 hover:bg-gray-200 border-0'
+                                        }`}
                                       >
                                         {opcao.tipo.charAt(0).toUpperCase() + opcao.tipo.slice(1)}
-                                      </Badge>
+                                    </Badge>
                                     )}
                                   </div>
                                   <div className="flex items-center space-x-6 text-sm">
@@ -348,7 +351,7 @@ export default function ListaOpcoes() {
                                 </div>
                               </AccordionTrigger>
                               <AccordionContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/30 rounded-lg">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 p-4 bg-muted/30 rounded-lg">
                                   {/* Dados da Operação Original */}
                                   <div className="space-y-4">
                                     <h4 className="font-semibold text-base border-b pb-2">Dados da Operação</h4>
@@ -423,22 +426,25 @@ export default function ListaOpcoes() {
                                   <Button
                                     size="sm"
                                     variant="outline"
+                                    className="rounded-full border-0"
                                     onClick={() => handleEdit(opcao)}
                                   >
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Editar Opção
+                                    <FileTextIcon className="h-4 w-4 mr-2" />
+                                    Editar opção
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
+                                    className="rounded-full border-0"
                                     onClick={() => handleEditEncerramento(opcao)}
                                   >
                                     <Edit className="h-4 w-4 mr-2" />
-                                    Editar Encerramento
+                                    Editar encerramento
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
+                                    className="rounded-full border-0 bg-red-600 hover:bg-red-700 text-white hover:text-white"
                                     onClick={() => handleDelete(opcao)}
                                   >
                                     <Trash2 className="h-4 w-4 mr-2" />
@@ -606,9 +612,9 @@ function CardOpcao({ opcao, onEncerrar, onEditar, onDeletar, calculateDiferencaP
         >
           Encerrar opção
         </Button>
-        <div className="flex space-x-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition" onClick={() => onEditar(opcao)}><Edit size={18} /></button>
-          <button className="p-2 hover:bg-gray-100 rounded-full transition" onClick={() => onDeletar(opcao)}><Trash2 size={18} /></button>
+        <div className="flex space-x-1">
+          <button className="p-4 hover:bg-gray-100 rounded-full transition" onClick={() => onEditar(opcao)}><Edit size={18} /></button>
+          <button className="p-4 hover:bg-gray-100 rounded-full transition" onClick={() => onDeletar(opcao)}><Trash2 size={18} /></button>
         </div>
       </div>
     </div>
