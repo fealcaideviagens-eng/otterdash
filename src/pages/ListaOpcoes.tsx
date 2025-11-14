@@ -21,7 +21,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Opcao, Venda } from "@/types/database";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { ChevronDown, ChevronUp, Edit, Trash2 } from "lucide-react";
-import { CardOpcao } from "@/components/opcoes/CardOpcao";
+
 
 export default function ListaOpcoes() {
   const { user } = useAuth();
@@ -288,7 +288,7 @@ export default function ListaOpcoes() {
               </TabsList>
               
               <TabsContent value="abertas" className="mt-4">
-                <div className="cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
                   {opcoesAbertas.map((opcao, index) => (
                     <CardOpcao
                       key={`${opcao.opcao}-${index}`}
@@ -506,9 +506,9 @@ export default function ListaOpcoes() {
 function CardOpcao({ opcao, onEncerrar, onEditar, onDeletar, calculateDiferencaPercentual, calculateGanhoMaximo, calculateRentabilidadeMaxima, formatCurrency, formatDate }) {
   const [expandido, setExpandido] = useState(false);
   return (
-    <div className={`relative bg-white rounded-2xl shadow
+    <div className={`relative bg-white rounded-2xl border border-gray-200
       transition-all duration-300 flex flex-col
-      ${expandido ? 'min-h-[250px] py-6' : 'min-h-[100px] py-6 '}
+      ${expandido ? 'min-h-[250px] py-7' : 'min-h-[100px] py-7 '}
       px-5
     `}>
       {/* Header e controles */}
@@ -517,18 +517,18 @@ function CardOpcao({ opcao, onEncerrar, onEditar, onDeletar, calculateDiferencaP
         <div className="flex space-x-2 items-center">
           {/* Tag Operação */}
           <span
-            className={`text-xs font-semibold px-3 py-0.5 rounded-full 
-              ${opcao.operacao === 'compra' ? 'bg-blue-900 text-white' : ''}
-              ${opcao.operacao === 'venda' ? 'bg-orange-500 text-white' : ''}
+            className={`text-xs font-semibold px-4 py-0.5 rounded-full 
+              ${opcao.operacao === 'compra' ? 'bg-[#307B58] text-white' : ''}
+              ${opcao.operacao === 'venda' ? 'bg-[#D41010] text-white' : ''}
             `}
           >
             {opcao.operacao === 'compra' ? 'Compra' : 'Venda'}
           </span>
           {/* Tag Tipo */}
           <span
-            className={`text-xs font-semibold px-3 py-0.5 rounded-full 
-              ${opcao.tipo === 'put' ? 'bg-gray-200 text-gray-700' : ''}
-              ${opcao.tipo === 'call' ? 'bg-gray-400 text-gray-50' : ''}
+            className={`text-xs font-semibold px-4 py-0.5 rounded-full 
+              ${opcao.tipo === 'put' ? 'bg-[#F6F6E6] text-gray-800' : ''}
+              ${opcao.tipo === 'call' ? 'bg-[#F6F6E6] text-gray-800' : ''}
             `}
           >
             {opcao.tipo ? (opcao.tipo.charAt(0).toUpperCase() + opcao.tipo.slice(1)) : '-'}
@@ -543,52 +543,56 @@ function CardOpcao({ opcao, onEncerrar, onEditar, onDeletar, calculateDiferencaP
         </div>
       </div>
       {/* Infos principais - espaçamento compacto fechado, flexível aberto */}
-      <div className="flex justify-between mt-3 mb-1">
+      <div className="flex justify-between mt-5 mb-3">
         {/* Bloco Strike */}
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Strike</span>
           <span className="font-semibold text-xs">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
         </div>
         <div className="w-px bg-gray-200 mx-2 self-stretch" />
         {/* Bloco Qnt */}
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Qnt</span>
           <span className="font-semibold text-xs">{opcao.quantidade}</span>
         </div>
         <div className="w-px bg-gray-200 mx-2 self-stretch" />
         {/* Bloco Validade */}
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Validade</span>
           <span className="font-semibold text-xs">{opcao.data ? formatDate(opcao.data) : '-'}</span>
         </div>
         <div className="w-px bg-gray-200 mx-2 self-stretch" />
         {/* Bloco Prêmio */}
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Prêmio</span>
           <span className="font-semibold text-xs">{opcao.premio ? formatCurrency(opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
-        </div>
+        </div>    
       </div>
+              {/* LINHA PONTILHADA → SEMPRE VISÍVEL */}
+  <div className="mt-4 border-t-2 border-dashed border-dotted border-gray-400 pt-4 flex flex-col">
+        </div>
+
       {/* Detalhes - exibidos apenas quando expandido */}
       {expandido && (
-        <div className="mt-4 border-t border-dotted border-gray-300 pt-3 pb-1 flex flex-col gap-2">  
+        <div className="flex flex-col gap-3">  
           <div className="flex justify-between items-center text-xs">
-            <span className="text-[11px] text-gray-500 uppercase font-semibold">Ação</span>
+            <span className="text-sm text-gray-500 font-regular">Ação</span>
             <span className="font-semibold text-sm">{opcao.acao || '-'}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-[11px] text-gray-500 uppercase font-semibold">Cotação</span>
+            <span className="text-sm text-gray-500 font-regular">Cotação</span>
             <span className="text-sm font-bold">R$ {opcao.cotacao ? formatCurrency(opcao.cotacao) : '-'}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-[11px] text-gray-500 uppercase font-semibold">% Diferença</span>
+            <span className="text-sm text-gray-500 font-regular">% Diferença</span>
             <span className="px-2 py-0.5 rounded text-xs font-semibold bg-green-50 text-green-600 border border-green-200 ml-1">{calculateDiferencaPercentual(opcao)}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-[11px] text-gray-500 uppercase font-semibold">Ganho/perda máx.</span>
+            <span className="text-sm text-gray-500 font-regular">Ganho/perda máx.</span>
             <span className="text-sm font-semibold">{calculateGanhoMaximo(opcao) !== 0 ? 'R$ ' + formatCurrency(calculateGanhoMaximo(opcao)) : '-'}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
-            <span className="text-[11px] text-gray-500 uppercase font-semibold">Rentab. máx.</span>
+            <span className="text-sm text-gray-500 font-regular">Rentab. máx.</span>
             <span className="text-sm font-semibold">{calculateRentabilidadeMaxima(opcao)}</span>
           </div>
         </div>

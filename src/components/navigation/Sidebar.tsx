@@ -70,7 +70,7 @@ export const Sidebar = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-blue-200" style={{ backgroundColor: '#61005D' }}>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-blue-200" style={{ backgroundColor: '#263C64' }}>
         <nav className="flex justify-around py-2">
           {navigation.map((item) => (
             <NavLink
