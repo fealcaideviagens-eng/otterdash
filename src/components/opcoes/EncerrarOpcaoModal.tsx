@@ -235,7 +235,7 @@ export const EncerrarOpcaoModal = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button type="submit" disabled={loading} variant="default">
               {loading ? "Encerrando..." : "Confirmar encerramento"}
             </Button>
           </DialogFooter>

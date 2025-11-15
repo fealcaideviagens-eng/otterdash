@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DollarSign, Heart } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import lontralogin from "@/assets/lontra-login.png";
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -56,23 +57,48 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md shadow-modern glass">
+    <div className="min-h-screen flex bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#1C2E51]">
+              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+
+
+      {/* Lado Esquerdo - Imagem da Lontra (oculto no mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden p-1">
+         {/* Título sobreposto */}
+         <div className="absolute bottom-[58%] left-16 z-10">
+    <h1 className="text-6xl font-bold text-[#EBDECE] leading-tight">
+      Ottie ops
+    </h1>
+    <h1 className="text-4xl font-light text-[#EBDECE] leading-tight opacity-60">
+      bora ter controle!
+    </h1>
+        </div>
+  
+  {/* Imagem */}        
+        <img 
+          src={lontralogin} 
+          alt="Lontra Login" 
+          className="w-full h-auto object-contain max-h-screen"
+        />
+      </div>
+
+      {/* Lado Direito - Card de Login */}
+      <div className="flex-1 lg:w-1/2 flex items-center justify-center pl-0 pr-1 py-1">
+         <Card className="w-full max-w-md shadow-2xl drop-shadow-2xl glass">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            {isLogin ? 'Entrar' : 'Criar conta'}
+            {isLogin ? 'Entrar' : 'Crie sua conta'}
           </CardTitle>
           <CardDescription className="text-center">
             {isLogin 
-              ? 'Entre com suas credenciais para acessar a plataforma' 
-              : 'Crie sua conta para começar a usar a plataforma'}
+              ? 'Opções no controle, lucro na veia!' 
+              : 'Monte seu time de opções e entre no jogo!'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="nome">Nome</Label>
+                <Label htmlFor="nome">Nome completo</Label>
                 <Input
                   id="nome"
                   type="text"
@@ -141,6 +167,7 @@ export default function Auth() {
           </Alert>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }
