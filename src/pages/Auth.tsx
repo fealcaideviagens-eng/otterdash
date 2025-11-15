@@ -82,7 +82,7 @@ export default function Auth() {
       </div>
 
       {/* Lado Direito - Card de Login */}
-      <div className="flex-1 lg:w-1/2 flex items-center justify-center pl-0 pr-1 py-1">
+      <div className="flex-1 lg:w-1/2 flex items-center justify-center p-6 lg:pl-0 lg:pr-1 lg:py-1">
          <Card className="w-full max-w-md shadow-2xl drop-shadow-2xl glass">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
