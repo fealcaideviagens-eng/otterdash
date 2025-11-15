@@ -160,13 +160,15 @@ export const ResultsChart = ({ viewType, userId }: ResultsChartProps) => {
                   dataKey="name" 
                   tick={{ fontSize: 12 }}
                   tickLine={false}
+                  axisLine={false}
                 />
                 <YAxis 
                   tickFormatter={formatYAxisTick}
                   tick={{ fontSize: 12 }}
                   tickLine={false}
+                  axisLine={false}
                 />
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip content={<CustomTooltip />} cursor={false} />
                 <Bar 
                   dataKey="value" 
                   name="Resultado"
@@ -176,6 +178,7 @@ export const ResultsChart = ({ viewType, userId }: ResultsChartProps) => {
                     <Cell 
                       key={`cell-${index}`} 
                       fill={entry.value >= 0 ? "hsl(var(--profit))" : "hsl(var(--loss))"} 
+                     className="hover:brightness-95 transition-all cursor-pointer"
                     />
                   ))}
                 </Bar>
