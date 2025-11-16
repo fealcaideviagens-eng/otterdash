@@ -34,8 +34,8 @@ import iconpix from "@/assets/icon-pix.png";
         {/* IMAGEM DE FUNDO COM OPACIDADE */}
         <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-5" style={{ backgroundImage: `url(${backgroundlp})` }} />
 
-          <div class="flex flex-col items-center text-center gap-16 max-w-7xl mx-auto">
-           <div class="space-y-6 relative z-10 max-w-5xl">
+          <div className="flex flex-col items-center text-center gap-16 max-w-7xl mx-auto">
+          <div className="space-y-6 relative z-10 max-w-5xl">
               <div className="inline-block px-4 py-2 bg-white/20 rounded-full">
                 <span className="text-white font-semibold text-sm">LANÇAMENTO • 100% GRATUITO</span>
               </div>
