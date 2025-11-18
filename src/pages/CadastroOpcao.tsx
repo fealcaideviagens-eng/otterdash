@@ -3,28 +3,93 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { useGarantias } from "@/hooks/useGarantias";
 import { useAuth } from "@/context/AuthContext";
-import { Opcao } from "@/types/database";
 import { formatDateForInput, formatCurrency as formatCurrencyDisplay, formatPercentage, parseLocalDate } from "@/utils/formatters";
 import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
-import { CalendarIcon, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
+import { CalendarIcon, AlertTriangle, CheckCircle, DollarSign, Pencil } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+// ESTRATÉGIAS MAPEADAS
+const STRATEGIES = [
+  {
+    id: "renda_extra_acoes",
+    group: "Renda extra",
+    title: "Com ações",
+    subtitle: "venda de call",
+    operacao: "venda",
+    tipo: "call",
+    disabled: false,
+    headerTitle: "Renda extra - venda de call" 
+  },
+  {
+    id: "renda_extra_dinheiro",
+    group: "Renda extra",
+    title: "Com dinheiro",
+    subtitle: "venda de put",
+    operacao: "venda",
+    tipo: "put",
+    disabled: false,
+    headerTitle: "Renda extra - venda de put"
+  },
+  {
+    id: "alta_infinita",
+    group: "Operar a alta",
+    title: "Alta infinita",
+    subtitle: "compra a seco - call",
+    operacao: "compra",
+    tipo: "call",
+    disabled: false,
+    headerTitle: "Compra de call"
+  },
+  {
+    id: "alta_moderada",
+    group: "Operar a alta",
+    title: "Alta moderada",
+    subtitle: "trava de alta - call",
+    operacao: "",
+    tipo: "",
+    disabled: true,
+    headerTitle: ""
+  },
+  {
+    id: "queda_infinita",
+    group: "Operar a baixa",
+    title: "Queda infinita",
+    subtitle: "venda a seco - put", 
+    operacao: "compra",
+    tipo: "put",
+    disabled: false,
+    headerTitle: "Compra de put"
+  },
+  {
+    id: "queda_moderada",
+    group: "Operar a baixa",
+    title: "Queda moderada",
+    subtitle: "trava de baixa - put",
+    operacao: "",
+    tipo: "",
+    disabled: true,
+    headerTitle: ""
+  }
+];
+
+// Helper para converter cores Tailwind em Hex para o gradiente CSS
+const getRiskColorHex = (className: string) => {
+  if (className.includes("emerald")) return "#10b981";
+  if (className.includes("green")) return "#16a34a";
+  if (className.includes("yellow")) return "#ca8a04";
+  if (className.includes("red-800")) return "#991b1b";
+  if (className.includes("red")) return "#dc2626";
+  return "#16a34a"; // Default green
+};
 
 export default function CadastroOpcao() {
   const { user } = useAuth();
@@ -34,20 +99,18 @@ export default function CadastroOpcao() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
-  // Função para obter a próxima data útil (não fim de semana)
+  const [step, setStep] = useState(1);
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string>("renda_extra_acoes");
+
   const getNextBusinessDay = () => {
     const today = new Date();
     let nextBusinessDay = new Date(today);
-    
-    // Se hoje é sábado (6), adicionar 2 dias para segunda
-    // Se hoje é domingo (0), adicionar 1 dia para segunda
     const dayOfWeek = today.getDay();
     if (dayOfWeek === 6) {
       nextBusinessDay.setDate(today.getDate() + 2);
     } else if (dayOfWeek === 0) {
       nextBusinessDay.setDate(today.getDate() + 1);
     }
-    
     return nextBusinessDay;
   };
   
@@ -64,6 +127,22 @@ export default function CadastroOpcao() {
     status: "aberta",
   });
 
+  const handleContinueToForm = () => {
+    const strategy = STRATEGIES.find(s => s.id === selectedStrategyId);
+    if (strategy) {
+      setFormData(prev => ({
+        ...prev,
+        operacao: strategy.operacao,
+        tipo: strategy.tipo
+      }));
+      setStep(2);
+    }
+  };
+
+  const handleBackToStrategies = () => {
+    setStep(1);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -79,7 +158,7 @@ export default function CadastroOpcao() {
         quantidade: formData.quantidade ? parseNumberToInt(formData.quantidade) : null,
         premio: formData.premio ? parseCurrencyToNumber(formData.premio) : null,
         data: formData.data || null,
-        status: "aberta", // Sempre definir como "aberta"
+        status: "aberta", 
       };
 
       await addOpcao(opcaoData);
@@ -90,10 +169,9 @@ export default function CadastroOpcao() {
         className: "border-green-200 bg-green-50 text-green-900",
       });
 
-      // Limpar formulário após sucesso
       setFormData({
         opcao: "",
-        operacao: "",
+        operacao: "", 
         tipo: "",
         acao: "",
         strike: "",
@@ -103,6 +181,9 @@ export default function CadastroOpcao() {
         data: formatDateForInput(getNextBusinessDay()),
         status: "aberta",
       });
+      setStep(1); 
+      setSelectedStrategyId("renda_extra_acoes");
+
     } catch (error) {
       console.error("Erro ao cadastrar opção:", error);
       toast({
@@ -131,44 +212,31 @@ export default function CadastroOpcao() {
   };
 
   const handleOpcaoChange = (value: string) => {
-    // Converte para maiúsculo
     const upperValue = value.toUpperCase();
-    
-    // Permite apenas letras, números e W
     const cleanValue = upperValue.replace(/[^A-Z0-9W]/g, '');
     
-    // Validação progressiva baseada na regra:
-    // - 5 letras obrigatórias + 3 números obrigatórios (mínimo 8 caracteres)
-    // - Opcionalmente: + W + 1 número (máximo 10 caracteres)
-    // - Se tiver W, é obrigatório ter o número após ele
     let isValid = false;
     let validValue = '';
     
     if (cleanValue.length === 0) {
-      // Permite campo vazio
       isValid = true;
       validValue = '';
     } else if (cleanValue.length <= 5) {
-      // Primeiros 5 caracteres devem ser apenas letras
       if (/^[A-Z]{1,5}$/.test(cleanValue)) {
         isValid = true;
         validValue = cleanValue;
       }
     } else if (cleanValue.length <= 8) {
-      // 5 letras + 1 a 3 números (obrigatório ter exatamente 3 números no final)
-      // Mas durante a digitação, permite progressivamente 1, 2 ou 3 números
       if (/^[A-Z]{5}[0-9]{1,3}$/.test(cleanValue)) {
         isValid = true;
         validValue = cleanValue;
       }
     } else if (cleanValue.length === 9) {
-      // 5 letras + 3 números + W (opcional, mas se tiver W precisa ter número)
       if (/^[A-Z]{5}[0-9]{3}W$/.test(cleanValue)) {
         isValid = true;
         validValue = cleanValue;
       }
     } else if (cleanValue.length === 10) {
-      // 5 letras + 3 números + W + 1 número (opcional completo)
       if (/^[A-Z]{5}[0-9]{3}W[0-9]{1}$/.test(cleanValue)) {
         isValid = true;
         validValue = cleanValue;
@@ -179,21 +247,14 @@ export default function CadastroOpcao() {
       setFormData(prev => ({ 
         ...prev, 
         opcao: validValue,
-        // Preencher automaticamente o campo ação com as 4 primeiras letras
-        // Só preenche se tiver pelo menos 4 letras
         acao: validValue.length >= 4 ? validValue.substring(0, 4) : prev.acao
       }));
     }
   };
 
   const handleAcaoChange = (value: string) => {
-    // Converte para maiúsculo
     const upperValue = value.toUpperCase();
-    
-    // Permite apenas letras e números
     const cleanValue = upperValue.replace(/[^A-Z0-9]/g, '');
-    
-    // Valida formato: 4 letras seguidas de 1 ou 2 números
     const regex = /^[A-Z]{0,4}[0-9]{0,2}$/;
     
     if (regex.test(cleanValue) && cleanValue.length <= 6) {
@@ -201,14 +262,6 @@ export default function CadastroOpcao() {
     }
   };
 
-  const handleDateIconClick = () => {
-    const dateInput = document.getElementById('data') as HTMLInputElement;
-    if (dateInput) {
-      dateInput.showPicker();
-    }
-  };
-
-  // Calcular dados da operação para o card lateral
   const calculateOperationData = () => {
     const strike = parseCurrencyToNumber(formData.strike);
     const cotacao = parseCurrencyToNumber(formData.cotacao);
@@ -221,67 +274,65 @@ export default function CadastroOpcao() {
     let isGanho = true;
     let nivelRisco = "baixo";
     let corRisco = "text-green-600";
-    let progressValue = 100;
+    let progressValue = 0; // 0 a 100
 
     if (strike > 0 && cotacao > 0) {
-      // Calcular diferença baseado no tipo de opção
       if (formData.tipo === "call") {
         percentualDiferenca = ((strike - cotacao) / cotacao) * 100;
       } else if (formData.tipo === "put") {
         percentualDiferenca = ((cotacao - strike) / cotacao) * 100;
       }
       
-      // Determinar nível de risco baseado na operação e tipo
       const diferencaAbsoluta = Math.abs(percentualDiferenca);
       
       if (formData.operacao === "compra" && formData.tipo === "call") {
-        // Compra Call: quanto menor a diferença, menor o risco
+        // Compra Call
         if (percentualDiferenca < 0) {
           nivelRisco = "baixíssimo";
           corRisco = "text-green-600";
-          progressValue = 10;
+          progressValue = 15;
         } else if (diferencaAbsoluta <= 4) {
           nivelRisco = "baixo";
           corRisco = "text-green-600";
-          progressValue = 50;
+          progressValue = 35;
         } else if (diferencaAbsoluta <= 6) {
           nivelRisco = "médio";
           corRisco = "text-yellow-600";
-          progressValue = 70;
+          progressValue = 65;
         } else {
           nivelRisco = "alto";
           corRisco = "text-red-600";
           progressValue = 90;
         }
       } else if (formData.operacao === "compra" && formData.tipo === "put") {
-        // Compra Put: quanto menor a diferença, menor o risco
+        // Compra Put
         if (percentualDiferenca < 0) {
           nivelRisco = "baixíssimo";
           corRisco = "text-emerald-600";
-          progressValue = 10;
+          progressValue = 15;
         } else if (diferencaAbsoluta <= 4) {
           nivelRisco = "baixo";
           corRisco = "text-green-600";
-          progressValue = 50;
+          progressValue = 35;
         } else if (diferencaAbsoluta <= 6) {
           nivelRisco = "médio";
           corRisco = "text-yellow-600";
-          progressValue = 70;
+          progressValue = 65;
         } else {
           nivelRisco = "alto";
           corRisco = "text-red-600";
           progressValue = 90;
         }
       } else if (formData.operacao === "venda" && formData.tipo === "put") {
-        // Venda Put: quanto maior a diferença, menor o risco
+        // Venda Put
         if (percentualDiferenca < 0) {
           nivelRisco = "altíssimo";
           corRisco = "text-red-800";
-          progressValue = 90;
+          progressValue = 95;
         } else if (diferencaAbsoluta <= 4) {
           nivelRisco = "alto";
           corRisco = "text-red-600";
-          progressValue = 70;
+          progressValue = 80;
         } else if (diferencaAbsoluta <= 6) {
           nivelRisco = "médio";
           corRisco = "text-yellow-600";
@@ -292,11 +343,11 @@ export default function CadastroOpcao() {
           progressValue = 20;
         }
        } else {
-         // Venda Call: lógica original
+         // Venda Call
          if (percentualDiferenca < 0) {
            nivelRisco = "altíssimo";
            corRisco = "text-red-800";
-           progressValue = 90;
+           progressValue = 95;
          } else if (percentualDiferenca > 0 && diferencaAbsoluta > 6) {
            nivelRisco = "baixo";
            corRisco = "text-green-600";
@@ -308,14 +359,13 @@ export default function CadastroOpcao() {
          } else {
            nivelRisco = "alto";
            corRisco = "text-red-600";
-           progressValue = 70;
+           progressValue = 80;
          }
        }
     }
 
     if (premio > 0 && quantidade > 0) {
       valorTotal = premio * quantidade;
-      
       if (formData.operacao === "venda") {
         valorTotalLabel = "Ganho máximo";
         isGanho = true;
@@ -326,7 +376,6 @@ export default function CadastroOpcao() {
       }
     }
 
-    // Calcular informações de exercício
     let valorExercicio = 0;
     let quantidadeAcoes = 0;
     let mostrarValorExercicio = false;
@@ -335,21 +384,16 @@ export default function CadastroOpcao() {
     if (quantidade > 0 && strike > 0) {
       valorExercicio = quantidade * strike;
       quantidadeAcoes = quantidade;
-
-      // Call + Compra ou Put + Venda = mostrar valor em reais
       if ((formData.tipo === "call" && formData.operacao === "compra") || 
           (formData.tipo === "put" && formData.operacao === "venda")) {
         mostrarValorExercicio = true;
       }
-
-      // Put + Compra ou Call + Venda = mostrar quantidade de ações
       if ((formData.tipo === "put" && formData.operacao === "compra") || 
           (formData.tipo === "call" && formData.operacao === "venda")) {
         mostrarQuantidadeAcoes = true;
       }
     }
 
-    // Calcular percentual de ganho/perda em relação à garantia
     let percentualRelativoGarantia = 0;
     let labelPercentualGarantia = "";
     let isGanhoGarantia = false;
@@ -357,48 +401,37 @@ export default function CadastroOpcao() {
     if (quantidade > 0 && strike > 0 && premio > 0) {
       const garantia = strike * quantidade;
       const premioTotal = premio * quantidade;
-
       if (formData.operacao === "compra") {
-        // Compra Call ou Compra Put: Perda máxima
         percentualRelativoGarantia = (-premioTotal / garantia) * 100;
         labelPercentualGarantia = "Perda máxima";
         isGanhoGarantia = false;
       } else {
-        // Venda Put ou Venda Call: Ganho máximo
         percentualRelativoGarantia = (premioTotal / garantia) * 100;
         labelPercentualGarantia = "Ganho máximo";
         isGanhoGarantia = true;
       }
     }
 
-    // Calcular alavancagem
     let mostrarAlavancagem = false;
     let statusAlavancagem = "";
     let isAlavancado = false;
     let quantidadeAlavancada = 0;
 
     if (quantidade > 0 && strike > 0) {
-      // Venda de Call ou Compra de Put = precisa garantia em AÇÕES
       const precisaGarantiaAcao = 
         (formData.operacao === "venda" && formData.tipo === "call") ||
         (formData.operacao === "compra" && formData.tipo === "put");
 
-      // Venda de Put ou Compra de Call = precisa garantia em RENDA FIXA
       const precisaGarantiaRendaFixa = 
         (formData.operacao === "venda" && formData.tipo === "put") ||
         (formData.operacao === "compra" && formData.tipo === "call");
 
       if (precisaGarantiaAcao && formData.acao) {
         mostrarAlavancagem = true;
-        
-        // Buscar garantia cadastrada para esse ticker
         const garantiaAcao = garantias.find(g => 
           g.tipo === 'acao' && g.ticker === formData.acao
         );
-        
-        // Usar quantidade LIVRE (descontando o que já está em garantia)
         const quantidadeLivre = garantiaAcao?.quantidadeLivre || 0;
-        
         if (quantidade <= quantidadeLivre) {
           statusAlavancagem = "Coberto";
           isAlavancado = false;
@@ -409,15 +442,10 @@ export default function CadastroOpcao() {
         }
       } else if (precisaGarantiaRendaFixa) {
         mostrarAlavancagem = true;
-        
-        // Calcular valor necessário
         const valorNecessario = strike * quantidade;
-        
-        // Somar todo o valor LIVRE de todas as rendas fixas
         const valorRendaFixaLivre = garantias
           .filter(g => g.tipo === 'renda_fixa')
           .reduce((total, g) => total + (g.valorLivre || 0), 0);
-        
         if (valorNecessario <= valorRendaFixaLivre) {
           statusAlavancagem = "Coberto";
           isAlavancado = false;
@@ -452,33 +480,119 @@ export default function CadastroOpcao() {
   };
 
   const operationData = calculateOperationData();
+  const currentStrategy = STRATEGIES.find(s => s.id === selectedStrategyId);
 
+  // ETAPA 1
+  if (step === 1) {
+    const groups = ["Renda extra", "Operar a alta", "Operar a baixa"];
+    
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-sm font-medium text-muted-foreground">Cadastro de opções</h1>
+          <h2 className="text-3xl font-bold text-foreground">Escolha sua estratégia</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {groups.map(groupName => (
+            <Card key={groupName} className="h-full bg-white">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-bold">{groupName}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {STRATEGIES.filter(s => s.group === groupName).map(strategy => (
+                  <div 
+                    key={strategy.id}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-lg transition-colors",
+                      strategy.disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-slate-50",
+                      selectedStrategyId === strategy.id && !strategy.disabled ? "bg-slate-50" : ""
+                    )}
+                    onClick={() => !strategy.disabled && setSelectedStrategyId(strategy.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded bg-slate-100 flex items-center justify-center text-slate-700">
+                        <DollarSign className="h-5 w-5" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-sm text-slate-900">{strategy.title}</span>
+                        <span className="text-xs text-slate-500">{strategy.subtitle}</span>
+                      </div>
+                    </div>
+
+                    {strategy.disabled ? (
+                      <span className="text-[10px] font-medium bg-[#F1F0EA] text-[#6D6845] px-2 py-1 rounded-full">
+                        em breve
+                      </span>
+                    ) : (
+                      <div className={cn(
+                        "h-5 w-5 rounded-full border-2 flex items-center justify-center",
+                        selectedStrategyId === strategy.id 
+                          ? "border-blue-600" 
+                          : "border-slate-300"
+                      )}>
+                        {selectedStrategyId === strategy.id && (
+                          <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div>
+            {/* CORREÇÃO: Botão estilo Pill */}
+            <Button 
+              size="lg" 
+              className="px-8 rounded-full"
+              onClick={handleContinueToForm}
+            >
+              Continuar cadastro
+            </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ETAPA 2
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Cadastro de opção</h1>
-        <p className="text-muted-foreground">
-          Adicione uma nova operação de opção ao seu portfólio
-        </p>
+        <h1 className="text-sm font-medium text-muted-foreground">Cadastro de opções</h1>
+        <h2 className="text-3xl font-bold text-foreground">Preencha os dados da opção</h2>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        <Card className="flex-1 lg:max-w-2xl w-full">
-          <CardHeader>
-            <CardTitle>Nova opção</CardTitle>
+        <Card className="flex-1 lg:max-w-2xl w-full h-fit bg-white">
+          <CardHeader className="flex flex-row items-center justify-between pb-6">
+            <CardTitle className="text-xl font-bold">
+              {currentStrategy?.headerTitle || "Nova opção"}
+            </CardTitle>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleBackToStrategies}
+              className="flex items-center gap-1 text-slate-600 hover:text-slate-900 rounded-full px-3"
+            >
+              <Pencil className="h-3 w-3" />
+              alterar
+            </Button>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Primeira linha: Nome da opção e Ação */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="opcao">Nome da opção</Label>
+                  <Label htmlFor="opcao">Ticker da opção</Label>
                   <Input
                     id="opcao"
                     value={formData.opcao}
                     onChange={(e) => handleOpcaoChange(e.target.value)}
                     placeholder="ex: PETRH123"
-                    className="placeholder-subtle"
+                    className="placeholder-subtle mt-1.5"
                     maxLength={10}
                     required
                   />
@@ -491,51 +605,13 @@ export default function CadastroOpcao() {
                     value={formData.acao}
                     onChange={(e) => handleAcaoChange(e.target.value)}
                     placeholder="ex: PETR4"
-                    className="placeholder-subtle"
+                    className="placeholder-subtle mt-1.5"
                     maxLength={6}
                     required
                   />
                 </div>
               </div>
 
-              {/* Segunda linha: Operação e Tipo */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="operacao">Operação</Label>
-                  <Select
-                    value={formData.operacao}
-                    onValueChange={(value) => handleInputChange("operacao", value)}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a operação" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="compra">Compra</SelectItem>
-                      <SelectItem value="venda">Venda</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="tipo">Tipo</Label>
-                  <Select
-                    value={formData.tipo}
-                    onValueChange={(value) => handleInputChange("tipo", value)}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="call">Call</SelectItem>
-                      <SelectItem value="put">Put</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Demais campos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="strike">Strike (R$)</Label>
@@ -544,7 +620,7 @@ export default function CadastroOpcao() {
                     value={formData.strike}
                     onChange={(e) => handleCurrencyChange("strike", e.target.value)}
                     placeholder="0,00"
-                    className="placeholder-subtle"
+                    className="placeholder-subtle mt-1.5"
                     required
                   />
                 </div>
@@ -556,11 +632,13 @@ export default function CadastroOpcao() {
                     value={formData.cotacao}
                     onChange={(e) => handleCurrencyChange("cotacao", e.target.value)}
                     placeholder="0,00"
-                    className="placeholder-subtle"
+                    className="placeholder-subtle mt-1.5"
                     required
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="quantidade">Quantidade</Label>
                   <Input
@@ -568,7 +646,7 @@ export default function CadastroOpcao() {
                     value={formData.quantidade}
                     onChange={(e) => handleNumberChange("quantidade", e.target.value)}
                     placeholder="100"
-                    className="placeholder-subtle"
+                    className="placeholder-subtle mt-1.5"
                     required
                   />
                 </div>
@@ -580,11 +658,13 @@ export default function CadastroOpcao() {
                     value={formData.premio}
                     onChange={(e) => handleCurrencyChange("premio", e.target.value)}
                     placeholder="0,00"
-                    className="placeholder-subtle"
+                    className="placeholder-subtle mt-1.5"
                     required
                   />
                 </div>
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="data">Vencimento</Label>
                   <Popover>
@@ -592,7 +672,7 @@ export default function CadastroOpcao() {
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                          "w-full justify-start text-left font-normal h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background mt-1.5",
                           !formData.data && "text-muted-foreground"
                         )}
                       >
@@ -610,7 +690,6 @@ export default function CadastroOpcao() {
                         selected={formData.data ? parseLocalDate(formData.data) : undefined}
                         onSelect={(date) => {
                           if (date) {
-                            // Usar formato ISO sem conversão de fuso horário
                             const year = date.getFullYear();
                             const month = String(date.getMonth() + 1).padStart(2, '0');
                             const day = String(date.getDate()).padStart(2, '0');
@@ -619,7 +698,6 @@ export default function CadastroOpcao() {
                           }
                         }}
                         disabled={(date) => {
-                          // Desabilitar sábados (6) e domingos (0)
                           const dayOfWeek = date.getDay();
                           return dayOfWeek === 0 || dayOfWeek === 6;
                         }}
@@ -631,16 +709,9 @@ export default function CadastroOpcao() {
                 </div>
               </div>
 
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-4 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => navigate("/opcoes")}
-                  >
-                    Cancelar
-                  </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Cadastrando..." : "Cadastrar opção"}
+              <div className="pt-4">
+                <Button type="submit" disabled={loading} className="w-full sm:w-auto px-8 rounded-full">
+                  {loading ? "Cadastrando..." : "Concluir cadastro"}
                 </Button>
               </div>
             </form>
@@ -648,80 +719,26 @@ export default function CadastroOpcao() {
         </Card>
 
         {/* Card lateral com análise de risco */}
-        <Card className="w-full lg:w-80 h-fit">
+        <Card className="w-full lg:w-80 h-fit bg-white">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-lg">
               Análise de risco
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Valor de exercício (Call+Compra ou Put+Venda) */}
-            {operationData.mostrarValorExercicio && (
-              <div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Label className="text-sm font-medium">
-                          Valor de Exercício
-                        </Label>
-                        <p className="text-lg font-bold text-foreground">
-                          {formatCurrencyDisplay(operationData.valorExercicio)}
-                        </p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        Valor em reais necessário caso a opção seja exercida (Quantidade × Strike). Não considera taxas da corretora.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
-
-            {/* Quantidade de ações necessárias (Put+Compra ou Call+Venda) */}
-            {operationData.mostrarQuantidadeAcoes && (
-              <div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Label className="text-sm font-medium">
-                          Ações Necessárias
-                        </Label>
-                        <p className="text-lg font-bold text-foreground">
-                          {operationData.quantidadeAcoes.toLocaleString('pt-BR')} ações
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {formatCurrencyDisplay(operationData.valorExercicio)}
-                        </p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        Quantidade de ações que você precisa ter na carteira para esta operação. O valor representa Quantidade × Strike.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
-
-            {/* Diferença percentual Strike vs Cotação */}
+          <CardContent className="space-y-6">
+            
             <div>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="cursor-help">
-                      <Label className="text-sm font-medium">
+                      <Label className="text-sm text-slate-500 font-medium">
                         Diferença Strike vs Cotação
                       </Label>
-                      <p className={`text-lg font-bold ${
+                      <p className={`text-2xl font-bold mt-1 ${
                         operationData.percentualDiferenca >= 0 
-                          ? 'text-emerald-600' 
-                          : 'text-orange-600'
+                          ? 'text-emerald-500' 
+                          : 'text-orange-500'
                       }`}>
                         {formatPercentage(operationData.percentualDiferenca)}
                       </p>
@@ -743,140 +760,80 @@ export default function CadastroOpcao() {
               </TooltipProvider>
             </div>
 
-            {/* Valor total do prêmio */}
-            <div className="mb-8">
-              <Label className="text-sm font-medium">{operationData.valorTotalLabel}</Label>
-              <p className={`text-lg font-bold ${operationData.isGanho ? 'text-green-600' : 'text-red-600'}`}>
-                {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
-              </p>
+            {/* GRAFICO CORRIGIDO: Estrutura CSS/Div sem Gap */}
+            <div>
+              <Label className="text-sm text-slate-500 font-medium">Nível de risco</Label>
+              
+              <div className="relative mt-4 flex justify-center">
+                  {/* Container do gráfico (semicírculo) */}
+                  <div className="relative w-48 h-24 overflow-hidden">
+                     {/* Fundo Cinza (Trilha) - Usando border para manter estilo "CSS Only" */}
+                     <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                     
+                     {/* Barra de Preenchimento (Sem Gaps) 
+                         Usamos conic-gradient + mask para simular a borda preenchida perfeitamente da esquerda para a direita */}
+                     <div 
+                        className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          // O gradiente cônico preenche suavemente de 0 até o grau desejado, sem criar "blocos" soltos
+                          background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                          transform: 'rotate(-90deg)', // Começa na esquerda (9 horas)
+                          // Máscara para criar o efeito de "anel/borda" (corta o miolo)
+                          maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                          WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                        }}
+                     ></div>
+                  </div>
+                  
+                  <div className="absolute bottom-0 left-0 right-0 text-center">
+                      <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                        {operationData.nivelRisco}
+                      </p>
+                  </div>
+              </div>
             </div>
 
-            {/* Percentual em relação à garantia */}
-            {operationData.percentualRelativoGarantia !== 0 && (
-              <div className="mb-8">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Label className="text-sm font-medium">
-                          {operationData.labelPercentualGarantia} (% garantia)
-                        </Label>
-                        <p className={`text-lg font-bold ${operationData.isGanhoGarantia ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatPercentage(operationData.percentualRelativoGarantia)}
-                        </p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        {operationData.isGanhoGarantia 
-                          ? "Percentual de ganho máximo em relação ao valor da garantia (Strike × Quantidade)"
-                          : "Percentual de perda máxima em relação ao valor da garantia (Strike × Quantidade)"
-                        }
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
+            <div className="pt-4 border-t border-slate-100 space-y-4">
+                {operationData.mostrarValorExercicio && (
+                  <div>
+                    <Label className="text-xs text-slate-500">Valor de Exercício</Label>
+                    <p className="font-semibold text-slate-900">
+                      {formatCurrencyDisplay(operationData.valorExercicio)}
+                    </p>
+                  </div>
+                )}
+                 
+                <div>
+                  <Label className="text-xs text-slate-500">{operationData.valorTotalLabel}</Label>
+                  <p className={`font-semibold ${operationData.isGanho ? 'text-green-600' : 'text-red-600'}`}>
+                    {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                  </p>
+                </div>
 
-            {/* Alavancagem */}
-            {operationData.mostrarAlavancagem && (
-              <div className="mb-8">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="cursor-help">
-                        <Label className="text-sm font-medium">Alavancagem</Label>
-                        <div className="flex items-center gap-2 mt-1">
+                {operationData.mostrarAlavancagem && (
+                  <div>
+                     <Label className="text-xs text-slate-500">Status Cobertura</Label>
+                     <div className="flex items-center gap-2 mt-1">
                           {operationData.isAlavancado ? (
                             <>
-                              <AlertTriangle className="h-5 w-5 text-orange-600" />
-                              <p className="text-lg font-bold text-orange-600">
+                              <AlertTriangle className="h-4 w-4 text-orange-600" />
+                              <span className="text-sm font-bold text-orange-600">
                                 {operationData.statusAlavancagem}
-                              </p>
+                              </span>
                             </>
                           ) : (
                             <>
-                              <CheckCircle className="h-5 w-5 text-green-600" />
-                              <p className="text-lg font-bold text-green-600">
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <span className="text-sm font-bold text-green-600">
                                 {operationData.statusAlavancagem}
-                              </p>
+                              </span>
                             </>
                           )}
                         </div>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        {(() => {
-                          const precisaRendaFixa = 
-                            (formData.operacao === "venda" && formData.tipo === "put") ||
-                            (formData.operacao === "compra" && formData.tipo === "call");
-                          
-                          if (operationData.isAlavancado) {
-                            return precisaRendaFixa
-                              ? "Você não possui renda fixa suficiente cadastrada em garantia para cobrir esta operação."
-                              : `Você não possui ações suficientes cadastradas em garantia para cobrir esta operação. Está alavancado em ${operationData.quantidadeAlavancada} ações.`;
-                          } else {
-                            return precisaRendaFixa
-                              ? "Você possui renda fixa suficiente cadastrada em garantia para cobrir esta operação."
-                              : "Você possui ações suficientes cadastradas em garantia para cobrir esta operação.";
-                          }
-                        })()}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
-
-            {/* Nível de risco */}
-            <div>
-              <div className="mb-2">
-                <Label className="text-sm font-medium">Nível de Risco</Label>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                {/* Meio círculo de progresso */}
-                <div className="relative w-52 h-26 mb-3">
-                  <svg className="w-52 h-26" viewBox="0 0 208 104">
-                    {/* Background semicircle */}
-                    <path
-                      d="M 26 104 A 78 78 0 0 1 182 104"
-                      fill="none"
-                      stroke="hsl(var(--muted))"
-                      strokeWidth="16"
-                      strokeLinecap="round"
-                    />
-                    {/* Progress semicircle */}
-                    <path
-                      d="M 26 104 A 78 78 0 0 1 182 104"
-                      fill="none"
-                      stroke={
-                        operationData.nivelRisco === 'baixíssimo' ? 'hsl(160 84% 39%)' :
-                        operationData.nivelRisco === 'muito baixo' ? 'hsl(160 84% 39%)' :
-                        operationData.nivelRisco === 'baixo' ? 'hsl(142 76% 36%)' :
-                        operationData.nivelRisco === 'médio' ? 'hsl(45 93% 47%)' :
-                        operationData.nivelRisco === 'alto' ? 'hsl(0 84% 60%)' :
-                        operationData.nivelRisco === 'altíssimo' ? 'hsl(0 72% 50%)' :
-                        'hsl(0 72% 50%)'
-                      }
-                      strokeWidth="16"
-                      strokeLinecap="round"
-                      strokeDasharray={`${(operationData.progressValue / 100) * 245.1} 245.1`}
-                      className="transition-all duration-700 ease-in-out"
-                    />
-                  </svg>
-                  
-                  {/* Texto central */}
-                  <div className="absolute inset-0 flex items-end justify-center pb-1">
-                    <span className={`text-sm font-semibold ${operationData.corRisco}`}>
-                      {operationData.nivelRisco}
-                    </span>
                   </div>
-                </div>
-              </div>
+                )}
             </div>
+
           </CardContent>
         </Card>
       </div>
