@@ -9,7 +9,7 @@ import { useGarantias } from "@/hooks/useGarantias";
 import { useAuth } from "@/context/AuthContext";
 import { formatDateForInput, formatCurrency as formatCurrencyDisplay, formatPercentage, parseLocalDate } from "@/utils/formatters";
 import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
-import { CalendarIcon, AlertTriangle, CheckCircle, DollarSign, Pencil } from "lucide-react";
+import { CalendarIcon, AlertTriangle, CheckCircle, DollarSign, Pencil, TrendingUp, TrendingDown, Building2, ArrowBigDownDash, ArrowBigUpDash} from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
@@ -27,7 +27,10 @@ const STRATEGIES = [
     operacao: "venda",
     tipo: "call",
     disabled: false,
-    headerTitle: "Renda extra - venda de call" 
+    headerTitle: "Renda extra - venda de call",
+    icon: Building2, // <--- Referência ao ícone importado
+    colorClass: "bg-blue-100 text-blue-700" // <--- Classe de cor
+    
   },
   {
     id: "renda_extra_dinheiro",
@@ -37,7 +40,9 @@ const STRATEGIES = [
     operacao: "venda",
     tipo: "put",
     disabled: false,
-    headerTitle: "Renda extra - venda de put"
+    headerTitle: "Renda extra - venda de put",
+    icon: DollarSign,
+    colorClass: "bg-blue-100 text-blue-700" 
   },
   {
     id: "alta_infinita",
@@ -47,7 +52,9 @@ const STRATEGIES = [
     operacao: "compra",
     tipo: "call",
     disabled: false,
-    headerTitle: "Compra de call"
+    headerTitle: "Compra de call",
+    icon: ArrowBigUpDash,
+    colorClass: "bg-green-100 text-green-700"
   },
   {
     id: "alta_moderada",
@@ -57,7 +64,9 @@ const STRATEGIES = [
     operacao: "",
     tipo: "",
     disabled: true,
-    headerTitle: ""
+    headerTitle: "",
+    icon: TrendingUp,
+    colorClass: "bg-green-100 text-green-700" 
   },
   {
     id: "queda_infinita",
@@ -67,7 +76,9 @@ const STRATEGIES = [
     operacao: "compra",
     tipo: "put",
     disabled: false,
-    headerTitle: "Compra de put"
+    headerTitle: "Compra de put",
+    icon: ArrowBigDownDash,
+    colorClass: "bg-red-100 text-red-700"
   },
   {
     id: "queda_moderada",
@@ -77,7 +88,9 @@ const STRATEGIES = [
     operacao: "",
     tipo: "",
     disabled: true,
-    headerTitle: ""
+    headerTitle: "",
+        icon: TrendingDown,
+    colorClass: "bg-red-100 text-red-700" 
   }
 ];
 
@@ -504,16 +517,21 @@ export default function CadastroOpcao() {
                   <div 
                     key={strategy.id}
                     className={cn(
-                      "flex items-center justify-between p-3 rounded-lg transition-colors",
+                      "flex items-center justify-between py-3 px-5 rounded-full transition-colors",
                       strategy.disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-slate-50",
                       selectedStrategyId === strategy.id && !strategy.disabled ? "bg-slate-50" : ""
                     )}
                     onClick={() => !strategy.disabled && setSelectedStrategyId(strategy.id)}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded bg-slate-100 flex items-center justify-center text-slate-700">
-                        <DollarSign className="h-5 w-5" />
+                  <div className="flex items-center gap-3">
+                      {/* Div do Ícone com cor dinâmica e ícone dinâmico */}
+                      <div className={cn(
+                          "h-10 w-10 rounded-full flex items-center justify-center", 
+                          strategy.colorClass 
+                        )}>
+                        <strategy.icon className="h-5 w-5" /> 
                       </div>
+                      
                       <div className="flex flex-col">
                         <span className="font-semibold text-sm text-slate-900">{strategy.title}</span>
                         <span className="text-xs text-slate-500">{strategy.subtitle}</span>

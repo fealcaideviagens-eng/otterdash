@@ -1,10 +1,11 @@
-import { TrendingUp, PieChart, DollarSign, Plus, TrendingDown, BarChart, Calendar, Shield, Wallet } from "lucide-react";
+import { TrendingUp, PieChart, DollarSign, Plus, TrendingDown, BarChart, Calendar, Shield, Wallet, Landmark } from "lucide-react";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { ResultsChart } from "@/components/dashboard/ResultsChart";
 import { OptionsDistributionChart } from "@/components/dashboard/OptionsDistributionChart";
 import { AlertasCard } from "@/components/dashboard/AlertasCard";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { useMetas } from "@/hooks/useMetas";
+import { useGarantias } from "@/hooks/useGarantias";
 import { useAuth } from "@/context/AuthContext";
 import { formatCurrency } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,12 @@ const getShortName = (fullName: string) => {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  // 1. MANTENHA O HOOK DE OPÇÕES
   const { loading, getDashboardMetrics, opcoes } = useOpcoes(user?.id || '');
+  
+  // 2. ADICIONE ESSA LINHA (HOOK DE GARANTIAS)
+  const { garantias } = useGarantias({ userId: user?.id });
+
   const navigate = useNavigate();
   const [chartPeriod, setChartPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
@@ -54,32 +60,20 @@ export default function Dashboard() {
 
   const metrics = getDashboardMetrics();
   
-  // Calcular opções Call e Put abertas
+  // MANTENHA AS LÓGICAS DE OPÇÕES ABERTAS
   const opcoesAbertas = opcoes.filter(opcao => opcao.status === 'aberta');
   const callAbertas = opcoesAbertas.filter(opcao => opcao.tipo?.toLowerCase() === 'call').length;
   const putAbertas = opcoesAbertas.filter(opcao => opcao.tipo?.toLowerCase() === 'put').length;
 
-  // Calcular Garantia (Compra de Call + Venda de Put)
-  const calcularGarantia = () => {
-    const opcoesGarantia = opcoes.filter(opcao => 
-      opcao.status === 'aberta' &&
-      (
-        (opcao.tipo?.toLowerCase() === 'call' && opcao.operacao?.toLowerCase() === 'compra') ||
-        (opcao.tipo?.toLowerCase() === 'put' && opcao.operacao?.toLowerCase() === 'venda')
-      )
-    );
-    
-    const garantiaTotal = opcoesGarantia.reduce((total, opcao) => {
-      if (opcao.strike && opcao.quantidade) {
-        return total + (opcao.strike * opcao.quantidade);
-      }
-      return total;
-    }, 0);
-    
-    return garantiaTotal;
-  };
+  // 3. AQUI ESTÁ A MUDANÇA PRINCIPAL:
+  // Eu removi a função antiga "calcularGarantia" inteira.
+  // No lugar dela, coloquei esta lógica direta:
+  
+  const garantia = garantias
+    .filter(g => g.tipo === 'renda_fixa')
+    .reduce((total, g) => total + (g.valorLivre || 0), 0);
 
-  // Calcular Garantia em ativos (Venda de Call + Compra de Put)
+  // 4. A PARTIR DAQUI, MANTENHA TUDO IGUAL (Garantia em Ativos):
   const calcularGarantiaAtivos = () => {
     const opcoesGarantiaAtivos = opcoes.filter(opcao => 
       opcao.status === 'aberta' &&
@@ -99,7 +93,7 @@ export default function Dashboard() {
     return garantiaAtivosTotal;
   };
 
-  const garantia = calcularGarantia();
+  // MANTENHA ESSA CHAMADA
   const garantiaAtivos = calcularGarantiaAtivos();
 
   return (
@@ -124,10 +118,16 @@ export default function Dashboard() {
       {/* Primeira linha - 4 cards */}
       <TooltipProvider>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <MetricsCard
+        <MetricsCard
             title="Ganho no mês"
             value={formatCurrency(metrics.valorGanhoMes)}
-            icon={<TrendingUp className="h-6 w-6" />}
+            icon={
+              metrics.valorGanhoMes < 0 ? (
+                <TrendingDown className="h-6 w-6" />
+              ) : (
+                <TrendingUp className="h-6 w-6" />
+              )
+            }
             isProfit={metrics.valorGanhoMes > 0}
             isLoss={metrics.valorGanhoMes < 0}
           />
@@ -142,15 +142,15 @@ export default function Dashboard() {
             <TooltipTrigger asChild>
               <div>
                 <MetricsCard
-                  title="Garantia"
+                  title="Caixa livre"
                   value={formatCurrency(garantia)}
-                  icon={<Shield className="h-6 w-6" />}
+                  icon={<Landmark className="h-6 w-6" />}
                 />
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Soma das garantias necessárias para Compra de Call e Venda de Put</p>
-              <p className="text-xs text-muted-foreground mt-1">(Strike × Quantidade)</p>
+              <p>Valor total em caixa para operar coberto</p>
+              <p className="text-xs text-muted-foreground mt-1">(Venda de put e Compra de call)</p>
             </TooltipContent>
           </Tooltip>
 

@@ -24,9 +24,9 @@ All colors MUST be HSL.
     --secondary-foreground: 0 0% 0%;
 
     --muted: 44 19% 95%;
-    --muted-foreground: 0 0% 0%; /* alterado de roxo para preto */
+    --muted-foreground: 216, 43%, 27%; /* alterado de preto para purple-dark (azul) */
 
-    --accent: 0 0% 95%; /* alterado de roxo para cinza claro */
+    --accent: 0 0% 95%;
     --accent-foreground: 0 0% 0%;
 
     --destructive: 0 84% 60%;
