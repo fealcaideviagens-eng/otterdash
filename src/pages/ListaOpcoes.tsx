@@ -19,8 +19,9 @@ import { DeleteOpcaoModal } from "@/components/opcoes/DeleteOpcaoModal";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { useAuth } from "@/context/AuthContext";
 import { Opcao, Venda } from "@/types/database";
-import { formatCurrency, formatDate } from "@/utils/formatters";
+import { formatCurrency, formatDate, formatQuantidade } from "@/utils/formatters";
 import { ChevronDown, ChevronUp, Edit, Trash2, FileText, FileTextIcon } from "lucide-react";
+
 
 
 export default function ListaOpcoes() {
@@ -370,8 +371,7 @@ export default function ListaOpcoes() {
                                       </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Quantidade:</span>
-                                        <span className="font-medium">{opcao.quantidade ? (opcao.operacao === 'venda' ? `-${opcao.quantidade}` : opcao.quantidade) : '-'}</span>
-                                      </div>
+                                        <span className="font-medium">{opcao.quantidade ? (opcao.operacao === 'venda' ? `-${formatQuantidade(opcao.quantidade)}` : formatQuantidade(opcao.quantidade)) : '-'}</span>                                      </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Prêmio inicial:</span>
                                         <span className="font-semibold text-xs">
@@ -497,6 +497,7 @@ export default function ListaOpcoes() {
 
       <EditarEncerramentoModal
         venda={selectedVenda}
+        operacao={(selectedOpcao?.operacao || 'venda') as 'compra' | 'venda'}
         isOpen={editEncerramentoModalOpen}
         onClose={() => {
           setEditEncerramentoModalOpen(false);
@@ -559,7 +560,7 @@ function CardOpcao({ opcao, onEncerrar, onEditar, onDeletar, calculateDiferencaP
         {/* Bloco Qnt */}
         <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Qnt</span>
-          <span className="font-semibold text-xs">{opcao.quantidade}</span>
+          <span className="font-semibold text-xs">{formatQuantidade(opcao.quantidade)}</span>
         </div>
         <div className="w-px bg-gray-200 mx-2 self-stretch" />
         {/* Bloco Validade */}

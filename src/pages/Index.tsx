@@ -40,10 +40,10 @@ import iconpix from "@/assets/icon-pix.png";
                 <span className="text-white font-semibold text-sm">LANÇAMENTO • 100% GRATUITO</span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
-              Gerencie suas opções de forma fácil{" "}
+              Mergulhe de cabeça no controle das suas opções{" "}
               </h1>
               <p className="text-xl text-white/90">
-                Acompanhe seus lucros, metas e opções em aberto com facilidade e inteligência.
+                Acompanhe seus lucros, metas e opções com inteligência e sem planilhas malucas.
               </p>
               <div className="pt-2">
                 <Button
@@ -76,10 +76,10 @@ import iconpix from "@/assets/icon-pix.png";
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">
-              Acompanhe suas operações no dia a dia
+              Por dentro da toca da lontra
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Seus lucros, metas, garantias e opções em aberto com facilidade e inteligência.
+               Recursos que todo mundo que lança call, put e trava precisava pra ontem.
             </p>
           </div>
 
@@ -179,12 +179,12 @@ import iconpix from "@/assets/icon-pix.png";
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold mb-4 text-white">Apoie nosso projeto</h2>
+              <h2 className="text-4xl font-bold mb-4 text-white">Ajude a lontra a nadar mais rápido!</h2>
             </div>
             <div className="grid md:grid-cols-1 gap-8">
 
               {/* Card de Doações */}
-              <Card className="bg-transparent border-2 border-white rounded-2xl max-w-3xl mx-auto">
+              <Card className="bg-transparent border-2 border-white rounded-2xl max-w-4xl mx-auto">
               <CardContent className="p-8">
     
     {/* CONTAINER FLEX PRINCIPAL (NUNCA FECHE ANTES DO FIM) */}
@@ -205,41 +205,44 @@ import iconpix from "@/assets/icon-pix.png";
     </p>
   </div>
 
-      {/* LINHA DIVISÓRIA (só no desktop) */}
-      <div className="hidden md:block w-px bg-white/60 h-full min-h-[160px]" />
+    {/* Linha horizontal no mobile */}
+    <div className="block md:hidden w-full h-px bg-white/60 my-3" />
+
+    {/* Linha vertical no desktop */}
+    <div className="hidden md:block w-px bg-white/60 h-full min-h-[160px]" />
 
       {/* LADO DIREITO: Título + Lista */}
-      <div className="flex-1 text-center md:text-left">
-        <p className="text-left mb-3">
-          <strong className="text-white text-lg">Por que doar?</strong>
-        </p>
-        <ul className="space-y-2">
-          <li className="flex items-start gap-2 text-white">
-            <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
-            <span>Novas funcionalidades</span>
-          </li>
-          <li className="flex items-start gap-2 text-white">
-            <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
-            <span>Melhorias contínuas</span>
-          </li>
-          <li className="flex items-start gap-2 text-white">
-            <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
-            <span>Manutenção dos servidores</span>
-          </li>
-          <li className="flex items-start gap-2 text-white">
-            <CircleDollarSign className="w-5 h-5 text-[#CFF402] flex-shrink-0 mt-0.5" />
-            <span>Já foram doados R$124,50</span>
-          </li>
-        </ul>
-      </div>
+      <div className="flex-1 text-left">
+  <p className="text-left mb-3">
+    <strong className="text-white text-lg">Por que doar?</strong>
+  </p>
+  <ul className="space-y-2 text-left">
+    <li className="flex items-start gap-2 text-white">
+      <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
+      <span>Novas funções insanas saindo do forno</span>
+    </li>
+    <li className="flex items-start gap-2 text-white">
+      <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
+      <span>Melhorias quase todo dia</span>
+    </li>
+    <li className="flex items-start gap-2 text-white">
+      <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
+      <span>Manutenção dos servidores (a lontra também paga boleto)</span>
+    </li>
+    <li className="flex items-start gap-2 text-white">
+      <CircleDollarSign className="w-5 h-5 text-[#CFF402] flex-shrink-0 mt-0.5" />
+      <span>Já levantamos R$ 124,00 de traders que acreditam na visão!</span>
+    </li>
+  </ul>
+</div>
 
     </div> {/* FECHA O FLEX AQUI NO FINAL */}
 
   </CardContent>
 </Card>            
 
-  <p className="text-base text-muted-foreground max-w-xl mx-auto text-center text-white">
-                Todas as funcionalidades disponíveis sem custo. Criado por um investidor de opções para a comunidade de traders.
+  <p className="text-base text-muted-foreground max-w-3xl mx-auto text-center text-white">
+         Tudo que temos hoje é 100% grátis pra você. Criado por um investidor de opções.
               </p>
             </div>
           </div>
@@ -303,7 +306,7 @@ import iconpix from "@/assets/icon-pix.png";
       <footer className="py-12 bg-foreground text-background relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 to-transparent"></div>
         <div className="container mx-auto px-4 relative">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
             <div>
               <h3 className="font-bold mb-4 text-white">Sobre</h3>
               <p className="text-sm text-background/80">
@@ -313,18 +316,12 @@ import iconpix from "@/assets/icon-pix.png";
               </p>
             </div>
             <div>
-              <h3 className="font-bold mb-4 text-white">Contato & Doações</h3>
+              <h3 className="font-bold mb-4 text-white">Feedbacks & Doações</h3>
               <p className="text-sm text-background/80 mb-2">
-                Email: otteropcoes@gmail.com
+                Feedbacks: otteropcoes@gmail.com
               </p>
               <p className="text-sm text-background/80">
                 PIX: otteropcoes@gmail.com
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold mb-4 text-white">Legal</h3>
-              <p className="text-sm text-background/80">
-                Termos de Uso | Política de Privacidade
               </p>
             </div>
           </div>

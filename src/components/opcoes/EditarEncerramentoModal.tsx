@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { formatCurrency as formatCurrencyInput, parseCurrencyToNumber } from "@/utils/inputFormatters";
-import { formatDateForInput, parseLocalDate } from "@/utils/formatters";
+import { formatDateForInput, parseLocalDate, formatQuantidade } from "@/utils/formatters";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import { Venda } from "@/types/database";
 
 interface EditarEncerramentoModalProps {
   venda: Venda | null;
+  operacao: 'compra' | 'venda';
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (data: { premio: number; data: string; quantidade: number }) => void;
@@ -21,6 +22,7 @@ interface EditarEncerramentoModalProps {
 
 export function EditarEncerramentoModal({
   venda,
+  operacao,
   isOpen,
   onClose,
   onConfirm,
@@ -39,16 +41,16 @@ export function EditarEncerramentoModal({
   useEffect(() => {
     if (venda && isOpen) {
       setFormData({
-        premio: venda.premio,
+        premio: operacao === 'venda' ? -venda.premio : venda.premio,
         data: venda.encerramento,
         quantidade: venda.quantidade,
       });
       setFormattedValues({
-        premio: formatCurrencyInput(venda.premio.toString()),
+        premio: formatCurrencyInput((operacao === 'venda' ? -venda.premio : venda.premio).toString()),
         quantidade: venda.quantidade.toString(),
       });
     }
-  }, [venda, isOpen]);
+  }, [venda, isOpen, operacao]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,16 +91,22 @@ export function EditarEncerramentoModal({
           </div>
 
           <div>
-            <Label htmlFor="quantidade">Quantidade</Label>
-            <Input
-              id="quantidade"
-              type="number"
-              value={formattedValues.quantidade}
-              onChange={(e) => setFormattedValues(prev => ({ ...prev, quantidade: e.target.value }))}
-              placeholder="100"
-              required
-            />
-          </div>
+  <Label htmlFor="quantidade">Quantidade</Label>
+  <Input
+    id="quantidade"
+    type="text"
+    inputMode="numeric"
+    value={formatQuantidade(formattedValues.quantidade)}
+    onChange={(e) => {
+      // Remove tudo que não for número
+      const apenasNumeros = e.target.value.replace(/\D/g, "");
+      setFormattedValues(prev => ({ ...prev, quantidade: apenasNumeros }));
+    }}
+    placeholder="1.000"
+    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+    required
+  />
+</div>
 
           <div>
             <Label>Data de Encerramento</Label>

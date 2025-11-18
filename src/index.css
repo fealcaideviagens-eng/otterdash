@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 44 19% 97%; /* #F9F8F5 */
-    --foreground: 0 0% 0%; /* preto para textos gerais */
+    --foreground: 220 23% 10%; /* quase preto para textos gerais */
 
     --card: 0 0% 100%; /* #FFFFFF */
     --card-foreground: 0 0% 0%;
@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
 
-    --primary: 0 0% 0%; /* preto para textos primários */
+    --primary: 220 23% 10%; /* quase preto para textos primários */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 44 19% 95%;

@@ -41,3 +41,10 @@ export const parseLocalDate = (dateString: string): Date => {
   const [year, month, day] = dateString.split('-').map(Number);
   return new Date(year, month - 1, day);
 };
+
+export const formatQuantidade = (value: string | number): string => {
+  if (!value) return "";
+  const num = typeof value === "string" ? parseInt(value, 10) : value;
+  if (isNaN(num)) return "";
+  return num.toLocaleString("pt-BR", { minimumFractionDigits: 0 });
+};
