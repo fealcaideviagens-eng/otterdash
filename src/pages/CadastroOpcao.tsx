@@ -115,6 +115,7 @@ export default function CadastroOpcao() {
 
   const [step, setStep] = useState(1);
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>("renda_extra_acoes");
+  const [volatilidade, setVolatilidade] = useState<number>(0.40); // Default 40%
 
   const getNextBusinessDay = () => {
     const today = new Date();
@@ -126,6 +127,17 @@ export default function CadastroOpcao() {
       nextBusinessDay.setDate(today.getDate() + 1);
     }
     return nextBusinessDay;
+  };
+
+  const calculateBusinessDays = (startDate: Date, endDate: Date) => {
+    let count = 0;
+    const curDate = new Date(startDate.getTime());
+    while (curDate < endDate) {
+      const dayOfWeek = curDate.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) count++;
+      curDate.setDate(curDate.getDate() + 1);
+    }
+    return count < 1 ? 1 : count; // Force at least 1 day
   };
 
   const [formData, setFormData] = useState({
@@ -307,6 +319,52 @@ export default function CadastroOpcao() {
     return () => clearTimeout(timeoutId);
   }, [formData.opcao]);
 
+  // Fetch Volatility based on Ação
+  useEffect(() => {
+    const fetchVolatilidade = async () => {
+      if (!formData.acao || formData.acao.length < 4) {
+        setVolatilidade(0.40);
+        return;
+      }
+
+      try {
+        // First try to find by joining with cod_ops if needed, or directly from ativos_parametros
+        // Assuming ativos_parametros links to cod_ops via cod_ops_id, we first need the ID of the stock in cod_ops
+        // Or maybe we can search by ticker if the structure allows.
+        // Based on instructions: "fazendo join com cod_ops se necessário ou buscando direto pelo ticker"
+
+        // Let's try to find the ID in cod_ops first for the ACTION (not the option ticker)
+        const { data: acaoData, error: acaoError } = await supabase
+          .from('cod_ops' as any)
+          .select('id')
+          .eq('ops_ticker', formData.acao)
+          .maybeSingle();
+
+        if (acaoData && (acaoData as any).id) {
+          const { data: paramData, error: paramError } = await supabase
+            .from('ativos_parametros' as any)
+            .select('volatilidade_anual')
+            .eq('cod_ops_id', (acaoData as any).id)
+            .maybeSingle();
+
+          if (paramData && (paramData as any).volatilidade_anual) {
+            setVolatilidade(Number((paramData as any).volatilidade_anual));
+            return;
+          }
+        }
+
+        // If we couldn't find it via ID, or no param data, default to 0.40
+        setVolatilidade(0.40);
+
+      } catch (err) {
+        console.error("Erro ao buscar volatilidade:", err);
+        setVolatilidade(0.40);
+      }
+    };
+
+    fetchVolatilidade();
+  }, [formData.acao]);
+
   const acaoInputRef = useRef<HTMLInputElement>(null);
 
   const handleAcaoFocus = () => {
@@ -344,89 +402,91 @@ export default function CadastroOpcao() {
     let progressValue = 0; // 0 a 100
 
     if (strike > 0 && cotacao > 0) {
+      // Calculate percentage difference for display
       if (formData.tipo === "call") {
         percentualDiferenca = ((strike - cotacao) / cotacao) * 100;
       } else if (formData.tipo === "put") {
         percentualDiferenca = ((cotacao - strike) / cotacao) * 100;
       }
 
-      const diferencaAbsoluta = Math.abs(percentualDiferenca);
+      // --- NEW RISK CALCULATION LOGIC ---
 
-      if (formData.operacao === "compra" && formData.tipo === "call") {
-        // Compra Call
-        if (percentualDiferenca < 0) {
-          nivelRisco = "baixíssimo";
-          corRisco = "text-green-600";
-          progressValue = 15;
-        } else if (diferencaAbsoluta <= 4) {
-          nivelRisco = "baixo";
-          corRisco = "text-green-600";
-          progressValue = 35;
-        } else if (diferencaAbsoluta <= 6) {
-          nivelRisco = "médio";
-          corRisco = "text-yellow-600";
-          progressValue = 65;
+      // PASSO A: Definir se é ITM ou OTM
+      let isITM = false;
+      if (formData.tipo === "call") {
+        // Call ITM: Spot > Strike
+        isITM = cotacao > strike;
+      } else {
+        // Put ITM: Spot < Strike
+        isITM = cotacao < strike;
+      }
+
+      // PASSO B: Calcular o Score (Z-Score)
+      // Score = | ln(Spot / Strike) / (Vol * sqrt(Days / 252)) |
+      const today = new Date();
+      const vencimento = formData.data ? parseLocalDate(formData.data) : getNextBusinessDay();
+      const diasUteis = calculateBusinessDays(today, vencimento);
+
+      const timeToMaturity = diasUteis / 252;
+      const vol = volatilidade; // from state
+
+      let score = 0;
+      if (vol > 0 && timeToMaturity > 0) {
+        const logReturn = Math.log(cotacao / strike);
+        const denominator = vol * Math.sqrt(timeToMaturity);
+        score = Math.abs(logReturn / denominator);
+      }
+
+      // PASSO C: Aplicar Regras de Negócio
+
+      // CENÁRIO 1: Operação VENDA (Short)
+      if (formData.operacao === "venda") {
+        if (isITM) {
+          // Venda ITM -> Altíssimo Risco
+          nivelRisco = "Altíssimo";
+          corRisco = "text-red-800";
+          progressValue = 95;
         } else {
-          nivelRisco = "alto";
-          corRisco = "text-red-600";
-          progressValue = 90;
+          // Venda OTM -> Analisar Score
+          if (score <= 0.50) {
+            nivelRisco = "Alto";
+            corRisco = "text-red-600";
+            progressValue = 80;
+          } else if (score <= 1.50) {
+            nivelRisco = "Médio";
+            corRisco = "text-yellow-600";
+            progressValue = 50;
+          } else {
+            // Score > 1.50
+            nivelRisco = "Baixo";
+            corRisco = "text-green-600";
+            progressValue = 20;
+          }
         }
-      } else if (formData.operacao === "compra" && formData.tipo === "put") {
-        // Compra Put
-        if (percentualDiferenca < 0) {
-          nivelRisco = "baixíssimo";
+      }
+      // CENÁRIO 2: Operação COMPRA (Long)
+      else {
+        if (isITM) {
+          // Compra ITM -> Baixíssimo Risco (já tem valor intrínseco)
+          nivelRisco = "Baixíssimo";
           corRisco = "text-emerald-600";
           progressValue = 15;
-        } else if (diferencaAbsoluta <= 4) {
-          nivelRisco = "baixo";
-          corRisco = "text-green-600";
-          progressValue = 35;
-        } else if (diferencaAbsoluta <= 6) {
-          nivelRisco = "médio";
-          corRisco = "text-yellow-600";
-          progressValue = 65;
         } else {
-          nivelRisco = "alto";
-          corRisco = "text-red-600";
-          progressValue = 90;
-        }
-      } else if (formData.operacao === "venda" && formData.tipo === "put") {
-        // Venda Put
-        if (percentualDiferenca < 0) {
-          nivelRisco = "altíssimo";
-          corRisco = "text-red-800";
-          progressValue = 95;
-        } else if (diferencaAbsoluta <= 4) {
-          nivelRisco = "alto";
-          corRisco = "text-red-600";
-          progressValue = 80;
-        } else if (diferencaAbsoluta <= 6) {
-          nivelRisco = "médio";
-          corRisco = "text-yellow-600";
-          progressValue = 50;
-        } else {
-          nivelRisco = "baixo";
-          corRisco = "text-green-600";
-          progressValue = 20;
-        }
-      } else {
-        // Venda Call
-        if (percentualDiferenca < 0) {
-          nivelRisco = "altíssimo";
-          corRisco = "text-red-800";
-          progressValue = 95;
-        } else if (percentualDiferenca > 0 && diferencaAbsoluta > 6) {
-          nivelRisco = "baixo";
-          corRisco = "text-green-600";
-          progressValue = 20;
-        } else if (percentualDiferenca > 0 && diferencaAbsoluta > 3) {
-          nivelRisco = "médio";
-          corRisco = "text-yellow-600";
-          progressValue = 50;
-        } else {
-          nivelRisco = "alto";
-          corRisco = "text-red-600";
-          progressValue = 80;
+          // Compra OTM -> Analisar Score (Risco de virar pó)
+          if (score <= 0.50) {
+            nivelRisco = "Baixo";
+            corRisco = "text-green-600";
+            progressValue = 35;
+          } else if (score <= 1.50) {
+            nivelRisco = "Médio";
+            corRisco = "text-yellow-600";
+            progressValue = 65;
+          } else {
+            // Score > 1.50 (Muito longe do dinheiro)
+            nivelRisco = "Alto";
+            corRisco = "text-red-600";
+            progressValue = 90;
+          }
         }
       }
     }

@@ -16,6 +16,8 @@ import Garantias from "./pages/Garantias";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import DadosPessoais from "./pages/DadosPessoais";
+import EsqueciSenha from "./pages/EsqueciSenha";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +61,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
+      <Route path="/esqueci-senha" element={user ? <Navigate to="/dashboard" replace /> : <EsqueciSenha />} />
+      <Route path="/reset-password" element={user ? <Navigate to="/dashboard" replace /> : <ResetPassword />} />
       <Route
         path="/dashboard"
         element={
