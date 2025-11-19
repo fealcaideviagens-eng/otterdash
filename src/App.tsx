@@ -15,6 +15,7 @@ import Metas from "./pages/Metas";
 import Garantias from "./pages/Garantias";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import DadosPessoais from "./pages/DadosPessoais";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -131,6 +132,19 @@ function AppRoutes() {
               <Sidebar />
               <main className="flex-1 overflow-auto p-6 lg:ml-4 pb-20 lg:pb-6">
                 <Garantias />
+              </main>
+            </div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dados-pessoais"
+        element={
+          <ProtectedRoute>
+            <div className="flex h-screen bg-background">
+              <Sidebar />
+              <main className="flex-1 overflow-auto p-6 lg:ml-4 pb-20 lg:pb-6">
+                <DadosPessoais />
               </main>
             </div>
           </ProtectedRoute>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,13 +9,14 @@ import { useGarantias } from "@/hooks/useGarantias";
 import { useAuth } from "@/context/AuthContext";
 import { formatDateForInput, formatCurrency as formatCurrencyDisplay, formatPercentage, parseLocalDate } from "@/utils/formatters";
 import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
-import { CalendarIcon, AlertTriangle, CheckCircle, DollarSign, Pencil, TrendingUp, TrendingDown, Building2, ArrowBigDownDash, ArrowBigUpDash} from "lucide-react";
+import { CalendarIcon, AlertTriangle, CheckCircle, DollarSign, Pencil, TrendingUp, TrendingDown, Building2, ArrowBigDownDash, ArrowBigUpDash } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 
 // ESTRATÉGIAS MAPEADAS
 const STRATEGIES = [
@@ -30,7 +31,7 @@ const STRATEGIES = [
     headerTitle: "Renda extra - venda de call",
     icon: Building2, // <--- Referência ao ícone importado
     colorClass: "bg-blue-100 text-blue-700" // <--- Classe de cor
-    
+
   },
   {
     id: "renda_extra_dinheiro",
@@ -42,7 +43,7 @@ const STRATEGIES = [
     disabled: false,
     headerTitle: "Renda extra - venda de put",
     icon: DollarSign,
-    colorClass: "bg-blue-100 text-blue-700" 
+    colorClass: "bg-blue-100 text-blue-700"
   },
   {
     id: "alta_infinita",
@@ -66,13 +67,13 @@ const STRATEGIES = [
     disabled: true,
     headerTitle: "",
     icon: TrendingUp,
-    colorClass: "bg-green-100 text-green-700" 
+    colorClass: "bg-green-100 text-green-700"
   },
   {
     id: "queda_infinita",
     group: "Operar a baixa",
     title: "Queda infinita",
-    subtitle: "venda a seco - put", 
+    subtitle: "venda a seco - put",
     operacao: "compra",
     tipo: "put",
     disabled: false,
@@ -89,8 +90,8 @@ const STRATEGIES = [
     tipo: "",
     disabled: true,
     headerTitle: "",
-        icon: TrendingDown,
-    colorClass: "bg-red-100 text-red-700" 
+    icon: TrendingDown,
+    colorClass: "bg-red-100 text-red-700"
   }
 ];
 
@@ -111,7 +112,7 @@ export default function CadastroOpcao() {
   const { garantias } = useGarantias({ userId: user?.id });
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  
+
   const [step, setStep] = useState(1);
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>("renda_extra_acoes");
 
@@ -126,7 +127,7 @@ export default function CadastroOpcao() {
     }
     return nextBusinessDay;
   };
-  
+
   const [formData, setFormData] = useState({
     opcao: "",
     operacao: "",
@@ -171,11 +172,11 @@ export default function CadastroOpcao() {
         quantidade: formData.quantidade ? parseNumberToInt(formData.quantidade) : null,
         premio: formData.premio ? parseCurrencyToNumber(formData.premio) : null,
         data: formData.data || null,
-        status: "aberta", 
+        status: "aberta",
       };
 
       await addOpcao(opcaoData);
-      
+
       toast({
         title: "✅ Sucesso!",
         description: "Opção cadastrada com sucesso.",
@@ -184,7 +185,7 @@ export default function CadastroOpcao() {
 
       setFormData({
         opcao: "",
-        operacao: "", 
+        operacao: "",
         tipo: "",
         acao: "",
         strike: "",
@@ -194,7 +195,7 @@ export default function CadastroOpcao() {
         data: formatDateForInput(getNextBusinessDay()),
         status: "aberta",
       });
-      setStep(1); 
+      setStep(1);
       setSelectedStrategyId("renda_extra_acoes");
 
     } catch (error) {
@@ -227,10 +228,10 @@ export default function CadastroOpcao() {
   const handleOpcaoChange = (value: string) => {
     const upperValue = value.toUpperCase();
     const cleanValue = upperValue.replace(/[^A-Z0-9W]/g, '');
-    
+
     let isValid = false;
     let validValue = '';
-    
+
     if (cleanValue.length === 0) {
       isValid = true;
       validValue = '';
@@ -255,13 +256,66 @@ export default function CadastroOpcao() {
         validValue = cleanValue;
       }
     }
-    
+
     if (isValid) {
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         opcao: validValue,
-        acao: validValue.length >= 4 ? validValue.substring(0, 4) : prev.acao
+        // Removed local logic to ensure we only use the DB value
+        // acao: validValue.length >= 4 ? validValue.substring(0, 4) : prev.acao
       }));
+    }
+  };
+
+  // Auto-fill Ação based on Ticker using Supabase
+  useEffect(() => {
+    const fetchAcao = async () => {
+      const ticker = formData.opcao;
+
+      // If ticker is too short, clear action
+      if (!ticker || ticker.length < 4) {
+        setFormData(prev => ({ ...prev, acao: "" }));
+        return;
+      }
+
+      const prefix = ticker.substring(0, 4);
+
+      try {
+        const { data, error } = await supabase
+          .from('cod_ops' as any) // Casting to any because table might not be in types yet
+          .select('ops_acao')
+          .eq('ops_ticker', prefix)
+          .maybeSingle();
+
+        if (data && (data as any).ops_acao) {
+          setFormData(prev => ({ ...prev, acao: (data as any).ops_acao }));
+        } else {
+          // If not found in DB, use the first 4 letters
+          setFormData(prev => ({ ...prev, acao: prefix }));
+        }
+      } catch (err) {
+        console.error("Erro ao buscar ação:", err);
+        // Fallback on error
+        setFormData(prev => ({ ...prev, acao: prefix }));
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      fetchAcao();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.opcao]);
+
+  const acaoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAcaoFocus = () => {
+    if (acaoInputRef.current) {
+      const length = acaoInputRef.current.value.length;
+      // Set cursor to the end
+      setTimeout(() => {
+        acaoInputRef.current?.setSelectionRange(length, length);
+      }, 0);
     }
   };
 
@@ -269,7 +323,7 @@ export default function CadastroOpcao() {
     const upperValue = value.toUpperCase();
     const cleanValue = upperValue.replace(/[^A-Z0-9]/g, '');
     const regex = /^[A-Z]{0,4}[0-9]{0,2}$/;
-    
+
     if (regex.test(cleanValue) && cleanValue.length <= 6) {
       setFormData(prev => ({ ...prev, acao: cleanValue }));
     }
@@ -295,9 +349,9 @@ export default function CadastroOpcao() {
       } else if (formData.tipo === "put") {
         percentualDiferenca = ((cotacao - strike) / cotacao) * 100;
       }
-      
+
       const diferencaAbsoluta = Math.abs(percentualDiferenca);
-      
+
       if (formData.operacao === "compra" && formData.tipo === "call") {
         // Compra Call
         if (percentualDiferenca < 0) {
@@ -355,26 +409,26 @@ export default function CadastroOpcao() {
           corRisco = "text-green-600";
           progressValue = 20;
         }
-       } else {
-         // Venda Call
-         if (percentualDiferenca < 0) {
-           nivelRisco = "altíssimo";
-           corRisco = "text-red-800";
-           progressValue = 95;
-         } else if (percentualDiferenca > 0 && diferencaAbsoluta > 6) {
-           nivelRisco = "baixo";
-           corRisco = "text-green-600";
-           progressValue = 20;
-         } else if (percentualDiferenca > 0 && diferencaAbsoluta > 3) {
-           nivelRisco = "médio";
-           corRisco = "text-yellow-600";
-           progressValue = 50;
-         } else {
-           nivelRisco = "alto";
-           corRisco = "text-red-600";
-           progressValue = 80;
-         }
-       }
+      } else {
+        // Venda Call
+        if (percentualDiferenca < 0) {
+          nivelRisco = "altíssimo";
+          corRisco = "text-red-800";
+          progressValue = 95;
+        } else if (percentualDiferenca > 0 && diferencaAbsoluta > 6) {
+          nivelRisco = "baixo";
+          corRisco = "text-green-600";
+          progressValue = 20;
+        } else if (percentualDiferenca > 0 && diferencaAbsoluta > 3) {
+          nivelRisco = "médio";
+          corRisco = "text-yellow-600";
+          progressValue = 50;
+        } else {
+          nivelRisco = "alto";
+          corRisco = "text-red-600";
+          progressValue = 80;
+        }
+      }
     }
 
     if (premio > 0 && quantidade > 0) {
@@ -397,12 +451,12 @@ export default function CadastroOpcao() {
     if (quantidade > 0 && strike > 0) {
       valorExercicio = quantidade * strike;
       quantidadeAcoes = quantidade;
-      if ((formData.tipo === "call" && formData.operacao === "compra") || 
-          (formData.tipo === "put" && formData.operacao === "venda")) {
+      if ((formData.tipo === "call" && formData.operacao === "compra") ||
+        (formData.tipo === "put" && formData.operacao === "venda")) {
         mostrarValorExercicio = true;
       }
-      if ((formData.tipo === "put" && formData.operacao === "compra") || 
-          (formData.tipo === "call" && formData.operacao === "venda")) {
+      if ((formData.tipo === "put" && formData.operacao === "compra") ||
+        (formData.tipo === "call" && formData.operacao === "venda")) {
         mostrarQuantidadeAcoes = true;
       }
     }
@@ -431,17 +485,17 @@ export default function CadastroOpcao() {
     let quantidadeAlavancada = 0;
 
     if (quantidade > 0 && strike > 0) {
-      const precisaGarantiaAcao = 
+      const precisaGarantiaAcao =
         (formData.operacao === "venda" && formData.tipo === "call") ||
         (formData.operacao === "compra" && formData.tipo === "put");
 
-      const precisaGarantiaRendaFixa = 
+      const precisaGarantiaRendaFixa =
         (formData.operacao === "venda" && formData.tipo === "put") ||
         (formData.operacao === "compra" && formData.tipo === "call");
 
       if (precisaGarantiaAcao && formData.acao) {
         mostrarAlavancagem = true;
-        const garantiaAcao = garantias.find(g => 
+        const garantiaAcao = garantias.find(g =>
           g.tipo === 'acao' && g.ticker === formData.acao
         );
         const quantidadeLivre = garantiaAcao?.quantidadeLivre || 0;
@@ -498,7 +552,7 @@ export default function CadastroOpcao() {
   // ETAPA 1
   if (step === 1) {
     const groups = ["Renda extra", "Operar a alta", "Operar a baixa"];
-    
+
     return (
       <div className="space-y-6">
         <div>
@@ -514,7 +568,7 @@ export default function CadastroOpcao() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {STRATEGIES.filter(s => s.group === groupName).map(strategy => (
-                  <div 
+                  <div
                     key={strategy.id}
                     className={cn(
                       "flex items-center justify-between py-3 px-5 rounded-full transition-colors",
@@ -523,15 +577,15 @@ export default function CadastroOpcao() {
                     )}
                     onClick={() => !strategy.disabled && setSelectedStrategyId(strategy.id)}
                   >
-                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3">
                       {/* Div do Ícone com cor dinâmica e ícone dinâmico */}
                       <div className={cn(
-                          "h-10 w-10 rounded-full flex items-center justify-center", 
-                          strategy.colorClass 
-                        )}>
-                        <strategy.icon className="h-5 w-5" /> 
+                        "h-10 w-10 rounded-full flex items-center justify-center",
+                        strategy.colorClass
+                      )}>
+                        <strategy.icon className="h-5 w-5" />
                       </div>
-                      
+
                       <div className="flex flex-col">
                         <span className="font-semibold text-sm text-slate-900">{strategy.title}</span>
                         <span className="text-xs text-slate-500">{strategy.subtitle}</span>
@@ -545,8 +599,8 @@ export default function CadastroOpcao() {
                     ) : (
                       <div className={cn(
                         "h-5 w-5 rounded-full border-2 flex items-center justify-center",
-                        selectedStrategyId === strategy.id 
-                          ? "border-blue-600" 
+                        selectedStrategyId === strategy.id
+                          ? "border-blue-600"
                           : "border-slate-300"
                       )}>
                         {selectedStrategyId === strategy.id && (
@@ -562,14 +616,14 @@ export default function CadastroOpcao() {
         </div>
 
         <div>
-            {/* CORREÇÃO: Botão estilo Pill */}
-            <Button 
-              size="lg" 
-              className="px-8 rounded-full"
-              onClick={handleContinueToForm}
-            >
-              Continuar cadastro
-            </Button>
+          {/* CORREÇÃO: Botão estilo Pill */}
+          <Button
+            size="lg"
+            className="px-8 rounded-full"
+            onClick={handleContinueToForm}
+          >
+            Continuar cadastro
+          </Button>
         </div>
       </div>
     );
@@ -589,8 +643,8 @@ export default function CadastroOpcao() {
             <CardTitle className="text-xl font-bold">
               {currentStrategy?.headerTitle || "Nova opção"}
             </CardTitle>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={handleBackToStrategies}
               className="flex items-center gap-1 text-slate-600 hover:text-slate-900 rounded-full px-3"
@@ -601,7 +655,7 @@ export default function CadastroOpcao() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="opcao">Ticker da opção</Label>
@@ -620,6 +674,8 @@ export default function CadastroOpcao() {
                   <Label htmlFor="acao">Ação</Label>
                   <Input
                     id="acao"
+                    ref={acaoInputRef}
+                    onFocus={handleAcaoFocus}
                     value={formData.acao}
                     onChange={(e) => handleAcaoChange(e.target.value)}
                     placeholder="ex: PETR4"
@@ -744,7 +800,7 @@ export default function CadastroOpcao() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            
+
             <div>
               <TooltipProvider>
                 <Tooltip>
@@ -753,18 +809,17 @@ export default function CadastroOpcao() {
                       <Label className="text-sm text-slate-500 font-medium">
                         Diferença Strike vs Cotação
                       </Label>
-                      <p className={`text-2xl font-bold mt-1 ${
-                        operationData.percentualDiferenca >= 0 
-                          ? 'text-emerald-500' 
-                          : 'text-orange-500'
-                      }`}>
+                      <p className={`text-2xl font-bold mt-1 ${operationData.percentualDiferenca >= 0
+                        ? 'text-emerald-500'
+                        : 'text-orange-500'
+                        }`}>
                         {formatPercentage(operationData.percentualDiferenca)}
                       </p>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
                     <p className="text-xs">
-                      {formData.tipo === "call" 
+                      {formData.tipo === "call"
                         ? operationData.percentualDiferenca >= 0
                           ? "Strike acima da cotação (fora do dinheiro)"
                           : "Strike abaixo da cotação (dentro do dinheiro)"
@@ -781,75 +836,75 @@ export default function CadastroOpcao() {
             {/* GRAFICO CORRIGIDO: Estrutura CSS/Div sem Gap */}
             <div>
               <Label className="text-sm text-slate-500 font-medium">Nível de risco</Label>
-              
+
               <div className="relative mt-4 flex justify-center">
-                  {/* Container do gráfico (semicírculo) */}
-                  <div className="relative w-48 h-24 overflow-hidden">
-                     {/* Fundo Cinza (Trilha) - Usando border para manter estilo "CSS Only" */}
-                     <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
-                     
-                     {/* Barra de Preenchimento (Sem Gaps) 
+                {/* Container do gráfico (semicírculo) */}
+                <div className="relative w-48 h-24 overflow-hidden">
+                  {/* Fundo Cinza (Trilha) - Usando border para manter estilo "CSS Only" */}
+                  <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+
+                  {/* Barra de Preenchimento (Sem Gaps) 
                          Usamos conic-gradient + mask para simular a borda preenchida perfeitamente da esquerda para a direita */}
-                     <div 
-                        className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
-                        style={{
-                          // O gradiente cônico preenche suavemente de 0 até o grau desejado, sem criar "blocos" soltos
-                          background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
-                          transform: 'rotate(-90deg)', // Começa na esquerda (9 horas)
-                          // Máscara para criar o efeito de "anel/borda" (corta o miolo)
-                          maskImage: 'radial-gradient(transparent 63%, black 64%)',
-                          WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
-                        }}
-                     ></div>
-                  </div>
-                  
-                  <div className="absolute bottom-0 left-0 right-0 text-center">
-                      <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
-                        {operationData.nivelRisco}
-                      </p>
-                  </div>
+                  <div
+                    className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                    style={{
+                      // O gradiente cônico preenche suavemente de 0 até o grau desejado, sem criar "blocos" soltos
+                      background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                      transform: 'rotate(-90deg)', // Começa na esquerda (9 horas)
+                      // Máscara para criar o efeito de "anel/borda" (corta o miolo)
+                      maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                      WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                    }}
+                  ></div>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 text-center">
+                  <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                    {operationData.nivelRisco}
+                  </p>
+                </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-slate-100 space-y-4">
-                {operationData.mostrarValorExercicio && (
-                  <div>
-                    <Label className="text-xs text-slate-500">Valor de Exercício</Label>
-                    <p className="font-semibold text-slate-900">
-                      {formatCurrencyDisplay(operationData.valorExercicio)}
-                    </p>
-                  </div>
-                )}
-                 
+              {operationData.mostrarValorExercicio && (
                 <div>
-                  <Label className="text-xs text-slate-500">{operationData.valorTotalLabel}</Label>
-                  <p className={`font-semibold ${operationData.isGanho ? 'text-green-600' : 'text-red-600'}`}>
-                    {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                  <Label className="text-xs text-slate-500">Valor de Exercício</Label>
+                  <p className="font-semibold text-slate-900">
+                    {formatCurrencyDisplay(operationData.valorExercicio)}
                   </p>
                 </div>
+              )}
 
-                {operationData.mostrarAlavancagem && (
-                  <div>
-                     <Label className="text-xs text-slate-500">Status Cobertura</Label>
-                     <div className="flex items-center gap-2 mt-1">
-                          {operationData.isAlavancado ? (
-                            <>
-                              <AlertTriangle className="h-4 w-4 text-orange-600" />
-                              <span className="text-sm font-bold text-orange-600">
-                                {operationData.statusAlavancagem}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span className="text-sm font-bold text-green-600">
-                                {operationData.statusAlavancagem}
-                              </span>
-                            </>
-                          )}
-                        </div>
+              <div>
+                <Label className="text-xs text-slate-500">{operationData.valorTotalLabel}</Label>
+                <p className={`font-semibold ${operationData.isGanho ? 'text-green-600' : 'text-red-600'}`}>
+                  {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                </p>
+              </div>
+
+              {operationData.mostrarAlavancagem && (
+                <div>
+                  <Label className="text-xs text-slate-500">Status Cobertura</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    {operationData.isAlavancado ? (
+                      <>
+                        <AlertTriangle className="h-4 w-4 text-orange-600" />
+                        <span className="text-sm font-bold text-orange-600">
+                          {operationData.statusAlavancagem}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-bold text-green-600">
+                          {operationData.statusAlavancagem}
+                        </span>
+                      </>
+                    )}
                   </div>
-                )}
+                </div>
+              )}
             </div>
 
           </CardContent>
