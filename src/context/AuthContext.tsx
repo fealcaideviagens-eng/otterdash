@@ -23,14 +23,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        if (session?.user?.user_metadata?.deleted) {
+          await supabase.auth.signOut();
+          setSession(null);
+          setUser(null);
+          toast.error('Esta conta foi deletada e não pode ser acessada.');
+          navigate('/auth');
+          return;
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user?.user_metadata?.deleted) {
+        await supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
+        toast.error('Esta conta foi deletada e não pode ser acessada.');
+        navigate('/auth');
+        return;
+      }
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -41,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, nome: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -74,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
-    
+
     toast.success('Logout realizado com sucesso!');
     navigate('/auth');
   };

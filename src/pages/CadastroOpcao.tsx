@@ -679,7 +679,7 @@ export default function CadastroOpcao() {
           {/* CORREÇÃO: Botão estilo Pill */}
           <Button
             size="lg"
-            className="px-8 rounded-full"
+            className="w-full sm:w-auto px-8 rounded-full"
             onClick={handleContinueToForm}
           >
             Continuar cadastro

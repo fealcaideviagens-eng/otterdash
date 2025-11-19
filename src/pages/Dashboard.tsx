@@ -17,7 +17,7 @@ import { useState } from "react";
 const getGreeting = () => {
   const now = new Date();
   const hour = now.getHours();
-  
+
   if (hour >= 6 && hour < 12) {
     return "Bom dia";
   } else if (hour >= 12 && hour < 18) {
@@ -29,12 +29,12 @@ const getGreeting = () => {
 
 const getShortName = (fullName: string) => {
   if (!fullName) return 'usuário';
-  
+
   const names = fullName.trim().split(' ');
   if (names.length === 1) {
     return names[0];
   }
-  
+
   // Retorna primeiro e segundo nome
   return `${names[0]} ${names[1]}`;
 };
@@ -43,7 +43,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   // 1. MANTENHA O HOOK DE OPÇÕES
   const { loading, getDashboardMetrics, opcoes } = useOpcoes(user?.id || '');
-  
+
   // 2. ADICIONE ESSA LINHA (HOOK DE GARANTIAS)
   const { garantias } = useGarantias({ userId: user?.id });
 
@@ -59,7 +59,7 @@ export default function Dashboard() {
   }
 
   const metrics = getDashboardMetrics();
-  
+
   // MANTENHA AS LÓGICAS DE OPÇÕES ABERTAS
   const opcoesAbertas = opcoes.filter(opcao => opcao.status === 'aberta');
   const callAbertas = opcoesAbertas.filter(opcao => opcao.tipo?.toLowerCase() === 'call').length;
@@ -68,28 +68,28 @@ export default function Dashboard() {
   // 3. AQUI ESTÁ A MUDANÇA PRINCIPAL:
   // Eu removi a função antiga "calcularGarantia" inteira.
   // No lugar dela, coloquei esta lógica direta:
-  
+
   const garantia = garantias
     .filter(g => g.tipo === 'renda_fixa')
     .reduce((total, g) => total + (g.valorLivre || 0), 0);
 
   // 4. A PARTIR DAQUI, MANTENHA TUDO IGUAL (Garantia em Ativos):
   const calcularGarantiaAtivos = () => {
-    const opcoesGarantiaAtivos = opcoes.filter(opcao => 
+    const opcoesGarantiaAtivos = opcoes.filter(opcao =>
       opcao.status === 'aberta' &&
       (
         (opcao.tipo?.toLowerCase() === 'call' && opcao.operacao?.toLowerCase() === 'venda') ||
         (opcao.tipo?.toLowerCase() === 'put' && opcao.operacao?.toLowerCase() === 'compra')
       )
     );
-    
+
     const garantiaAtivosTotal = opcoesGarantiaAtivos.reduce((total, opcao) => {
       if (opcao.strike && opcao.quantidade) {
         return total + (opcao.strike * opcao.quantidade);
       }
       return total;
     }, 0);
-    
+
     return garantiaAtivosTotal;
   };
 
@@ -98,14 +98,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-0">
         <div>
           <h1 className="text-3xl font-bold text-foreground">{getGreeting()}</h1>
           <p className="text-muted-foreground">
             Acompanhe suas opções de qualquer lugar
           </p>
         </div>
-        <Button 
+        <Button
           onClick={() => navigate("/cadastro")}
           className="shadow-modern"
           style={{ backgroundColor: '#263C64' }}
@@ -118,7 +118,7 @@ export default function Dashboard() {
       {/* Primeira linha - 4 cards */}
       <TooltipProvider>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <MetricsCard
+          <MetricsCard
             title="Ganho no mês"
             value={formatCurrency(metrics.valorGanhoMes)}
             icon={
@@ -131,7 +131,7 @@ export default function Dashboard() {
             isProfit={metrics.valorGanhoMes > 0}
             isLoss={metrics.valorGanhoMes < 0}
           />
-          
+
           <MetricsCard
             title="Lucro em aberto"
             value={formatCurrency(metrics.lucroMaximoEstimado)}

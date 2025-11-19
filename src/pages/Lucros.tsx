@@ -26,13 +26,13 @@ export default function Lucros() {
   // Função para calcular o resultado (lucro/prejuízo) de uma operação
   const calculateLucroPrejuizoReais = (opcao: any, venda: any): number => {
     if (!opcao.quantidade || !opcao.premio) return 0;
-    
+
     // Valor inicial: Quantidade * Prêmio inicial
     const valorInicial = opcao.quantidade * opcao.premio;
-    
+
     // Valor final: Quantidade * Novo prêmio (do encerramento)
     const valorFinal = venda.quantidade * venda.premio;
-    
+
     // Para vendas: lucro = valor inicial - valor final
     // Para compras: lucro = valor final - valor inicial
     return opcao.operacao === 'venda' ? valorInicial - valorFinal : valorFinal - valorInicial;
@@ -50,7 +50,7 @@ export default function Lucros() {
 
       // Calcular o resultado real da operação
       const resultado = calculateLucroPrejuizoReais(opcao, venda);
-      
+
       // Usar a data de encerramento que o usuário inseriu no modal - corrigir problema de fuso horário
       let dataEncerramento: Date;
       if (venda.encerramento.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -59,10 +59,10 @@ export default function Lucros() {
       } else {
         dataEncerramento = new Date(venda.encerramento);
       }
-        
+
       // Apenas considerar vendas do ano atual baseado na data de encerramento
       if (dataEncerramento.getFullYear() === anoAtual) {
-        const monthKey = viewMode === "monthly" 
+        const monthKey = viewMode === "monthly"
           ? `${dataEncerramento.getFullYear()}-${String(dataEncerramento.getMonth() + 1).padStart(2, '0')}`
           : String(dataEncerramento.getFullYear());
 
@@ -86,14 +86,14 @@ export default function Lucros() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 sm:gap-0">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Lucros e prejuízos</h1>
           <p className="text-muted-foreground">
             Acompanhe o desempenho de cada ação em seu portfólio
           </p>
         </div>
-        
+
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)} className="w-auto">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="monthly" className="flex items-center gap-2">
@@ -106,27 +106,27 @@ export default function Lucros() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        
+
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-      <Card className="shadow-modern glass">
-        <CardHeader>
-          <CardTitle>
-            <span>Resultados por período</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Accordion type="multiple" className="space-y-3">
-            {Object.entries(dados)
-              .sort(([a], [b]) => b.localeCompare(a))
-              .map(([periodo, dadosPeriodo]) => (
-                <AccordionItem key={periodo} value={periodo} className="border rounded-lg">
-                  <AccordionTrigger className="px-3 py-2 hover:no-underline">
-                    <div className="flex items-center justify-between w-full pr-4">
-                      <span className="font-medium">
-                        {viewMode === "monthly" 
-                          ? (() => {
+        <Card className="shadow-modern glass">
+          <CardHeader>
+            <CardTitle>
+              <span>Resultados por período</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="multiple" className="space-y-3">
+              {Object.entries(dados)
+                .sort(([a], [b]) => b.localeCompare(a))
+                .map(([periodo, dadosPeriodo]) => (
+                  <AccordionItem key={periodo} value={periodo} className="border rounded-lg">
+                    <AccordionTrigger className="px-3 py-2 hover:no-underline">
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <span className="font-medium">
+                          {viewMode === "monthly"
+                            ? (() => {
                               const [year, month] = periodo.split('-');
                               const monthNames = [
                                 'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
@@ -134,37 +134,37 @@ export default function Lucros() {
                               ];
                               return `${monthNames[parseInt(month) - 1]} de ${year}`;
                             })()
-                          : periodo
-                        }
-                      </span>
-                      <span className={`font-semibold ${dadosPeriodo.total >= 0 ? 'text-profit' : 'text-loss'}`}>
-                        {formatCurrency(dadosPeriodo.total)}
-                      </span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-3 pb-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {dadosPeriodo.operacoes.map((operacao, index) => (
-                        <div key={index} className="p-3 bg-muted/30 rounded-lg">
-                          <div className="text-center space-y-2">
-                            <span className="font-medium text-sm block truncate">
-                              {operacao.opcao}
-                            </span>
-                            <span className={`font-semibold text-lg ${operacao.resultado >= 0 ? 'text-profit' : 'text-loss'}`}>
-                              {formatCurrency(operacao.resultado)}
-                            </span>
+                            : periodo
+                          }
+                        </span>
+                        <span className={`font-semibold ${dadosPeriodo.total >= 0 ? 'text-profit' : 'text-loss'}`}>
+                          {formatCurrency(dadosPeriodo.total)}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        {dadosPeriodo.operacoes.map((operacao, index) => (
+                          <div key={index} className="p-3 bg-muted/30 rounded-lg">
+                            <div className="text-center space-y-2">
+                              <span className="font-medium text-sm block truncate">
+                                {operacao.opcao}
+                              </span>
+                              <span className={`font-semibold text-lg ${operacao.resultado >= 0 ? 'text-profit' : 'text-loss'}`}>
+                                {formatCurrency(operacao.resultado)}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))
-            }
-          </Accordion>
-        </CardContent>
-      </Card>
-        
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))
+              }
+            </Accordion>
+          </CardContent>
+        </Card>
+
         {Object.keys(dados).length === 0 && (
           <Card className="shadow-modern glass">
             <CardContent className="flex items-center justify-center h-32">
