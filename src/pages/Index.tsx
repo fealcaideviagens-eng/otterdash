@@ -20,8 +20,8 @@ import laptopMockup from "@/assets/smartdesk.png";
 import backgroundlp from "@/assets/backgroundlp.jpg";
 import TopNav from "@/components/navigation/TopNav";
 import iconpix from "@/assets/icon-pix.png";
- 
- const Index = () => {
+
+const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
@@ -30,17 +30,17 @@ import iconpix from "@/assets/icon-pix.png";
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
         <div className="relative overflow-hidden bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047] pt-20 pb-0 md:pb-0">
-  
-        {/* IMAGEM DE FUNDO COM OPACIDADE */}
-        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-5" style={{ backgroundImage: `url(${backgroundlp})` }} />
+
+          {/* IMAGEM DE FUNDO COM OPACIDADE */}
+          <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-5" style={{ backgroundImage: `url(${backgroundlp})` }} />
 
           <div className="flex flex-col items-center text-center gap-16 max-w-7xl mx-auto">
-          <div className="space-y-6 relative z-10 max-w-5xl">
+            <div className="space-y-6 relative z-10 max-w-5xl">
               <div className="inline-block px-4 py-2 bg-white/20 rounded-full">
                 <span className="text-white font-semibold text-sm">LANÇAMENTO • 100% GRATUITO</span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
-              Mergulhe de cabeça no controle das suas opções{" "}
+                Oi Mergulhe de cabeça no controle das suas opções{" "}
               </h1>
               <p className="text-xl text-white/90">
                 Acompanhe seus lucros, metas e opções com inteligência e sem planilhas malucas.
@@ -79,12 +79,12 @@ import iconpix from "@/assets/icon-pix.png";
               Por dentro da toca da lontra
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-               Recursos que todo mundo que lança call, put e trava precisava pra ontem.
+              Recursos que todo mundo que lança call, put e trava precisava pra ontem.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 mb-12">
-          <Card className="bg-[#f5f5f5] hover:shadow-modern-lg transition-all hover:-translate-y-1">
+            <Card className="bg-[#f5f5f5] hover:shadow-modern-lg transition-all hover:-translate-y-1">
               <CardContent className="pt-6">
                 <div className="rounded-full bg-brand-purple w-12 h-12 flex items-center justify-center mb-4 mx-auto">
                   <BarChart3 className="w-6 h-6 text-white" />
@@ -93,7 +93,7 @@ import iconpix from "@/assets/icon-pix.png";
                   Dashboard intuitivo
                 </h3>
                 <p className="text-muted-foreground text-center">
-                 Tenha visão geral de resultados de todas as suas operações
+                  Tenha visão geral de resultados de todas as suas operações
                 </p>
               </CardContent>
             </Card>
@@ -135,7 +135,7 @@ import iconpix from "@/assets/icon-pix.png";
                   Simule sua saída
                 </h3>
                 <p className="text-muted-foreground text-center">
-                   Antes de finalizar sua opção, simule seu lucro ou prejuízo
+                  Antes de finalizar sua opção, simule seu lucro ou prejuízo
                 </p>
               </CardContent>
             </Card>
@@ -146,7 +146,7 @@ import iconpix from "@/assets/icon-pix.png";
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2 text-center">
-                   Histórico de rentabilidade
+                  Histórico de rentabilidade
                 </h3>
                 <p className="text-muted-foreground text-center">
                   Tenha visão mês a mês dos seus resultados de forma consolidada
@@ -185,64 +185,64 @@ import iconpix from "@/assets/icon-pix.png";
 
               {/* Card de Doações */}
               <Card className="bg-transparent border-2 border-white rounded-2xl max-w-4xl mx-auto">
-              <CardContent className="p-8">
-    
-    {/* CONTAINER FLEX PRINCIPAL (NUNCA FECHE ANTES DO FIM) */}
-    <div className="flex flex-col md:flex-row items-center gap-8">
+                <CardContent className="p-8">
 
-      {/* LADO ESQUERDO: Logo + Textos */}
-      <div className="flex flex-col items-center md:items-start text-center md:text-left">
-    <img 
-      src={iconpix} 
-      alt="Logo PIX" 
-      className="w-20 h-20 object-contain mb-5"
-    />
-    <p className="text-white text-lg font-medium">
-      Qualquer valor ajuda
-    </p>
-    <p className="text-white text-xl mt-1">
-      otteropcoes@gmail.com
-    </p>
-  </div>
+                  {/* CONTAINER FLEX PRINCIPAL (NUNCA FECHE ANTES DO FIM) */}
+                  <div className="flex flex-col md:flex-row items-center gap-8">
 
-    {/* Linha horizontal no mobile */}
-    <div className="block md:hidden w-full h-px bg-white/60 my-3" />
+                    {/* LADO ESQUERDO: Logo + Textos */}
+                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                      <img
+                        src={iconpix}
+                        alt="Logo PIX"
+                        className="w-20 h-20 object-contain mb-5"
+                      />
+                      <p className="text-white text-lg font-medium">
+                        Qualquer valor ajuda
+                      </p>
+                      <p className="text-white text-xl mt-1">
+                        otteropcoes@gmail.com
+                      </p>
+                    </div>
 
-    {/* Linha vertical no desktop */}
-    <div className="hidden md:block w-px bg-white/60 h-full min-h-[160px]" />
+                    {/* Linha horizontal no mobile */}
+                    <div className="block md:hidden w-full h-px bg-white/60 my-3" />
 
-      {/* LADO DIREITO: Título + Lista */}
-      <div className="flex-1 text-left">
-  <p className="text-left mb-3">
-    <strong className="text-white text-lg">Por que doar?</strong>
-  </p>
-  <ul className="space-y-2 text-left">
-    <li className="flex items-start gap-2 text-white">
-      <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
-      <span>Novas funções insanas saindo do forno</span>
-    </li>
-    <li className="flex items-start gap-2 text-white">
-      <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
-      <span>Melhorias quase todo dia</span>
-    </li>
-    <li className="flex items-start gap-2 text-white">
-      <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
-      <span>Manutenção dos servidores (a lontra também paga boleto)</span>
-    </li>
-    <li className="flex items-start gap-2 text-white">
-      <CircleDollarSign className="w-5 h-5 text-[#CFF402] flex-shrink-0 mt-0.5" />
-      <span>Já levantamos R$ 124,00 de traders que acreditam na visão!</span>
-    </li>
-  </ul>
-</div>
+                    {/* Linha vertical no desktop */}
+                    <div className="hidden md:block w-px bg-white/60 h-full min-h-[160px]" />
 
-    </div> {/* FECHA O FLEX AQUI NO FINAL */}
+                    {/* LADO DIREITO: Título + Lista */}
+                    <div className="flex-1 text-left">
+                      <p className="text-left mb-3">
+                        <strong className="text-white text-lg">Por que doar?</strong>
+                      </p>
+                      <ul className="space-y-2 text-left">
+                        <li className="flex items-start gap-2 text-white">
+                          <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
+                          <span>Novas funções insanas saindo do forno</span>
+                        </li>
+                        <li className="flex items-start gap-2 text-white">
+                          <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
+                          <span>Melhorias quase todo dia</span>
+                        </li>
+                        <li className="flex items-start gap-2 text-white">
+                          <CheckCircle className="w-5 h-5 text-[#4BB8A9] flex-shrink-0 mt-0.5" />
+                          <span>Manutenção dos servidores (a lontra também paga boleto)</span>
+                        </li>
+                        <li className="flex items-start gap-2 text-white">
+                          <CircleDollarSign className="w-5 h-5 text-[#CFF402] flex-shrink-0 mt-0.5" />
+                          <span>Já levantamos R$ 124,00 de traders que acreditam na visão!</span>
+                        </li>
+                      </ul>
+                    </div>
 
-  </CardContent>
-</Card>            
+                  </div> {/* FECHA O FLEX AQUI NO FINAL */}
 
-  <p className="text-base text-muted-foreground max-w-3xl mx-auto text-center text-white">
-         Tudo que temos hoje é 100% grátis pra você. Criado por um investidor de opções.
+                </CardContent>
+              </Card>
+
+              <p className="text-base text-muted-foreground max-w-3xl mx-auto text-center text-white">
+                Tudo que temos hoje é 100% grátis pra você. Criado por um investidor de opções.
               </p>
             </div>
           </div>
@@ -270,7 +270,7 @@ import iconpix from "@/assets/icon-pix.png";
                 role: "Investidora",
                 text: "Os alertas me salvaram várias vezes. Consigo tomar decisões mais rápidas e assertivas.",
               },
-               {
+              {
                 name: "João Santos",
                 role: "Trader",
                 text: "Sistema completo e gratuito! Perfeito para quem está começando e quer organizar suas operações.",
