@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,57 @@ export default function ResetPassword() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSessionReady, setIsSessionReady] = useState(false);
     const navigate = useNavigate();
+
+    // Aguarda o Supabase processar o token da URL
+    useEffect(() => {
+        const checkAndWaitForSession = async () => {
+            console.log('🔍 Verificando token na URL...');
+
+            // Verifica se há token na URL
+            const hash = window.location.hash;
+            if (!hash.includes('access_token') && !hash.includes('recovery_token')) {
+                console.log('❌ Nenhum token encontrado na URL');
+                toast.error("Link de recuperação inválido ou expirado.");
+                navigate("/esqueci-senha");
+                return;
+            }
+
+            console.log('✅ Token encontrado na URL, aguardando Supabase processar...');
+
+            // Aguarda um pouco para o Supabase processar o token
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Verifica se a sessão foi criada
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error('❌ Erro ao obter sessão:', error);
+            }
+
+            if (session) {
+                console.log('✅ Sessão criada com sucesso!', session.user.email);
+                setIsSessionReady(true);
+            } else {
+                console.log('⚠️ Sessão ainda não criada, aguardando mais um pouco...');
+                // Tenta novamente após mais tempo
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                const { data: { session: retrySession } } = await supabase.auth.getSession();
+                if (retrySession) {
+                    console.log('✅ Sessão criada após retry!', retrySession.user.email);
+                    setIsSessionReady(true);
+                } else {
+                    console.log('❌ Sessão não foi criada mesmo após espera');
+                    toast.error("Link de recuperação inválido ou expirado.");
+                    navigate("/esqueci-senha");
+                }
+            }
+        };
+
+        checkAndWaitForSession();
+    }, [navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -169,9 +219,13 @@ export default function ResetPassword() {
                                 type="submit"
                                 variant="default"
                                 className="w-full"
-                                disabled={isLoading}
+                                disabled={isLoading || !isSessionReady}
                             >
-                                {isLoading ? "Atualizando..." : "Atualizar Senha"}
+                                {!isSessionReady
+                                    ? "Verificando link..."
+                                    : isLoading
+                                        ? "Atualizando..."
+                                        : "Atualizar Senha"}
                             </Button>
                         </form>
                     </CardContent>
