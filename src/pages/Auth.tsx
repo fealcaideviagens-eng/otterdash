@@ -131,8 +131,21 @@ export default function Auth() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                 />
+                {!isLogin && password.length > 0 && (
+                  <div className="text-xs space-y-1">
+                    <div className={password.length >= 8 ? "text-green-600" : "text-gray-400"}>
+                      ✓ Mínimo 8 caracteres
+                    </div>
+                    <div className={/[a-zA-Z]/.test(password) ? "text-green-600" : "text-gray-400"}>
+                      ✓ Pelo menos uma letra
+                    </div>
+                    <div className={/\d/.test(password) ? "text-green-600" : "text-gray-400"}>
+                      ✓ Pelo menos um número
+                    </div>
+                  </div>
+                )}
               </div>
 
               {isLogin && (

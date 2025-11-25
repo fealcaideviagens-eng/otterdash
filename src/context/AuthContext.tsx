@@ -3,6 +3,8 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { isValidEmail, isStrongPassword, validateAndSanitizeName, rateLimiter } from '@/utils/security';
+import { handleError } from '@/utils/errorHandler';
 
 interface AuthContextType {
   user: User | null;
@@ -56,43 +58,98 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, nome: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    // Rate limiting - máximo 3 tentativas por minuto
+    if (!rateLimiter.canProceed('signup', 3, 60000)) {
+      toast.error('Muitas tentativas de cadastro. Aguarde um minuto.');
+      throw new Error('Rate limit exceeded');
+    }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          nome
+    // Validação de email
+    if (!isValidEmail(email)) {
+      toast.error('Email inválido');
+      throw new Error('Invalid email format');
+    }
+
+    // Validação de senha
+    const passwordValidation = isStrongPassword(password);
+    if (!passwordValidation.isValid) {
+      toast.error(passwordValidation.message);
+      throw new Error(passwordValidation.message);
+    }
+
+    // Validação e sanitização do nome
+    const nameValidation = validateAndSanitizeName(nome);
+    if (!nameValidation.isValid) {
+      toast.error(nameValidation.message);
+      throw new Error(nameValidation.message);
+    }
+
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+
+      const { data, error } = await supabase.auth.signUp({
+        email: email.toLowerCase().trim(), // Normaliza email
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            nome: nameValidation.sanitized // Usa nome sanitizado
+          }
         }
-      }
-    });
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    toast.success('Cadastro realizado com sucesso!');
-    navigate('/');
+      toast.success('Cadastro realizado com sucesso!');
+      rateLimiter.reset('signup'); // Reset no sucesso
+      navigate('/');
+    } catch (error) {
+      handleError(error, 'SignUp');
+      throw error;
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // Rate limiting - máximo 5 tentativas por minuto
+    if (!rateLimiter.canProceed('signin', 5, 60000)) {
+      toast.error('Muitas tentativas de login. Aguarde um minuto.');
+      throw new Error('Rate limit exceeded');
+    }
 
-    if (error) throw error;
+    // Validação básica de email
+    if (!isValidEmail(email)) {
+      toast.error('Email inválido');
+      throw new Error('Invalid email format');
+    }
 
-    toast.success('Login realizado com sucesso!');
-    navigate('/');
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase().trim(), // Normaliza email
+        password,
+      });
+
+      if (error) throw error;
+
+      toast.success('Login realizado com sucesso!');
+      rateLimiter.reset('signin'); // Reset no sucesso
+      navigate('/');
+    } catch (error) {
+      handleError(error, 'SignIn');
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
 
-    toast.success('Logout realizado com sucesso!');
-    navigate('/auth');
+      toast.success('Logout realizado com sucesso!');
+      navigate('/auth');
+    } catch (error) {
+      handleError(error, 'SignOut');
+      throw error;
+    }
   };
 
   return (
