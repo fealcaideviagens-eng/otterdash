@@ -27,16 +27,17 @@ export default function ResetPassword() {
             // Verifica se há token na URL
             const hash = window.location.hash;
             if (!hash.includes('access_token') && !hash.includes('recovery_token')) {
-                console.log('❌ Nenhum token encontrado na URL');
-                toast.error("Link de recuperação inválido ou expirado.");
-                navigate("/esqueci-senha");
+                console.log('⚠️ Nenhum token encontrado na URL - usuário pode ter acessado diretamente');
+                // NÃO redireciona aqui - deixa o usuário ver a página
+                // A validação será feita no submit
+                setIsSessionReady(true); // Permite que o usuário tente
                 return;
             }
 
             console.log('✅ Token encontrado na URL, aguardando Supabase processar...');
 
             // Aguarda um pouco para o Supabase processar o token
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
             // Verifica se a sessão foi criada
             const { data: { session }, error } = await supabase.auth.getSession();
@@ -58,9 +59,9 @@ export default function ResetPassword() {
                     console.log('✅ Sessão criada após retry!', retrySession.user.email);
                     setIsSessionReady(true);
                 } else {
-                    console.log('❌ Sessão não foi criada mesmo após espera');
-                    toast.error("Link de recuperação inválido ou expirado.");
-                    navigate("/esqueci-senha");
+                    console.log('❌ Sessão não foi criada - mas permite tentar mesmo assim');
+                    // Permite que o usuário tente - a validação será no submit
+                    setIsSessionReady(true);
                 }
             }
         };
