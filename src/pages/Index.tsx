@@ -40,7 +40,7 @@ const Index = () => {
                 <span className="text-white font-semibold text-sm">LANÇAMENTO • 100% GRATUITO</span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
-                Oi Mergulhe de cabeça no controle das suas opções{" "}
+                Mergulhe de cabeça no controle das suas opções{" "}
               </h1>
               <p className="text-xl text-white/90">
                 Acompanhe seus lucros, metas e opções com inteligência e sem planilhas malucas.

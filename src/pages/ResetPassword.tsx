@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,22 +13,6 @@ export default function ResetPassword() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        // Check if we have a session (Supabase handles the token exchange automatically)
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                // If no session, the token might be invalid or expired
-                toast.error("Link de recuperação inválido ou expirado.");
-                navigate("/auth");
-            }
-        };
-
-        // We need to wait a bit for Supabase to process the hash fragment
-        const timer = setTimeout(checkSession, 1000);
-        return () => clearTimeout(timer);
-    }, [navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,6 +30,15 @@ export default function ResetPassword() {
         setIsLoading(true);
 
         try {
+            // Verifica se há uma sessão válida antes de tentar atualizar
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                toast.error("Sessão inválida. Por favor, solicite um novo link de recuperação.");
+                navigate("/esqueci-senha");
+                return;
+            }
+
             const { error } = await supabase.auth.updateUser({
                 password: password
             });

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Sidebar } from "@/components/navigation/Sidebar";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import Index from "./pages/Index";
@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import DadosPessoais from "./pages/DadosPessoais";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import ResetPassword from "./pages/ResetPassword";
+import { AuthCallbackHandler } from "./components/AuthCallbackHandler";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,19 @@ const queryClient = new QueryClient({
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
 
+  // Verifica se há um token de autenticação sendo processado na URL
+  const hash = typeof window !== 'undefined' ? window.location.hash : '';
+  const isAuthRedirect = hash.includes('access_token') || hash.includes('recovery_token');
+
+  // Log para debug (remover depois)
+  console.log('🛡️ ProtectedRoute:', {
+    hash,
+    isAuthRedirect,
+    user: !!user,
+    loading,
+    willRedirect: !user && !isAuthRedirect
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -39,7 +53,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
+  // Só redireciona se não houver usuário E não estiver processando um token
+  if (!user && !isAuthRedirect) {
+    console.log('🚨 ProtectedRoute: Redirecionando para /auth');
     return <Navigate to="/auth" replace />;
   }
 
@@ -48,6 +64,25 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  const location = useLocation();
+
+  // Verifica se há um token de autenticação sendo processado na URL
+  // Usa tanto window.location.hash quanto location do React Router
+  const windowHash = typeof window !== 'undefined' ? window.location.hash : '';
+  const routerHash = location.hash || '';
+  const combinedHash = windowHash + routerHash;
+  const isAuthRedirect = combinedHash.includes('access_token') || combinedHash.includes('recovery_token');
+
+  // Log para debug (remover depois)
+  console.log('🔍 Debug Reset Password:', {
+    pathname: location.pathname,
+    windowHash,
+    routerHash,
+    combinedHash,
+    isAuthRedirect,
+    user: !!user,
+    loading
+  });
 
   if (loading) {
     return (
@@ -62,7 +97,8 @@ function AppRoutes() {
       <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
       <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
       <Route path="/esqueci-senha" element={user ? <Navigate to="/dashboard" replace /> : <EsqueciSenha />} />
-      <Route path="/reset-password" element={user ? <Navigate to="/dashboard" replace /> : <ResetPassword />} />
+      {/* Rota /reset-password SEMPRE acessível - sem redirecionamento */}
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/dashboard"
         element={
@@ -164,11 +200,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <TooltipProvider>
-            <AppRoutes />
-            <Toaster />
-            <Sonner />
-          </TooltipProvider>
+          <AuthCallbackHandler>
+            <TooltipProvider>
+              <AppRoutes />
+              <Toaster />
+              <Sonner />
+            </TooltipProvider>
+          </AuthCallbackHandler>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
