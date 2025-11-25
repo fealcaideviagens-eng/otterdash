@@ -6,24 +6,30 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { isStrongPassword } from "@/utils/security";
+import { Eye, EyeOff } from "lucide-react";
 import lontralogin from "@/assets/lontra-login.png";
 
 export default function ResetPassword() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (password !== confirmPassword) {
-            toast.error("As senhas não coincidem");
+        // Validação de senha forte
+        const passwordValidation = isStrongPassword(password);
+        if (!passwordValidation.isValid) {
+            toast.error(passwordValidation.message);
             return;
         }
 
-        if (password.length < 6) {
-            toast.error("A senha deve ter pelo menos 6 caracteres");
+        if (password !== confirmPassword) {
+            toast.error("As senhas não coincidem");
             return;
         }
 
@@ -31,7 +37,14 @@ export default function ResetPassword() {
 
         try {
             // Verifica se há uma sessão válida antes de tentar atualizar
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError) {
+                console.error('Erro ao obter sessão:', sessionError);
+                toast.error("Erro ao verificar sessão. Tente novamente.");
+                setIsLoading(false);
+                return;
+            }
 
             if (!session) {
                 toast.error("Sessão inválida. Por favor, solicite um novo link de recuperação.");
@@ -39,15 +52,27 @@ export default function ResetPassword() {
                 return;
             }
 
-            const { error } = await supabase.auth.updateUser({
+            console.log('Sessão válida, atualizando senha...');
+
+            // Atualiza a senha
+            const { data, error } = await supabase.auth.updateUser({
                 password: password
             });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Erro ao atualizar senha:', error);
+                throw error;
+            }
 
-            toast.success("Senha atualizada com sucesso!");
+            console.log('Senha atualizada com sucesso:', data);
+
+            // Faz logout para forçar novo login com a nova senha
+            await supabase.auth.signOut();
+
+            toast.success("Senha atualizada com sucesso! Faça login com sua nova senha.");
             navigate("/auth");
         } catch (error: any) {
+            console.error('Erro completo:', error);
             toast.error(error.message || "Erro ao atualizar senha");
         } finally {
             setIsLoading(false);
@@ -93,28 +118,51 @@ export default function ResetPassword() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="password">Nova Senha</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    minLength={6}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        minLength={8}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Mínimo 8 caracteres, com letras e números
+                                </p>
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                                <Input
-                                    id="confirmPassword"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    required
-                                    minLength={6}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder="••••••••"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        minLength={8}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                             </div>
 
                             <Button
