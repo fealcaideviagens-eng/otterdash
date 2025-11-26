@@ -19,59 +19,73 @@ export default function ResetPassword() {
     const [isSessionReady, setIsSessionReady] = useState(false);
     const navigate = useNavigate();
 
-    // Monitora o estado da autenticação via eventos do Supabase
+    // Monitora o estado da autenticação e força sessão se necessário
     useEffect(() => {
         let mounted = true;
 
         const handleAuthChange = async () => {
             console.log('🔍 Iniciando monitoramento de autenticação...');
 
-            // 1. Verifica se há token na URL imediatamente
+            // 1. Tenta capturar token manualmente do hash (Força Bruta)
             const hash = window.location.hash;
-            if (!hash.includes('access_token') && !hash.includes('recovery_token')) {
-                console.log('⚠️ Nenhum token na URL. Verificando se já existe sessão ativa...');
+            if (hash && (hash.includes('access_token') || hash.includes('type=recovery'))) {
+                console.log('💊 Hash detectado. Tentando processar manualmente...');
+
+                // Parse manual do hash
+                const params = new URLSearchParams(hash.replace('#', '?')); // Truque para usar URLSearchParams
+                const accessToken = params.get('access_token');
+                const refreshToken = params.get('refresh_token');
+                const type = params.get('type');
+
+                if (accessToken && refreshToken) {
+                    console.log('🛠️ Tokens encontrados manualmente. Forçando sessão...');
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken,
+                    });
+
+                    if (error) {
+                        console.error('❌ Erro ao forçar sessão manual:', error);
+                    } else if (data.session) {
+                        console.log('✅ Sessão forçada com sucesso!', data.session.user.email);
+                        setIsSessionReady(true);
+                        return; // Sessão estabelecida, não precisa continuar ouvindo eventos iniciais
+                    }
+                }
             }
 
-            // 2. Escuta eventos de mudança de estado
+            // 2. Escuta eventos de mudança de estado (Backup)
             const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
                 if (!mounted) return;
 
                 console.log(`🔔 Evento de Auth: ${event}`, session?.user?.email);
 
-                if (event === 'PASSWORD_RECOVERY') {
-                    console.log('✅ Evento PASSWORD_RECOVERY detectado! Sessão pronta para reset.');
-                    setIsSessionReady(true);
-                }
-                else if (event === 'SIGNED_IN' && session) {
-                    console.log('✅ Evento SIGNED_IN detectado! Sessão ativa.');
-                    setIsSessionReady(true);
+                if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                    if (session) {
+                        console.log('✅ Sessão detectada via evento!');
+                        setIsSessionReady(true);
+                    }
                 }
                 else if (event === 'INITIAL_SESSION') {
-                    console.log('ℹ️ Evento INITIAL_SESSION detectado.', session ? 'Com sessão.' : 'Sem sessão.');
                     if (session) {
                         setIsSessionReady(true);
                     } else {
-                        // Se não tem sessão inicial e não tem token na URL, provavelmente falhou
-                        // Mas vamos destravar o botão para o usuário não ficar preso
-                        console.log('⚠️ Sem sessão inicial. Destravando botão para permitir tentativa.');
+                        // Se chegamos aqui e não temos sessão (e a tentativa manual falhou), liberamos o botão
+                        console.log('⚠️ Sem sessão inicial. Destravando botão.');
                         setIsSessionReady(true);
                     }
                 }
             });
 
-            // 3. Verificação manual de fallback (caso o evento já tenha passado)
+            // 3. Verificação final
             const { data: { session } } = await supabase.auth.getSession();
             if (session && mounted) {
                 console.log('✅ Sessão encontrada na verificação manual:', session.user.email);
                 setIsSessionReady(true);
             } else {
-                // Fallback final: destrava o botão após 3 segundos se nada acontecer
                 setTimeout(() => {
-                    if (mounted) {
-                        console.log('⏰ Timeout de verificação. Destravando botão.');
-                        setIsSessionReady(true);
-                    }
-                }, 3000);
+                    if (mounted) setIsSessionReady(true);
+                }, 2000);
             }
 
             return () => {
