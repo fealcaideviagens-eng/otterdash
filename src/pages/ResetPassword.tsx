@@ -46,6 +46,17 @@ export default function ResetPassword() {
                     console.log('✅ Evento SIGNED_IN detectado! Sessão ativa.');
                     setIsSessionReady(true);
                 }
+                else if (event === 'INITIAL_SESSION') {
+                    console.log('ℹ️ Evento INITIAL_SESSION detectado.', session ? 'Com sessão.' : 'Sem sessão.');
+                    if (session) {
+                        setIsSessionReady(true);
+                    } else {
+                        // Se não tem sessão inicial e não tem token na URL, provavelmente falhou
+                        // Mas vamos destravar o botão para o usuário não ficar preso
+                        console.log('⚠️ Sem sessão inicial. Destravando botão para permitir tentativa.');
+                        setIsSessionReady(true);
+                    }
+                }
             });
 
             // 3. Verificação manual de fallback (caso o evento já tenha passado)
@@ -53,6 +64,14 @@ export default function ResetPassword() {
             if (session && mounted) {
                 console.log('✅ Sessão encontrada na verificação manual:', session.user.email);
                 setIsSessionReady(true);
+            } else {
+                // Fallback final: destrava o botão após 3 segundos se nada acontecer
+                setTimeout(() => {
+                    if (mounted) {
+                        console.log('⏰ Timeout de verificação. Destravando botão.');
+                        setIsSessionReady(true);
+                    }
+                }, 3000);
             }
 
             return () => {
