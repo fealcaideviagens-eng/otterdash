@@ -8,5 +8,11 @@ if (!container) {
   throw new Error("Root element not found");
 }
 
+import { HelmetProvider } from 'react-helmet-async';
+
 const root = createRoot(container);
-root.render(<App />);
+root.render(
+  <HelmetProvider>
+    <App />
+  </HelmetProvider>
+);

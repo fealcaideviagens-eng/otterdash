@@ -19,11 +19,16 @@ import {
 import laptopMockup from "@/assets/smartdesk.png";
 import backgroundlp from "@/assets/backgroundlp.jpg";
 import TopNav from "@/components/navigation/TopNav";
+import { SEO } from "@/components/SEO";
 import iconpix from "@/assets/icon-pix.png";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Home"
+        description="Acompanhe seus lucros, metas e opções com inteligência e sem planilhas malucas. O sistema definitivo para investidores de opções."
+      />
       <TopNav />
       {/* Hero Section */}
       <section id="home" className="relative overflow-hidden bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#1C2E51]">

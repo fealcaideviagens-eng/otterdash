@@ -156,7 +156,7 @@ export default function ResetPassword() {
                 {/* Título sobreposto */}
                 <div className="absolute bottom-[58%] left-16 z-10">
                     <h1 className="text-6xl font-bold text-[#EBDECE] leading-tight">
-                        Ottie ops
+                        Otter ops
                     </h1>
                     <h1 className="text-4xl font-light text-[#EBDECE] leading-tight opacity-60">
                         nova senha, novo começo!
