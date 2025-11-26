@@ -19,55 +19,50 @@ export default function ResetPassword() {
     const [isSessionReady, setIsSessionReady] = useState(false);
     const navigate = useNavigate();
 
-    // Aguarda o Supabase processar o token da URL
+    // Monitora o estado da autenticação via eventos do Supabase
     useEffect(() => {
-        const checkAndWaitForSession = async () => {
-            console.log('🔍 Verificando token na URL...');
+        let mounted = true;
 
-            // Verifica se há token na URL
+        const handleAuthChange = async () => {
+            console.log('🔍 Iniciando monitoramento de autenticação...');
+
+            // 1. Verifica se há token na URL imediatamente
             const hash = window.location.hash;
             if (!hash.includes('access_token') && !hash.includes('recovery_token')) {
-                console.log('⚠️ Nenhum token encontrado na URL - usuário pode ter acessado diretamente');
-                // NÃO redireciona aqui - deixa o usuário ver a página
-                // A validação será feita no submit
-                setIsSessionReady(true); // Permite que o usuário tente
-                return;
+                console.log('⚠️ Nenhum token na URL. Verificando se já existe sessão ativa...');
             }
 
-            console.log('✅ Token encontrado na URL, aguardando Supabase processar...');
+            // 2. Escuta eventos de mudança de estado
+            const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+                if (!mounted) return;
 
-            // Aguarda um pouco para o Supabase processar o token
-            await new Promise(resolve => setTimeout(resolve, 2000));
+                console.log(`🔔 Evento de Auth: ${event}`, session?.user?.email);
 
-            // Verifica se a sessão foi criada
-            const { data: { session }, error } = await supabase.auth.getSession();
-
-            if (error) {
-                console.error('❌ Erro ao obter sessão:', error);
-            }
-
-            if (session) {
-                console.log('✅ Sessão criada com sucesso!', session.user.email);
-                setIsSessionReady(true);
-            } else {
-                console.log('⚠️ Sessão ainda não criada, aguardando mais um pouco...');
-                // Tenta novamente após mais tempo
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                const { data: { session: retrySession } } = await supabase.auth.getSession();
-                if (retrySession) {
-                    console.log('✅ Sessão criada após retry!', retrySession.user.email);
-                    setIsSessionReady(true);
-                } else {
-                    console.log('❌ Sessão não foi criada - mas permite tentar mesmo assim');
-                    // Permite que o usuário tente - a validação será no submit
+                if (event === 'PASSWORD_RECOVERY') {
+                    console.log('✅ Evento PASSWORD_RECOVERY detectado! Sessão pronta para reset.');
                     setIsSessionReady(true);
                 }
+                else if (event === 'SIGNED_IN' && session) {
+                    console.log('✅ Evento SIGNED_IN detectado! Sessão ativa.');
+                    setIsSessionReady(true);
+                }
+            });
+
+            // 3. Verificação manual de fallback (caso o evento já tenha passado)
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session && mounted) {
+                console.log('✅ Sessão encontrada na verificação manual:', session.user.email);
+                setIsSessionReady(true);
             }
+
+            return () => {
+                mounted = false;
+                subscription.unsubscribe();
+            };
         };
 
-        checkAndWaitForSession();
-    }, [navigate]);
+        handleAuthChange();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,35 +82,28 @@ export default function ResetPassword() {
         setIsLoading(true);
 
         try {
-            // Verifica se há uma sessão válida antes de tentar atualizar
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            console.log('🔐 Tentando atualizar senha...');
 
-            if (sessionError) {
-                console.error('Erro ao obter sessão:', sessionError);
-                toast.error("Erro ao verificar sessão. Tente novamente.");
-                setIsLoading(false);
-                return;
-            }
-
-            if (!session) {
-                toast.error("Sessão inválida. Por favor, solicite um novo link de recuperação.");
-                navigate("/esqueci-senha");
-                return;
-            }
-
-            console.log('Sessão válida, atualizando senha...');
-
-            // Atualiza a senha
+            // O updateUser automaticamente valida o token da URL
+            // Não precisa verificar sessão manualmente
             const { data, error } = await supabase.auth.updateUser({
                 password: password
             });
 
             if (error) {
-                console.error('Erro ao atualizar senha:', error);
-                throw error;
+                console.error('❌ Erro ao atualizar senha:', error);
+
+                // Mensagens de erro mais específicas
+                if (error.message.includes('session') || error.message.includes('token')) {
+                    toast.error("Link de recuperação inválido ou expirado. Solicite um novo link.");
+                    setTimeout(() => navigate("/esqueci-senha"), 2000);
+                } else {
+                    toast.error(error.message || "Erro ao atualizar senha");
+                }
+                return;
             }
 
-            console.log('Senha atualizada com sucesso:', data);
+            console.log('✅ Senha atualizada com sucesso:', data);
 
             // Faz logout para forçar novo login com a nova senha
             await supabase.auth.signOut();
@@ -123,7 +111,7 @@ export default function ResetPassword() {
             toast.success("Senha atualizada com sucesso! Faça login com sua nova senha.");
             navigate("/auth");
         } catch (error: any) {
-            console.error('Erro completo:', error);
+            console.error('❌ Erro completo:', error);
             toast.error(error.message || "Erro ao atualizar senha");
         } finally {
             setIsLoading(false);
