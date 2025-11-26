@@ -26,31 +26,39 @@ export default function ResetPassword() {
         const handleAuthChange = async () => {
             console.log('🔍 Iniciando monitoramento de autenticação...');
 
-            // 1. Tenta capturar token manualmente do hash (Força Bruta) ou Query Params (PKCE)
             const hash = window.location.hash;
             const search = window.location.search;
 
             console.log('🔍 Analisando URL:', { hash, search });
 
-            // Verifica se é PKCE (tem ?code=...)
+            // CASO 1: PKCE (tem ?code=...)
             if (search.includes('code=')) {
-                console.log('🔑 Código PKCE detectado na URL! Aguardando Supabase realizar a troca...');
-                // Não precisamos fazer nada manual aqui, o detectSessionInUrl: true + flowType: 'pkce' vai lidar com isso
-                // Apenas aguardamos o evento SIGNED_IN
+                console.log('🔑 Código PKCE detectado! Realizando troca manual...');
+                const params = new URLSearchParams(search);
+                const code = params.get('code');
+
+                if (code) {
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                    if (error) {
+                        console.error('❌ Erro na troca de código PKCE:', error);
+                    } else if (data.session) {
+                        console.log('✅ Sessão PKCE estabelecida com sucesso!');
+                        setIsSessionReady(true);
+                        return;
+                    }
+                }
             }
 
-            // Verifica se é Implicit Flow (tem #access_token=...)
+            // CASO 2: Implicit Flow (tem #access_token=...)
             else if (hash && (hash.includes('access_token') || hash.includes('type=recovery'))) {
                 console.log('💊 Hash detectado. Tentando processar manualmente...');
 
-                // Parse manual do hash
-                const params = new URLSearchParams(hash.replace('#', '?')); // Truque para usar URLSearchParams
+                const params = new URLSearchParams(hash.replace('#', '?'));
                 const accessToken = params.get('access_token');
                 const refreshToken = params.get('refresh_token');
-                const type = params.get('type');
 
                 if (accessToken && refreshToken) {
-                    console.log('🛠️ Tokens encontrados manualmente. Forçando sessão...');
+                    console.log('🛠️ Tokens encontrados. Forçando sessão...');
                     const { data, error } = await supabase.auth.setSession({
                         access_token: accessToken,
                         refresh_token: refreshToken,
@@ -59,51 +67,27 @@ export default function ResetPassword() {
                     if (error) {
                         console.error('❌ Erro ao forçar sessão manual:', error);
                     } else if (data.session) {
-                        console.log('✅ Sessão forçada com sucesso!', data.session.user.email);
+                        console.log('✅ Sessão forçada com sucesso!');
                         setIsSessionReady(true);
-                        return; // Sessão estabelecida, não precisa continuar ouvindo eventos iniciais
+                        return;
                     }
                 }
             }
 
-            // 2. Escuta eventos de mudança de estado (Backup)
-            const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-                if (!mounted) return;
-
-                console.log(`🔔 Evento de Auth: ${event}`, session?.user?.email);
-
-                if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                    if (session) {
-                        console.log('✅ Sessão detectada via evento!');
-                        setIsSessionReady(true);
-                    }
-                }
-                else if (event === 'INITIAL_SESSION') {
-                    if (session) {
-                        setIsSessionReady(true);
-                    } else {
-                        // Se chegamos aqui e não temos sessão (e a tentativa manual falhou), liberamos o botão
-                        console.log('⚠️ Sem sessão inicial. Destravando botão.');
-                        setIsSessionReady(true);
-                    }
-                }
-            });
-
-            // 3. Verificação final
+            // 3. Verificação de sessão existente (Backup)
             const { data: { session } } = await supabase.auth.getSession();
             if (session && mounted) {
                 console.log('✅ Sessão encontrada na verificação manual:', session.user.email);
                 setIsSessionReady(true);
             } else {
+                // Fallback final: destrava o botão após 2 segundos
                 setTimeout(() => {
-                    if (mounted) setIsSessionReady(true);
+                    if (mounted) {
+                        console.log('⏰ Timeout. Destravando botão.');
+                        setIsSessionReady(true);
+                    }
                 }, 2000);
             }
-
-            return () => {
-                mounted = false;
-                subscription.unsubscribe();
-            };
         };
 
         handleAuthChange();
