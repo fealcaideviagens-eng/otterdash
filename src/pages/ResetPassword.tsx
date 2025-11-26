@@ -26,9 +26,21 @@ export default function ResetPassword() {
         const handleAuthChange = async () => {
             console.log('🔍 Iniciando monitoramento de autenticação...');
 
-            // 1. Tenta capturar token manualmente do hash (Força Bruta)
+            // 1. Tenta capturar token manualmente do hash (Força Bruta) ou Query Params (PKCE)
             const hash = window.location.hash;
-            if (hash && (hash.includes('access_token') || hash.includes('type=recovery'))) {
+            const search = window.location.search;
+
+            console.log('🔍 Analisando URL:', { hash, search });
+
+            // Verifica se é PKCE (tem ?code=...)
+            if (search.includes('code=')) {
+                console.log('🔑 Código PKCE detectado na URL! Aguardando Supabase realizar a troca...');
+                // Não precisamos fazer nada manual aqui, o detectSessionInUrl: true + flowType: 'pkce' vai lidar com isso
+                // Apenas aguardamos o evento SIGNED_IN
+            }
+
+            // Verifica se é Implicit Flow (tem #access_token=...)
+            else if (hash && (hash.includes('access_token') || hash.includes('type=recovery'))) {
                 console.log('💊 Hash detectado. Tentando processar manualmente...');
 
                 // Parse manual do hash
