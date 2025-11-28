@@ -21,77 +21,23 @@ export default function ResetPassword() {
 
     // Monitora o estado da autenticação e força sessão se necessário
     useEffect(() => {
-        let mounted = true;
-
-        const handleAuthChange = async () => {
-            console.log('🔍 Iniciando monitoramento de autenticação...');
-
-            const hash = window.location.hash;
-            const search = window.location.search;
-
-            console.log('🔍 Analisando URL:', { hash, search });
-
-            // CASO 1: PKCE (tem ?code=...)
-            if (search.includes('code=')) {
-                console.log('🔑 Código PKCE detectado! Realizando troca manual...');
-                const params = new URLSearchParams(search);
-                const code = params.get('code');
-
-                if (code) {
-                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-                    if (error) {
-                        console.error('❌ Erro na troca de código PKCE:', error);
-                    } else if (data.session) {
-                        console.log('✅ Sessão PKCE estabelecida com sucesso!');
-                        setIsSessionReady(true);
-                        return;
-                    }
-                }
-            }
-
-            // CASO 2: Implicit Flow (tem #access_token=...)
-            else if (hash && (hash.includes('access_token') || hash.includes('type=recovery'))) {
-                console.log('💊 Hash detectado. Tentando processar manualmente...');
-
-                const params = new URLSearchParams(hash.replace('#', '?'));
-                const accessToken = params.get('access_token');
-                const refreshToken = params.get('refresh_token');
-
-                if (accessToken && refreshToken) {
-                    console.log('🛠️ Tokens encontrados. Forçando sessão...');
-                    const { data, error } = await supabase.auth.setSession({
-                        access_token: accessToken,
-                        refresh_token: refreshToken,
-                    });
-
-                    if (error) {
-                        console.error('❌ Erro ao forçar sessão manual:', error);
-                    } else if (data.session) {
-                        console.log('✅ Sessão forçada com sucesso!');
-                        setIsSessionReady(true);
-                        return;
-                    }
-                }
-            }
-
-            // 3. Verificação de sessão existente (Backup)
+        const checkSession = async () => {
+            console.log('🔍 Verificando sessão ativa...');
             const { data: { session } } = await supabase.auth.getSession();
-            if (session && mounted) {
-                console.log('✅ Sessão encontrada na verificação manual:', session.user.email);
+
+            if (session) {
+                console.log('✅ Sessão ativa encontrada:', session.user.email);
                 setIsSessionReady(true);
             } else {
-                // Fallback final: destrava o botão após 2 segundos
-                setTimeout(() => {
-                    if (mounted) {
-                        console.log('⏰ Timeout. Destravando botão.');
-                        setIsSessionReady(true);
-                    }
-                }, 2000);
+                console.log('❌ Nenhuma sessão ativa encontrada. Redirecionando para login...');
+                toast.error("Link inválido ou expirado.");
+                // Pequeno delay para o usuário ler a mensagem
+                setTimeout(() => navigate("/auth"), 2000);
             }
         };
 
-        handleAuthChange();
-    }, []);
+        checkSession();
+    }, [navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -113,22 +59,14 @@ export default function ResetPassword() {
         try {
             console.log('🔐 Tentando atualizar senha...');
 
-            // O updateUser automaticamente valida o token da URL
-            // Não precisa verificar sessão manualmente
+            // O updateUser usa a sessão ativa detectada no onMount
             const { data, error } = await supabase.auth.updateUser({
                 password: password
             });
 
             if (error) {
                 console.error('❌ Erro ao atualizar senha:', error);
-
-                // Mensagens de erro mais específicas
-                if (error.message.includes('session') || error.message.includes('token')) {
-                    toast.error("Link de recuperação inválido ou expirado. Solicite um novo link.");
-                    setTimeout(() => navigate("/esqueci-senha"), 2000);
-                } else {
-                    toast.error(error.message || "Erro ao atualizar senha");
-                }
+                toast.error(error.message || "Erro ao atualizar senha");
                 return;
             }
 
