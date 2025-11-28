@@ -26,19 +26,46 @@ export default function ResetPassword() {
         refreshToken: null
     });
 
-    // Captura os tokens imediatamente
+    // Captura os tokens ou código PKCE imediatamente
     useEffect(() => {
-        const hash = window.location.hash;
-        if (hash) {
-            const hashParams = new URLSearchParams(hash.substring(1));
-            const accessToken = hashParams.get('access_token');
-            const refreshToken = hashParams.get('refresh_token');
+        const handleAuth = async () => {
+            // 1. Verifica Hash (Implicit Flow)
+            const hash = window.location.hash;
+            if (hash) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token');
 
-            if (accessToken && refreshToken) {
-                console.log('📥 Tokens capturados da URL e salvos em memória.');
-                hashParamsRef.current = { accessToken, refreshToken };
+                if (accessToken && refreshToken) {
+                    console.log('📥 Tokens (Hash) capturados e salvos em memória.');
+                    hashParamsRef.current = { accessToken, refreshToken };
+                    setIsSessionReady(true); // Já temos o que precisa
+                    return;
+                }
             }
-        }
+
+            // 2. Verifica Query Params (PKCE Flow)
+            const searchParams = new URLSearchParams(window.location.search);
+            const code = searchParams.get('code');
+
+            if (code) {
+                console.log('📥 Código PKCE detectado. Trocando por sessão...');
+                try {
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                    if (error) {
+                        console.error('❌ Erro ao trocar código por sessão:', error);
+                        toast.error("Link inválido ou expirado.");
+                    } else if (data.session) {
+                        console.log('✅ Sessão estabelecida via PKCE!');
+                        setIsSessionReady(true);
+                    }
+                } catch (err) {
+                    console.error('❌ Erro inesperado no PKCE:', err);
+                }
+            }
+        };
+
+        handleAuth();
     }, []);
 
     // Monitora o estado da autenticação e força sessão se necessário
