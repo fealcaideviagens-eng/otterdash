@@ -21,6 +21,7 @@ export default function ResetPassword() {
 
     // Monitora o estado da autenticação e força sessão se necessário
     // Monitora o estado da autenticação
+    // Monitora o estado da autenticação
     useEffect(() => {
         let mounted = true;
 
@@ -31,6 +32,14 @@ export default function ResetPassword() {
             if (session && mounted) {
                 console.log('✅ Sessão ativa encontrada:', session.user.email);
                 setIsSessionReady(true);
+            } else {
+                // Fallback: Verifica se há um token na URL
+                const hash = window.location.hash;
+                if (hash && hash.includes('access_token') && hash.includes('type=recovery')) {
+                    console.log('⚠️ Sessão não estabelecida, mas token de recuperação encontrado na URL.');
+                    console.log('✅ Liberando formulário para tentativa de atualização.');
+                    if (mounted) setIsSessionReady(true);
+                }
             }
         };
 
@@ -51,14 +60,17 @@ export default function ResetPassword() {
             }
         });
 
-        // Timeout de segurança caso o token seja inválido ou não processado
+        // Timeout de segurança
         const timeout = setTimeout(() => {
             if (mounted && !isSessionReady) {
-                console.log('⚠️ Timeout: Nenhuma sessão estabelecida após 4s');
-                // Não redirecionamos automaticamente para não frustrar o usuário caso a net esteja lenta,
-                // mas podemos mostrar um aviso ou botão de "Voltar para Login"
+                console.log('⚠️ Timeout: Verificação demorou muito.');
+                // Verifica novamente o hash como última tentativa
+                const hash = window.location.hash;
+                if (hash && hash.includes('access_token')) {
+                    setIsSessionReady(true);
+                }
             }
-        }, 4000);
+        }, 2000); // Reduzido para 2s para ser mais ágil
 
         return () => {
             mounted = false;
