@@ -246,17 +246,70 @@ export default function ResetPassword() {
                                 <Label htmlFor="password">Nova Senha</Label>
                                 <div className="relative">
                                     <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Sua nova senha"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        disabled={!isSessionReady}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                     >
-                                        {!isSessionReady
-                                            ? "Verificando link..."
-                                            : isLoading
-                                                ? "Atualizando..."
-                                                : "Atualizar Senha"}
-                                    </Button>
-                                </form>
-                            </CardContent>
-                        </Card>
-                    </div>
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder="Confirme sua nova senha"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        required
+                                        disabled={!isSessionReady}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                variant="default"
+                                className="w-full"
+                                disabled={isLoading || !isSessionReady}
+                            >
+                                {isLoading ? "Atualizando..." : isSessionReady ? "Atualizar Senha" : "Verificando link..."}
+                            </Button>
+                        </form>
+
+                        {/* DEBUG INFO - REMOVER DEPOIS */}
+                        <div className="mt-8 p-4 bg-slate-100 rounded text-xs font-mono break-all">
+                            <p><strong>DEBUG INFO:</strong></p>
+                            <p>URL: {window.location.href}</p>
+                            <p>Hash: {window.location.hash || '(vazio)'}</p>
+                            <p>Search: {window.location.search || '(vazio)'}</p>
+                            <p>Session Ready: {isSessionReady ? 'Sim' : 'Não'}</p>
+                            <p>Ref Access Token: {hashParamsRef.current.accessToken ? 'Sim' : 'Não'}</p>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
-            );
+        </div>
+    );
 }
