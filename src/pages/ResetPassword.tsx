@@ -95,7 +95,36 @@ export default function ResetPassword() {
         try {
             console.log('🔐 Tentando atualizar senha...');
 
-            // O updateUser usa a sessão ativa detectada no onMount
+            // Tenta garantir que existe uma sessão válida antes de atualizar
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                console.log('⚠️ Sessão não detectada automaticamente. Tentando forçar via tokens da URL...');
+
+                // Extrai tokens do hash da URL
+                const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                const accessToken = hashParams.get('access_token');
+                const refreshToken = hashParams.get('refresh_token');
+
+                if (accessToken && refreshToken) {
+                    console.log('✅ Tokens encontrados. Definindo sessão manualmente...');
+                    const { error: sessionError } = await supabase.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken,
+                    });
+
+                    if (sessionError) {
+                        console.error('❌ Erro ao definir sessão manual:', sessionError);
+                        throw new Error("Não foi possível validar seu acesso. Por favor, solicite um novo link.");
+                    }
+                    console.log('✅ Sessão definida manualmente com sucesso!');
+                } else {
+                    console.error('❌ Tokens não encontrados na URL.');
+                    throw new Error("Link inválido ou expirado. Solicite uma nova recuperação de senha.");
+                }
+            }
+
+            // O updateUser usa a sessão ativa (agora garantida)
             const { data, error } = await supabase.auth.updateUser({
                 password: password
             });
