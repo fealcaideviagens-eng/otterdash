@@ -298,15 +298,7 @@ export default function ResetPassword() {
                             </Button>
                         </form>
 
-                        {/* DEBUG INFO - REMOVER DEPOIS */}
-                        <div className="mt-8 p-4 bg-slate-100 rounded text-xs font-mono break-all">
-                            <p><strong>DEBUG INFO:</strong></p>
-                            <p>URL: {window.location.href}</p>
-                            <p>Hash: {window.location.hash || '(vazio)'}</p>
-                            <p>Search: {window.location.search || '(vazio)'}</p>
-                            <p>Session Ready: {isSessionReady ? 'Sim' : 'Não'}</p>
-                            <p>Ref Access Token: {hashParamsRef.current.accessToken ? 'Sim' : 'Não'}</p>
-                        </div>
+
                     </CardContent>
                 </Card>
             </div>
