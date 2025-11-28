@@ -20,24 +20,52 @@ export default function ResetPassword() {
     const navigate = useNavigate();
 
     // Monitora o estado da autenticação e força sessão se necessário
+    // Monitora o estado da autenticação
     useEffect(() => {
+        let mounted = true;
+
         const checkSession = async () => {
-            console.log('🔍 Verificando sessão ativa...');
+            console.log('🔍 Verificando sessão inicial...');
             const { data: { session } } = await supabase.auth.getSession();
 
-            if (session) {
+            if (session && mounted) {
                 console.log('✅ Sessão ativa encontrada:', session.user.email);
                 setIsSessionReady(true);
-            } else {
-                console.log('❌ Nenhuma sessão ativa encontrada. Redirecionando para login...');
-                toast.error("Link inválido ou expirado.");
-                // Pequeno delay para o usuário ler a mensagem
-                setTimeout(() => navigate("/auth"), 2000);
             }
         };
 
         checkSession();
-    }, [navigate]);
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('🔔 Auth State Change:', event);
+
+            if (event === 'PASSWORD_RECOVERY') {
+                console.log('✅ Evento de recuperação de senha detectado');
+                setIsSessionReady(true);
+            } else if (event === 'SIGNED_IN' && session) {
+                console.log('✅ Usuário logado via token');
+                setIsSessionReady(true);
+            } else if (event === 'SIGNED_OUT') {
+                console.log('👋 Usuário deslogado');
+                setIsSessionReady(false);
+            }
+        });
+
+        // Timeout de segurança caso o token seja inválido ou não processado
+        const timeout = setTimeout(() => {
+            if (mounted && !isSessionReady) {
+                console.log('⚠️ Timeout: Nenhuma sessão estabelecida após 4s');
+                // Não redirecionamos automaticamente para não frustrar o usuário caso a net esteja lenta,
+                // mas podemos mostrar um aviso ou botão de "Voltar para Login"
+            }
+        }, 4000);
+
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+            clearTimeout(timeout);
+        };
+    }, [isSessionReady]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
