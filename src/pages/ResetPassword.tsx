@@ -60,17 +60,13 @@ export default function ResetPassword() {
             }
         });
 
-        // Timeout de segurança
+        // Timeout de segurança: Libera o formulário após 1s para não travar o usuário
         const timeout = setTimeout(() => {
             if (mounted && !isSessionReady) {
-                console.log('⚠️ Timeout: Verificação demorou muito.');
-                // Verifica novamente o hash como última tentativa
-                const hash = window.location.hash;
-                if (hash && hash.includes('access_token')) {
-                    setIsSessionReady(true);
-                }
+                console.log('⚠️ Timeout: Forçando liberação do formulário.');
+                setIsSessionReady(true);
             }
-        }, 2000); // Reduzido para 2s para ser mais ágil
+        }, 1000);
 
         return () => {
             mounted = false;
