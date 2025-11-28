@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,28 @@ export default function ResetPassword() {
     const [isSessionReady, setIsSessionReady] = useState(false);
     const navigate = useNavigate();
 
+    // Ref para guardar os tokens da URL assim que a página carrega
+    // Isso evita o problema de "race condition" onde o Supabase limpa a URL antes de usarmos
+    const hashParamsRef = useRef<{ accessToken: string | null; refreshToken: string | null }>({
+        accessToken: null,
+        refreshToken: null
+    });
+
+    // Captura os tokens imediatamente
+    useEffect(() => {
+        const hash = window.location.hash;
+        if (hash) {
+            const hashParams = new URLSearchParams(hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const refreshToken = hashParams.get('refresh_token');
+
+            if (accessToken && refreshToken) {
+                console.log('📥 Tokens capturados da URL e salvos em memória.');
+                hashParamsRef.current = { accessToken, refreshToken };
+            }
+        }
+    }, []);
+
     // Monitora o estado da autenticação e força sessão se necessário
     // Monitora o estado da autenticação
     // Monitora o estado da autenticação
@@ -33,10 +55,10 @@ export default function ResetPassword() {
                 console.log('✅ Sessão ativa encontrada:', session.user.email);
                 setIsSessionReady(true);
             } else {
-                // Fallback: Verifica se há um token na URL
+                // Fallback: Verifica se há um token na URL (ou salvo no ref)
                 const hash = window.location.hash;
-                if (hash && hash.includes('access_token') && hash.includes('type=recovery')) {
-                    console.log('⚠️ Sessão não estabelecida, mas token de recuperação encontrado na URL.');
+                if ((hash && hash.includes('access_token')) || hashParamsRef.current.accessToken) {
+                    console.log('⚠️ Sessão não estabelecida, mas token encontrado.');
                     console.log('✅ Liberando formulário para tentativa de atualização.');
                     if (mounted) setIsSessionReady(true);
                 }
@@ -99,12 +121,18 @@ export default function ResetPassword() {
             const { data: { session } } = await supabase.auth.getSession();
 
             if (!session) {
-                console.log('⚠️ Sessão não detectada automaticamente. Tentando forçar via tokens da URL...');
+                console.log('⚠️ Sessão não detectada automaticamente. Tentando forçar via tokens salvos...');
 
-                // Extrai tokens do hash da URL
-                const hashParams = new URLSearchParams(window.location.hash.substring(1));
-                const accessToken = hashParams.get('access_token');
-                const refreshToken = hashParams.get('refresh_token');
+                // Tenta usar os tokens salvos no ref (prioridade) ou ler da URL novamente
+                let accessToken = hashParamsRef.current.accessToken;
+                let refreshToken = hashParamsRef.current.refreshToken;
+
+                // Se não tiver no ref, tenta ler da URL (caso raro onde o useEffect ainda não rodou ou algo assim)
+                if (!accessToken || !refreshToken) {
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    accessToken = hashParams.get('access_token');
+                    refreshToken = hashParams.get('refresh_token');
+                }
 
                 if (accessToken && refreshToken) {
                     console.log('✅ Tokens encontrados. Definindo sessão manualmente...');
@@ -119,7 +147,7 @@ export default function ResetPassword() {
                     }
                     console.log('✅ Sessão definida manualmente com sucesso!');
                 } else {
-                    console.error('❌ Tokens não encontrados na URL.');
+                    console.error('❌ Tokens não encontrados (nem na URL nem em memória).');
                     throw new Error("Link inválido ou expirado. Solicite uma nova recuperação de senha.");
                 }
             }
