@@ -12,14 +12,14 @@ export const useMetas = (props?: UseMetasProps) => {
 
   const fetchMetas = async () => {
     if (!props?.userId) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('goal')
         .select('*')
         .eq('user_id', props.userId)
         .order('goal_ano', { ascending: false });
-      
+
       if (error) throw error;
       setMetas(data || []);
     } catch (error) {
@@ -32,7 +32,7 @@ export const useMetas = (props?: UseMetasProps) => {
 
   const addMeta = async (meta: { tipo: string; valor: number; ano: number }) => {
     if (!props?.userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       const metaData = {
         goal_tipo: meta.tipo,
@@ -45,13 +45,55 @@ export const useMetas = (props?: UseMetasProps) => {
         .from('goal')
         .insert([metaData])
         .select();
-      
+
       if (error) throw error;
-      
+
       await fetchMetas();
       return data;
     } catch (error) {
       console.error('Erro ao adicionar meta:', error);
+      throw error;
+    }
+  };
+
+  const deleteMeta = async (id: string) => {
+    if (!props?.userId) throw new Error('Usuário não autenticado');
+
+    try {
+      const { error } = await supabase
+        .from('goal')
+        .delete()
+        .eq('goal_id', id);
+
+      if (error) throw error;
+
+      await fetchMetas();
+    } catch (error) {
+      console.error('Erro ao deletar meta:', error);
+      throw error;
+    }
+  };
+
+  const updateMeta = async (id: string, meta: { tipo: string; valor: number; ano: number }) => {
+    if (!props?.userId) throw new Error('Usuário não autenticado');
+
+    try {
+      const metaData = {
+        goal_tipo: meta.tipo,
+        goal_valor: meta.valor,
+        goal_ano: meta.ano,
+      };
+
+      const { error } = await supabase
+        .from('goal')
+        .update(metaData)
+        .eq('goal_id', id);
+
+      if (error) throw error;
+
+      await fetchMetas();
+    } catch (error) {
+      console.error('Erro ao atualizar meta:', error);
       throw error;
     }
   };
@@ -66,6 +108,8 @@ export const useMetas = (props?: UseMetasProps) => {
     metas,
     loading,
     addMeta,
+    deleteMeta,
+    updateMeta,
     refreshData: fetchMetas,
   };
 };

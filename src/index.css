@@ -8,23 +8,28 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 44 19% 97%; /* #F9F8F5 */
-    --foreground: 220 23% 10%; /* quase preto para textos gerais */
+    --background: 44 19% 97%;
+    /* #F9F8F5 */
+    --foreground: 220 23% 10%;
+    /* quase preto para textos gerais */
 
-    --card: 0 0% 100%; /* #FFFFFF */
+    --card: 0 0% 100%;
+    /* #FFFFFF */
     --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
 
-    --primary: 220 23% 10%; /* quase preto para textos primários */
+    --primary: 216 45% 39%;
+    /* azul #263C64 usado nos botões */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 44 19% 95%;
     --secondary-foreground: 0 0% 0%;
 
     --muted: 44 19% 95%;
-    --muted-foreground: 216, 43%, 27%; /* alterado de preto para purple-dark (azul) */
+    --muted-foreground: 216, 43%, 27%;
+    /* alterado de preto para purple-dark (azul) */
 
     --accent: 0 0% 95%;
     --accent-foreground: 0 0% 0%;
@@ -37,7 +42,7 @@ All colors MUST be HSL.
     --ring: 0 0% 0%;
 
     --radius: 0.75rem;
-    
+
     /* Brand colors - Blue accent */
     --brand-purple: 216, 45%, 39%;
     --brand-purple-light: 216, 50%, 60%;
@@ -49,23 +54,30 @@ All colors MUST be HSL.
     --loss: 0 84% 60%;
     --profit-bg: 142 76% 95%;
     --loss-bg: 0 84% 95%;
-    
+
     /* Modern shadows */
     --shadow-modern: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.06);
     --shadow-modern-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -2px hsl(0 0% 0% / 0.05);
     --shadow-modern-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1), 0 10px 10px -5px hsl(0 0% 0% / 0.04);
 
-    --sidebar-background: 0 0% 0%; /* alterado de roxo para preto */
-    --sidebar-foreground: 0 0% 100%; /* branco */
+    --sidebar-background: 0 0% 0%;
+    /* alterado de roxo para preto */
+    --sidebar-foreground: 0 0% 100%;
+    /* branco */
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 0 0% 0%; /* alterado para preto */
-    --sidebar-accent: 0 0% 100% / 0.15; /* branco com 15% de opacidade */
-    --sidebar-accent-foreground: 0 0% 100%; /* branco */
-    --sidebar-border: 0 0% 20%; /* alterado de roxo para cinza escuro */
+    --sidebar-primary-foreground: 0 0% 0%;
+    /* alterado para preto */
+    --sidebar-accent: 0 0% 100% / 0.15;
+    /* branco com 15% de opacidade */
+    --sidebar-accent-foreground: 0 0% 100%;
+    /* branco */
+    --sidebar-border: 0 0% 20%;
+    /* alterado de roxo para cinza escuro */
     --sidebar-ring: 0 0% 100%;
-    
+
     /* Input placeholders */
-    --placeholder: 0 0% 70%; /* 70% do preto para placeholders - mais claro */
+    --placeholder: 0 0% 70%;
+    /* 70% do preto para placeholders - mais claro */
   }
 
   .dark {
@@ -96,18 +108,18 @@ All colors MUST be HSL.
     --border: 215 28% 17%;
     --input: 215 28% 17%;
     --ring: 142 86% 28%;
-    
+
     /* Financial colors for dark mode */
     --profit: 142 86% 28%;
     --loss: 0 84% 60%;
     --profit-bg: 142 86% 8%;
     --loss-bg: 0 84% 8%;
-    
+
     /* Modern shadows for dark mode */
     --shadow-modern: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
     --shadow-modern-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
     --shadow-modern-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.3), 0 10px 10px -5px hsl(0 0% 0% / 0.2);
-    
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -116,9 +128,10 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-    
+
     /* Input placeholders for dark mode */
-    --placeholder: 240 4.8% 60%; /* 60% para dark mode */
+    --placeholder: 240 4.8% 60%;
+    /* 60% para dark mode */
   }
 }
 
@@ -133,6 +146,7 @@ All colors MUST be HSL.
 }
 
 @layer components {
+
   /* Utility classes for profit/loss colors */
   .text-profit {
     color: hsl(var(--profit));
@@ -188,24 +202,24 @@ All colors MUST be HSL.
   .dialog-title {
     text-transform: capitalize;
   }
-  
+
   .dialog-title::first-letter {
     text-transform: uppercase;
   }
-  
+
   /* Brand purple utilities */
   .bg-brand-purple {
     background-color: hsl(var(--brand-purple));
   }
-  
+
   .text-brand-purple {
     color: hsl(var(--brand-purple));
   }
-  
+
   .hover-brand-purple:hover {
     background-color: hsl(var(--brand-purple-dark));
   }
-  
+
   .gradient-brand {
     background: var(--brand-gradient);
   }

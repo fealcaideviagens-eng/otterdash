@@ -116,6 +116,7 @@ export default function CadastroOpcao() {
   const [step, setStep] = useState(1);
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>("renda_extra_acoes");
   const [volatilidade, setVolatilidade] = useState<number>(0.40); // Default 40%
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const getNextBusinessDay = () => {
     const today = new Date();
@@ -174,6 +175,53 @@ export default function CadastroOpcao() {
     setLoading(true);
 
     try {
+      const newErrors: Record<string, string> = {};
+      let hasError = false;
+
+      // Validação do Ticker
+      const tickerRegex = /^[A-Z]{5}[0-9]{3}(W[0-9])?$/;
+      if (!formData.opcao) {
+        newErrors.opcao = "Preencha com o ticker da opção";
+        hasError = true;
+      } else if (!tickerRegex.test(formData.opcao)) {
+        newErrors.opcao = "O ticker deve ter 5 letras e 3 números";
+        hasError = true;
+      }
+
+      // Validação dos outros campos obrigatórios
+      if (!formData.acao) {
+        newErrors.acao = "Preencha com o ticker da ação";
+        hasError = true;
+      }
+      if (!formData.strike) {
+        newErrors.strike = "Preencha com o strike";
+        hasError = true;
+      }
+      if (!formData.cotacao) {
+        newErrors.cotacao = "Preencha com a cotacao";
+        hasError = true;
+      }
+      if (!formData.quantidade) {
+        newErrors.quantidade = "Preencha com a quantidade";
+        hasError = true;
+      }
+      if (!formData.premio) {
+        newErrors.premio = "Preencha com o prêmio";
+        hasError = true;
+      }
+
+      if (hasError) {
+        setErrors(newErrors);
+        toast({
+          variant: "destructive",
+          title: "❌ Erro no formulário!",
+          description: "Verifique os campos destacados em vermelho.",
+          className: "border-red-200 bg-red-50 text-red-900",
+        });
+        setLoading(false);
+        return;
+      }
+
       const opcaoData = {
         opcao: formData.opcao,
         operacao: formData.operacao,
@@ -223,18 +271,31 @@ export default function CadastroOpcao() {
     }
   };
 
+  const clearError = (field: string) => {
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    clearError(field);
   };
 
   const handleCurrencyChange = (field: string, value: string) => {
     const formatted = formatCurrency(value);
     setFormData(prev => ({ ...prev, [field]: formatted }));
+    clearError(field);
   };
 
   const handleNumberChange = (field: string, value: string) => {
     const formatted = formatNumber(value);
     setFormData(prev => ({ ...prev, [field]: formatted }));
+    clearError(field);
   };
 
   const handleOpcaoChange = (value: string) => {
@@ -270,6 +331,7 @@ export default function CadastroOpcao() {
     }
 
     if (isValid) {
+      clearError('opcao');
       setFormData(prev => ({
         ...prev,
         opcao: validValue,
@@ -384,6 +446,7 @@ export default function CadastroOpcao() {
 
     if (regex.test(cleanValue) && cleanValue.length <= 6) {
       setFormData(prev => ({ ...prev, acao: cleanValue }));
+      clearError('acao');
     }
   };
 
@@ -724,10 +787,15 @@ export default function CadastroOpcao() {
                     value={formData.opcao}
                     onChange={(e) => handleOpcaoChange(e.target.value)}
                     placeholder="ex: PETRH123"
-                    className="placeholder-subtle mt-1.5"
                     maxLength={10}
-                    required
+                    className={cn(
+                      "placeholder-subtle mt-1.5",
+                      errors.opcao ? "border-red-500 focus-visible:ring-red-500" : ""
+                    )}
                   />
+                  {errors.opcao && (
+                    <p className="text-xs text-red-500 mt-1">{errors.opcao}</p>
+                  )}
                 </div>
 
                 <div>
@@ -739,10 +807,15 @@ export default function CadastroOpcao() {
                     value={formData.acao}
                     onChange={(e) => handleAcaoChange(e.target.value)}
                     placeholder="ex: PETR4"
-                    className="placeholder-subtle mt-1.5"
                     maxLength={6}
-                    required
+                    className={cn(
+                      "placeholder-subtle mt-1.5",
+                      errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
+                    )}
                   />
+                  {errors.acao && (
+                    <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
+                  )}
                 </div>
               </div>
 
@@ -754,9 +827,14 @@ export default function CadastroOpcao() {
                     value={formData.strike}
                     onChange={(e) => handleCurrencyChange("strike", e.target.value)}
                     placeholder="0,00"
-                    className="placeholder-subtle mt-1.5"
-                    required
+                    className={cn(
+                      "placeholder-subtle mt-1.5",
+                      errors.strike ? "border-red-500 focus-visible:ring-red-500" : ""
+                    )}
                   />
+                  {errors.strike && (
+                    <p className="text-xs text-red-500 mt-1">{errors.strike}</p>
+                  )}
                 </div>
 
                 <div>
@@ -766,9 +844,14 @@ export default function CadastroOpcao() {
                     value={formData.cotacao}
                     onChange={(e) => handleCurrencyChange("cotacao", e.target.value)}
                     placeholder="0,00"
-                    className="placeholder-subtle mt-1.5"
-                    required
+                    className={cn(
+                      "placeholder-subtle mt-1.5",
+                      errors.cotacao ? "border-red-500 focus-visible:ring-red-500" : ""
+                    )}
                   />
+                  {errors.cotacao && (
+                    <p className="text-xs text-red-500 mt-1">{errors.cotacao}</p>
+                  )}
                 </div>
               </div>
 
@@ -780,9 +863,14 @@ export default function CadastroOpcao() {
                     value={formData.quantidade}
                     onChange={(e) => handleNumberChange("quantidade", e.target.value)}
                     placeholder="100"
-                    className="placeholder-subtle mt-1.5"
-                    required
+                    className={cn(
+                      "placeholder-subtle mt-1.5",
+                      errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
+                    )}
                   />
+                  {errors.quantidade && (
+                    <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
+                  )}
                 </div>
 
                 <div>
@@ -792,9 +880,14 @@ export default function CadastroOpcao() {
                     value={formData.premio}
                     onChange={(e) => handleCurrencyChange("premio", e.target.value)}
                     placeholder="0,00"
-                    className="placeholder-subtle mt-1.5"
-                    required
+                    className={cn(
+                      "placeholder-subtle mt-1.5",
+                      errors.premio ? "border-red-500 focus-visible:ring-red-500" : ""
+                    )}
                   />
+                  {errors.premio && (
+                    <p className="text-xs text-red-500 mt-1">{errors.premio}</p>
+                  )}
                 </div>
               </div>
 

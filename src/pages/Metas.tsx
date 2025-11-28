@@ -9,16 +9,20 @@ import { useMetas } from "@/hooks/useMetas";
 import { Meta } from "@/types/database";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { formatCurrency } from "@/utils/formatters";
-import { formatCurrency as formatCurrencyInput, parseCurrencyToNumber } from "@/utils/inputFormatters";
-import { Plus, Target, TrendingUp, Calendar, CalendarDays } from "lucide-react";
+import { formatCurrency as formatCurrencyInput, formatCurrencyValue, parseCurrencyToNumber } from "@/utils/inputFormatters";
+import { Plus, Target, TrendingUp, Calendar, CalendarDays, Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DeleteMetaModal } from "@/components/metas/DeleteMetaModal";
 import { useAuth } from "@/context/AuthContext";
 
 const Metas = () => {
   const { user } = useAuth();
-  const { metas, addMeta, loading } = useMetas({ userId: user?.id });
+  const { metas, addMeta, deleteMeta, updateMeta, loading } = useMetas({ userId: user?.id });
   const { opcoes, vendas } = useOpcoes(user?.id || '');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [editingMeta, setEditingMeta] = useState<Meta | null>(null);
+  const [metaToDelete, setMetaToDelete] = useState<Meta | null>(null);
   const [novaMetaValor, setNovaMetaValor] = useState("");
   const [novaMetaTipo, setNovaMetaTipo] = useState<"mensal" | "anual">("mensal");
   const [novaMetaAno, setNovaMetaAno] = useState(new Date().getFullYear().toString());
@@ -26,13 +30,13 @@ const Metas = () => {
   // Calcular o resultado real da operação (igual à página ResultsChart)
   const calculateLucroPrejuizoReais = (opcao: any, venda: any): number => {
     if (!opcao?.ops_premio || !opcao?.ops_quanti) return 0;
-    
+
     // Valor inicial: Quantidade * Prêmio inicial
     const valorInicial = opcao.ops_quanti * opcao.ops_premio;
-    
+
     // Valor final: Quantidade * Novo prêmio (do encerramento)
     const valorFinal = venda.completed_quanti * venda.completed_premio;
-    
+
     // Para vendas: lucro = valor inicial - valor final
     // Para compras: lucro = valor final - valor inicial
     return opcao.ops_operacao === 'venda' ? valorInicial - valorFinal : valorFinal - valorInicial;
@@ -49,7 +53,7 @@ const Metas = () => {
     if (metaTipo === "mensal") {
       // Para meta mensal: soma todos os resultados do ano atual e divide pelo número de meses passados
       let totalResultadoAno = 0;
-      
+
       vendas.forEach(venda => {
         // Encontrar a opção correspondente
         const opcao = opcoes.find(o => o.ops_id === venda.ops_id);
@@ -57,7 +61,7 @@ const Metas = () => {
 
         // Calcular o resultado real da operação
         const resultado = calculateLucroPrejuizoReais(opcao, venda);
-        
+
         // Usar a data de encerramento corrigindo problema de fuso horário
         let dataEncerramento: Date;
         if (venda.encerramento.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -66,9 +70,9 @@ const Metas = () => {
         } else {
           dataEncerramento = new Date(venda.encerramento);
         }
-        
+
         const vendaAno = dataEncerramento.getFullYear();
-        
+
         // Considera todas as vendas do ano atual
         if (vendaAno === anoAtual) {
           totalResultadoAno += resultado;
@@ -80,7 +84,7 @@ const Metas = () => {
       const mesesPassados = mesAtual + 1;
       const mediaAtual = mesesPassados > 0 ? totalResultadoAno / mesesPassados : 0;
       const progresso = (mediaAtual / metaValor) * 100;
-      
+
       return {
         atual: mediaAtual,
         progresso: Math.min(progresso, 100),
@@ -89,7 +93,7 @@ const Metas = () => {
     } else {
       // Para meta anual: soma todos os resultados do ano correspondente à meta
       let totalResultadoAno = 0;
-      
+
       vendas.forEach(venda => {
         // Encontrar a opção correspondente
         const opcao = opcoes.find(o => o.ops_id === venda.ops_id);
@@ -97,7 +101,7 @@ const Metas = () => {
 
         // Calcular o resultado real da operação
         const resultado = calculateLucroPrejuizoReais(opcao, venda);
-        
+
         // Usar a data de encerramento corrigindo problema de fuso horário
         let dataEncerramento: Date;
         if (venda.encerramento.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -106,9 +110,9 @@ const Metas = () => {
         } else {
           dataEncerramento = new Date(venda.encerramento);
         }
-        
+
         const vendaAno = dataEncerramento.getFullYear();
-        
+
         // Soma todos os resultados do ano da meta
         if (vendaAno === meta.goal_ano) {
           totalResultadoAno += resultado;
@@ -116,7 +120,7 @@ const Metas = () => {
       });
 
       const progresso = (totalResultadoAno / metaValor) * 100;
-      
+
       return {
         atual: totalResultadoAno,
         progresso: Math.min(progresso, 100),
@@ -131,16 +135,54 @@ const Metas = () => {
     const valor = parseCurrencyToNumber(novaMetaValor);
     if (isNaN(valor)) return;
 
-    await addMeta({
-      tipo: novaMetaTipo,
-      valor,
-      ano: novaMetaTipo === "anual" ? parseInt(novaMetaAno) : new Date().getFullYear()
-    });
+    if (editingMeta) {
+      await updateMeta(editingMeta.goal_id, {
+        tipo: novaMetaTipo,
+        valor,
+        ano: novaMetaTipo === "anual" ? parseInt(novaMetaAno) : new Date().getFullYear()
+      });
+    } else {
+      await addMeta({
+        tipo: novaMetaTipo,
+        valor,
+        ano: novaMetaTipo === "anual" ? parseInt(novaMetaAno) : new Date().getFullYear()
+      });
+    }
 
     setNovaMetaValor("");
     setNovaMetaTipo("mensal");
     setNovaMetaAno(new Date().getFullYear().toString());
+    setEditingMeta(null);
     setIsDialogOpen(false);
+  };
+
+  const handleDeleteMeta = (meta: Meta) => {
+    setMetaToDelete(meta);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (metaToDelete?.goal_id) {
+      await deleteMeta(metaToDelete.goal_id);
+    }
+  };
+
+  const handleEditMeta = (meta: Meta) => {
+    setEditingMeta(meta);
+    setNovaMetaValor(formatCurrencyValue(meta.goal_valor));
+    setNovaMetaTipo(meta.goal_tipo as "mensal" | "anual");
+    if (meta.goal_ano) {
+      setNovaMetaAno(meta.goal_ano.toString());
+    }
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenDialog = () => {
+    setEditingMeta(null);
+    setNovaMetaValor("");
+    setNovaMetaTipo("mensal");
+    setNovaMetaAno(new Date().getFullYear().toString());
+    setIsDialogOpen(true);
   };
 
   const handleCurrencyChange = (value: string) => {
@@ -188,14 +230,14 @@ const Metas = () => {
         <h1 className="text-3xl font-bold tracking-tight">Metas</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button style={{ backgroundColor: '#263C64' }}>
+            <Button style={{ backgroundColor: '#263C64' }} onClick={handleOpenDialog}>
               <Plus className="mr-2 h-4 w-4" />
               Nova meta
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Cadastrar nova meta</DialogTitle>
+              <DialogTitle>{editingMeta ? "Editar meta" : "Cadastrar nova meta"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
@@ -210,7 +252,7 @@ const Metas = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {novaMetaTipo === "anual" && (
                 <div>
                   <Label htmlFor="ano">Ano</Label>
@@ -224,7 +266,7 @@ const Metas = () => {
                   />
                 </div>
               )}
-              
+
               <div>
                 <Label htmlFor="valor">Valor da meta (R$)</Label>
                 <Input
@@ -235,9 +277,9 @@ const Metas = () => {
                   className="placeholder-subtle"
                 />
               </div>
-              
-              <Button onClick={handleAddMeta} className="w-full" style={{ backgroundColor: '#61005D' }}>
-                Cadastrar meta
+
+              <Button onClick={handleAddMeta} className="w-full" style={{ backgroundColor: '#263C64' }}>
+                {editingMeta ? "Salvar alterações" : "Cadastrar meta"}
               </Button>
             </div>
           </DialogContent>
@@ -260,15 +302,35 @@ const Metas = () => {
             const { atual, progresso, restante } = calcularProgresso(meta);
             const metaValor = meta.goal_valor || 0;
             const metaTipo = meta.goal_tipo;
-            
+
             const MetaIcon = getMetaIcon(meta);
-            
+
             return (
               <Card key={meta.goal_id}>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MetaIcon className="h-5 w-5" />
-                    {getMetaTitulo(meta)}
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MetaIcon className="h-5 w-5" />
+                      {getMetaTitulo(meta)}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => handleEditMeta(meta)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteMeta(meta)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -276,29 +338,29 @@ const Metas = () => {
                     <span className="text-sm text-muted-foreground">Meta:</span>
                     <span className="font-semibold">{formatCurrency(metaValor)}</span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">{metaTipo === "mensal" ? "Média atual:" : "Atual:"}</span>
                     <span className="font-semibold text-primary">{formatCurrency(atual)}</span>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span>Progresso</span>
                       <span>{progresso.toFixed(1)}%</span>
                     </div>
-                    <Progress 
-                      value={progresso} 
+                    <Progress
+                      value={progresso}
                       colorVariant={getProgressColor(progresso)}
-                      className="h-3" 
+                      className="h-3"
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Restante:</span>
                     <span className="font-semibold text-muted-foreground">{formatCurrency(restante)}</span>
                   </div>
-                  
+
                   {progresso >= 100 && (
                     <div className="text-center text-sm font-medium text-green-600 bg-green-50 py-2 px-3 rounded-md">
                       🎉 Meta atingida!
@@ -310,6 +372,16 @@ const Metas = () => {
           })}
         </div>
       )}
+
+      <DeleteMetaModal
+        meta={metaToDelete}
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setMetaToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };
