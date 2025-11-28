@@ -246,67 +246,17 @@ export default function ResetPassword() {
                                 <Label htmlFor="password">Nova Senha</Label>
                                 <div className="relative">
                                     <Input
-                                        id="password"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        required
-                                        minLength={8}
-                                        className="pr-10"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                     >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Mínimo 8 caracteres, com letras e números
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                                <div className="relative">
-                                    <Input
-                                        id="confirmPassword"
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        required
-                                        minLength={8}
-                                        className="pr-10"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                    >
-                                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                variant="default"
-                                className="w-full"
-                                disabled={isLoading || !isSessionReady}
-                            >
-                                {!isSessionReady
-                                    ? "Verificando link..."
-                                    : isLoading
-                                        ? "Atualizando..."
-                                        : "Atualizar Senha"}
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
+                                        {!isSessionReady
+                                            ? "Verificando link..."
+                                            : isLoading
+                                                ? "Atualizando..."
+                                                : "Atualizar Senha"}
+                                    </Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </div>
             </div>
-        </div>
-    );
+            );
 }
