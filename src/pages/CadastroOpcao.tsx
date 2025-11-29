@@ -179,12 +179,12 @@ export default function CadastroOpcao() {
       let hasError = false;
 
       // Validação do Ticker
-      const tickerRegex = /^[A-Z]{5}[0-9]{3}(W[0-9])?$/;
+      const tickerRegex = /^[A-Z]{5}[0-9]{1}(W[0-9])?$/;
       if (!formData.opcao) {
         newErrors.opcao = "Preencha com o ticker da opção";
         hasError = true;
       } else if (!tickerRegex.test(formData.opcao)) {
-        newErrors.opcao = "O ticker deve ter 5 letras e 3 números";
+        newErrors.opcao = "O ticker deve ter 5 letras e pelo menos 1 número";
         hasError = true;
       }
 
