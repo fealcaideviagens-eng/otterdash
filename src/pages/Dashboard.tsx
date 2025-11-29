@@ -175,7 +175,7 @@ export default function Dashboard() {
       {/* Segunda linha - Resultado anual */}
       <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Resultado anual</h3>
+          <h3 className="text-lg font-semibold">{chartPeriod === 'monthly' ? 'Resultado mensal' : 'Resultado anual'}</h3>
           <Tabs value={chartPeriod} onValueChange={(value) => setChartPeriod(value as 'monthly' | 'yearly')} className="w-auto">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="monthly" className="flex items-center gap-2">
