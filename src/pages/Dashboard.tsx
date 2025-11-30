@@ -42,7 +42,7 @@ const getShortName = (fullName: string) => {
 export default function Dashboard() {
   const { user } = useAuth();
   // 1. MANTENHA O HOOK DE OPÇÕES
-  const { loading, getDashboardMetrics, opcoes } = useOpcoes(user?.id || '');
+  const { loading, getDashboardMetrics, opcoes, encerrarOpcao, refreshData } = useOpcoes(user?.id || '');
 
   // 2. ADICIONE ESSA LINHA (HOOK DE GARANTIAS)
   const { garantias } = useGarantias({ userId: user?.id });
@@ -193,7 +193,16 @@ export default function Dashboard() {
       </div>
 
       {/* Card de Alertas */}
-      <AlertasCard opcoes={opcoes} />
+      <AlertasCard
+        opcoes={opcoes}
+        onEncerrar={async (data) => {
+          if (user?.id) {
+            // @ts-ignore - ignorando erro de tipagem temporário até atualizar o AlertasCard
+            await encerrarOpcao(data.opcao_id, data);
+            await refreshData();
+          }
+        }}
+      />
     </div>
   );
 }
