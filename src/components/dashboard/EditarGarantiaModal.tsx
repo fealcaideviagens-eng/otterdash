@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,11 +17,11 @@ interface EditarGarantiaModalProps {
   onSalvar: (novoValor: number) => void;
 }
 
-export const EditarGarantiaModal = ({ 
-  isOpen, 
-  onClose, 
-  valorAtual, 
-  onSalvar 
+export const EditarGarantiaModal = ({
+  isOpen,
+  onClose,
+  valorAtual,
+  onSalvar
 }: EditarGarantiaModalProps) => {
   const [valor, setValor] = useState(
     valorAtual > 0 ? formatCurrency(valorAtual.toString()) : ""
@@ -37,12 +42,12 @@ export const EditarGarantiaModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Editar garantia para put</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent className="sm:max-w-md">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Editar garantia para put</ResponsiveModalTitle>
+        </ResponsiveModalHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 px-4 sm:px-0 pb-4 sm:pb-0">
           <div>
             <Label htmlFor="valor">Valor da Garantia (R$)</Label>
             <Input
@@ -63,7 +68,7 @@ export const EditarGarantiaModal = ({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 };

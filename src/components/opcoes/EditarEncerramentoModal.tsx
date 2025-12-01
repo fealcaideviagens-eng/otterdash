@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalFooter,
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,13 +60,13 @@ export function EditarEncerramentoModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const dadosFormatados = {
       premio: parseCurrencyToNumber(formattedValues.premio),
       data: formData.data,
       quantidade: parseFloat(formattedValues.quantidade),
     };
-    
+
     onConfirm(dadosFormatados);
     onClose();
   };
@@ -73,12 +79,12 @@ export function EditarEncerramentoModal({
   if (!venda) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Editar Encerramento</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent className="sm:max-w-[500px]">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Editar encerramento</ResponsiveModalTitle>
+        </ResponsiveModalHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 px-4 sm:px-0 pb-4 sm:pb-0">
           <div>
             <Label htmlFor="premio">Prêmio de Encerramento</Label>
             <Input
@@ -91,22 +97,22 @@ export function EditarEncerramentoModal({
           </div>
 
           <div>
-  <Label htmlFor="quantidade">Quantidade</Label>
-  <Input
-    id="quantidade"
-    type="text"
-    inputMode="numeric"
-    value={formatQuantidade(formattedValues.quantidade)}
-    onChange={(e) => {
-      // Remove tudo que não for número
-      const apenasNumeros = e.target.value.replace(/\D/g, "");
-      setFormattedValues(prev => ({ ...prev, quantidade: apenasNumeros }));
-    }}
-    placeholder="1.000"
-    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-    required
-  />
-</div>
+            <Label htmlFor="quantidade">Quantidade</Label>
+            <Input
+              id="quantidade"
+              type="text"
+              inputMode="numeric"
+              value={formatQuantidade(formattedValues.quantidade)}
+              onChange={(e) => {
+                // Remove tudo que não for número
+                const apenasNumeros = e.target.value.replace(/\D/g, "");
+                setFormattedValues(prev => ({ ...prev, quantidade: apenasNumeros }));
+              }}
+              placeholder="1.000"
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              required
+            />
+          </div>
 
           <div>
             <Label>Data de Encerramento</Label>
@@ -143,16 +149,17 @@ export function EditarEncerramentoModal({
             </Popover>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <ResponsiveModalFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit">
               Salvar
             </Button>
-          </div>
+          </ResponsiveModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
+

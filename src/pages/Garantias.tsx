@@ -146,202 +146,202 @@ export default function Garantias() {
     });
   }
   if (loading) {
-    return       <div className="flex items-center justify-center h-64">
-    <div className="text-lg text-muted-foreground">Carregando suas garantias...</div>
-  </div>;
+    return <div className="flex items-center justify-center h-64">
+      <div className="text-lg text-muted-foreground">Carregando suas garantias...</div>
+    </div>;
   }
   return <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Garantias</h1>
-        <p className="text-muted-foreground">
-          Gerencie suas garantias em ações e renda fixa
-        </p>
-      </div>
+    <div>
+      <h1 className="text-3xl font-bold mb-2">Garantias</h1>
+      <p className="text-muted-foreground">
+        Gerencie suas garantias em ações e renda fixa
+      </p>
+    </div>
 
-      <Tabs defaultValue="acoes" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="acoes">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            Ações
-          </TabsTrigger>
-          <TabsTrigger value="renda-fixa">
-            <Landmark className="mr-2 h-4 w-4" />
-            Renda Fixa
-          </TabsTrigger>
-        </TabsList>
+    <Tabs defaultValue="acoes" className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="acoes">
+          <TrendingUp className="mr-2 h-4 w-4" />
+          Ações
+        </TabsTrigger>
+        <TabsTrigger value="renda-fixa">
+          <Landmark className="mr-2 h-4 w-4" />
+          Renda Fixa
+        </TabsTrigger>
+      </TabsList>
 
-        <TabsContent value="acoes" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cadastrar ação</CardTitle>
-              <CardDescription>
-                Adicione ações que fazem parte das suas garantias
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAdicionarAcao} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="ticker">Ticker</Label>
-                    <Input id="ticker" ref={tickerInputRef} value={ticker} onChange={e => setTicker(e.target.value.toUpperCase())} placeholder="Ex: PETR4" maxLength={6} required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="quantidade">Quantidade</Label>
-                    <Input id="quantidade" type="number" value={quantidade} onChange={e => setQuantidade(e.target.value)} placeholder="100" step="1" min="0" required />
-                  </div>
+      <TabsContent value="acoes" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Cadastrar ação</CardTitle>
+            <CardDescription>
+              Adicione ações que fazem parte das suas garantias
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAdicionarAcao} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="ticker">Ticker</Label>
+                  <Input id="ticker" ref={tickerInputRef} value={ticker} onChange={e => setTicker(e.target.value.toUpperCase())} placeholder="Ex: PETR4" maxLength={6} required />
                 </div>
-                <Button type="submit" className="text-[590051] bg-[#263C64] text-white">Cadastrar ação</Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Ações cadastradas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {acoes.length === 0 ? <p className="text-muted-foreground text-center py-8">
-                  Nenhuma ação cadastrada
-                </p> : <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>
-                        <Button variant="ghost" onClick={handleSortTicker} className="h-8 px-2 lg:px-3">
-                          Ticker
-                          {sortTickerOrder === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : sortTickerOrder === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button variant="ghost" onClick={handleSortQuantidade} className="h-8 px-2 lg:px-3">
-                          Quantidade
-                          {sortQuantidadeOrder === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : sortQuantidadeOrder === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
-                        </Button>
-                      </TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {acoes.map(acao => <TableRow key={acao.garantia_id}>
-                        <TableCell className="font-medium">{acao.ticker}</TableCell>
-                        <TableCell>{acao.quantidade}</TableCell>
-                        <TableCell>
-                          <Badge variant={acao.status?.includes('Em garantia') ? 'default' : 'secondary'}>
-                            {acao.status || 'Livre'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="outline" size="icon" onClick={() => setEditarAcaoModal(acao)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" onClick={() => setDeleteModal(acao)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>)}
-                  </TableBody>
-                </Table>}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="renda-fixa" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cadastrar Renda Fixa</CardTitle>
-              <CardDescription>
-                Adicione investimentos de renda fixa que fazem parte das suas garantias
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAdicionarRendaFixa} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="tipo">Tipo</Label>
-                    <Select value={tipoRendaFixa} onValueChange={(value: "tesouro_selic" | "caixa") => setTipoRendaFixa(value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="tesouro_selic">Tesouro Selic</SelectItem>
-                        <SelectItem value="caixa">Caixa</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="valor">Valor (R$)</Label>
-                    <Input id="valor" value={valorReais} onChange={handleCurrencyChange} placeholder="0,00" required />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="quantidade">Quantidade</Label>
+                  <Input id="quantidade" type="number" value={quantidade} onChange={e => setQuantidade(e.target.value)} placeholder="100" step="1" min="0" required />
                 </div>
-                <Button type="submit" className="text-[590051] bg-[#263C64] text-white">Cadastrar renda fixa</Button>
-              </form>
-            </CardContent>
-          </Card>
+              </div>
+              <Button type="submit" className="text-[590051] bg-[#263C64] text-white">Cadastrar ação</Button>
+            </form>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Rendas fixas cadastradas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {rendasFixas.length === 0 ? <p className="text-muted-foreground text-center py-8">
-                  Nenhuma renda fixa cadastrada
-                </p> : <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Valor em investimento</TableHead>
-                      <TableHead>Em garantia</TableHead>
-                      <TableHead>Livre</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rendasFixas.map(rf => <TableRow key={rf.garantia_id}>
-                        <TableCell className="font-medium">
-                          {rf.tipo_renda_fixa === 'tesouro_selic' ? 'Tesouro Selic' : 'Caixa'}
-                        </TableCell>
-                        <TableCell>
-                          R$ {rf.valor_reais?.toLocaleString('pt-BR', {
+        <Card>
+          <CardHeader>
+            <CardTitle>Ações cadastradas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {acoes.length === 0 ? <p className="text-muted-foreground text-center py-8">
+              Nenhuma ação cadastrada
+            </p> : <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    <Button variant="ghost" onClick={handleSortTicker} className="h-8 px-2 lg:px-3">
+                      Ticker
+                      {sortTickerOrder === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : sortTickerOrder === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
+                    </Button>
+                  </TableHead>
+                  <TableHead>
+                    <Button variant="ghost" onClick={handleSortQuantidade} className="h-8 px-2 lg:px-3">
+                      Quantidade
+                      {sortQuantidadeOrder === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : sortQuantidadeOrder === 'desc' ? <ArrowDown className="ml-2 h-4 w-4" /> : <ArrowUpDown className="ml-2 h-4 w-4" />}
+                    </Button>
+                  </TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {acoes.map(acao => <TableRow key={acao.garantia_id}>
+                  <TableCell className="font-medium">{acao.ticker}</TableCell>
+                  <TableCell>{acao.quantidade}</TableCell>
+                  <TableCell>
+                    <Badge variant={acao.status?.includes('Em garantia') ? 'default' : 'secondary'}>
+                      {acao.status || 'Livre'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="icon" onClick={() => setEditarAcaoModal(acao)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="text-red-600 hover:bg-red-600 hover:text-white" onClick={() => setDeleteModal(acao)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>)}
+              </TableBody>
+            </Table>}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="renda-fixa" className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Cadastrar Renda Fixa</CardTitle>
+            <CardDescription>
+              Adicione investimentos de renda fixa que fazem parte das suas garantias
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAdicionarRendaFixa} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tipo">Tipo</Label>
+                  <Select value={tipoRendaFixa} onValueChange={(value: "tesouro_selic" | "caixa") => setTipoRendaFixa(value)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tesouro_selic">Tesouro Selic</SelectItem>
+                      <SelectItem value="caixa">Caixa</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="valor">Valor (R$)</Label>
+                  <Input id="valor" value={valorReais} onChange={handleCurrencyChange} placeholder="0,00" required />
+                </div>
+              </div>
+              <Button type="submit" className="text-[590051] bg-[#263C64] text-white">Cadastrar renda fixa</Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Rendas fixas cadastradas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rendasFixas.length === 0 ? <p className="text-muted-foreground text-center py-8">
+              Nenhuma renda fixa cadastrada
+            </p> : <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Valor em investimento</TableHead>
+                  <TableHead>Em garantia</TableHead>
+                  <TableHead>Livre</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rendasFixas.map(rf => <TableRow key={rf.garantia_id}>
+                  <TableCell className="font-medium">
+                    {rf.tipo_renda_fixa === 'tesouro_selic' ? 'Tesouro Selic' : 'Caixa'}
+                  </TableCell>
+                  <TableCell>
+                    R$ {rf.valor_reais?.toLocaleString('pt-BR', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
                     })}
-                        </TableCell>
-                        <TableCell>
-                          R$ {rf.valorEmGarantia?.toLocaleString('pt-BR', {
+                  </TableCell>
+                  <TableCell>
+                    R$ {rf.valorEmGarantia?.toLocaleString('pt-BR', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
                     }) || '0,00'}
-                        </TableCell>
-                        <TableCell>
-                          R$ {rf.valorLivre?.toLocaleString('pt-BR', {
+                  </TableCell>
+                  <TableCell>
+                    R$ {rf.valorLivre?.toLocaleString('pt-BR', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
                     }) || '0,00'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="outline" size="icon" onClick={() => setEditarRendaFixaModal(rf)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="outline" size="icon" onClick={() => setDeleteModal(rf)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>)}
-                  </TableBody>
-                </Table>}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" size="icon" onClick={() => setEditarRendaFixaModal(rf)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="text-red-600 hover:bg-red-600 hover:text-white" onClick={() => setDeleteModal(rf)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>)}
+              </TableBody>
+            </Table>}
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
 
-      <EditarAcaoModal garantia={editarAcaoModal} isOpen={!!editarAcaoModal} onClose={() => setEditarAcaoModal(null)} onSalvar={editarGarantia} />
+    <EditarAcaoModal garantia={editarAcaoModal} isOpen={!!editarAcaoModal} onClose={() => setEditarAcaoModal(null)} onSalvar={editarGarantia} />
 
-      <EditarRendaFixaModal garantia={editarRendaFixaModal} isOpen={!!editarRendaFixaModal} onClose={() => setEditarRendaFixaModal(null)} onSalvar={editarGarantia} />
+    <EditarRendaFixaModal garantia={editarRendaFixaModal} isOpen={!!editarRendaFixaModal} onClose={() => setEditarRendaFixaModal(null)} onSalvar={editarGarantia} />
 
-      <DeleteGarantiaModal garantia={deleteModal} isOpen={!!deleteModal} onClose={() => setDeleteModal(null)} onConfirm={() => deleteModal && handleDelete(deleteModal)} />
-    </div>;
+    <DeleteGarantiaModal garantia={deleteModal} isOpen={!!deleteModal} onClose={() => setDeleteModal(null)} onConfirm={() => deleteModal && handleDelete(deleteModal)} />
+  </div>;
 }

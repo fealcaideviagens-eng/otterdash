@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +38,7 @@ export function EditarAcaoModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!garantia) return;
 
     // Validar ticker (4 letras + 1-2 números)
@@ -61,16 +61,16 @@ export function EditarAcaoModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar Ação</DialogTitle>
-          <DialogDescription>
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Editar Ação</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
             Atualize as informações da ação
-          </DialogDescription>
-        </DialogHeader>
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 px-4 sm:px-0 pb-4 sm:pb-0">
             <div className="space-y-2">
               <Label htmlFor="ticker">Ticker</Label>
               <Input
@@ -96,14 +96,15 @@ export function EditarAcaoModal({
               />
             </div>
           </div>
-          <DialogFooter>
+          <ResponsiveModalFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit">Salvar</Button>
-          </DialogFooter>
+          </ResponsiveModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
+

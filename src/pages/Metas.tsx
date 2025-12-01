@@ -11,7 +11,7 @@ import { useOpcoes } from "@/hooks/useOpcoes";
 import { formatCurrency } from "@/utils/formatters";
 import { formatCurrency as formatCurrencyInput, formatCurrencyValue, parseCurrencyToNumber } from "@/utils/inputFormatters";
 import { Plus, Target, TrendingUp, Calendar, CalendarDays, Pencil, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ResponsiveModal, ResponsiveModalContent, ResponsiveModalHeader, ResponsiveModalTitle, ResponsiveModalTrigger, ResponsiveModalFooter } from "@/components/ui/responsive-modal";
 import { DeleteMetaModal } from "@/components/metas/DeleteMetaModal";
 import { useAuth } from "@/context/AuthContext";
 
@@ -228,18 +228,18 @@ const Metas = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Metas</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
+        <ResponsiveModal open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <ResponsiveModalTrigger asChild>
             <Button style={{ backgroundColor: '#263C64' }} onClick={handleOpenDialog}>
               <Plus className="mr-2 h-4 w-4" />
               Nova meta
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingMeta ? "Editar meta" : "Cadastrar nova meta"}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
+          </ResponsiveModalTrigger>
+          <ResponsiveModalContent className="sm:max-w-md">
+            <ResponsiveModalHeader>
+              <ResponsiveModalTitle>{editingMeta ? "Editar meta" : "Cadastrar nova meta"}</ResponsiveModalTitle>
+            </ResponsiveModalHeader>
+            <form onSubmit={(e) => { e.preventDefault(); handleAddMeta(); }} className="space-y-4 px-4 sm:px-0 pb-4 sm:pb-0">
               <div>
                 <Label htmlFor="tipo">Tipo de meta</Label>
                 <Select value={novaMetaTipo} onValueChange={(value: "mensal" | "anual") => setNovaMetaTipo(value)}>
@@ -278,12 +278,17 @@ const Metas = () => {
                 />
               </div>
 
-              <Button onClick={handleAddMeta} className="w-full" style={{ backgroundColor: '#263C64' }}>
-                {editingMeta ? "Salvar alterações" : "Cadastrar meta"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+              <ResponsiveModalFooter>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" style={{ backgroundColor: '#263C64' }}>
+                  {editingMeta ? "Salvar alterações" : "Cadastrar meta"}
+                </Button>
+              </ResponsiveModalFooter>
+            </form>
+          </ResponsiveModalContent>
+        </ResponsiveModal>
       </div>
 
       {metas.length === 0 ? (
@@ -325,7 +330,7 @@ const Metas = () => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        className="h-8 w-8 text-red-600 hover:bg-red-600 hover:text-white"
                         onClick={() => handleDeleteMeta(meta)}
                       >
                         <Trash2 className="h-4 w-4" />

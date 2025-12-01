@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,11 +51,11 @@ export function EditarRendaFixaModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!garantia) return;
 
     const valor = parseCurrencyToNumber(valorReais);
-    
+
     if (valor < 0) {
       toast.error("O valor não pode ser negativo");
       return;
@@ -74,16 +74,16 @@ export function EditarRendaFixaModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar Renda Fixa</DialogTitle>
-          <DialogDescription>
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Editar Renda Fixa</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
             Atualize as informações da renda fixa
-          </DialogDescription>
-        </DialogHeader>
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 px-4 sm:px-0 pb-4 sm:pb-0">
             <div className="space-y-2">
               <Label htmlFor="tipo">Tipo</Label>
               <Select value={tipoRendaFixa} onValueChange={(value: "tesouro_selic" | "caixa") => setTipoRendaFixa(value)}>
@@ -107,14 +107,15 @@ export function EditarRendaFixaModal({
               />
             </div>
           </div>
-          <DialogFooter>
+          <ResponsiveModalFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit">Salvar</Button>
-          </DialogFooter>
+          </ResponsiveModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
+

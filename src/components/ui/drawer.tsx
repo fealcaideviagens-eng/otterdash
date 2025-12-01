@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
+import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -41,13 +42,19 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-50 flex h-auto max-h-[90vh] flex-col rounded-t-[10px] border bg-background",
         className
       )}
       {...props}
     >
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
-      {children}
+      <DrawerPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-50">
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </DrawerPrimitive.Close>
+      <div className="flex-1 overflow-y-auto">
+        {children}
+      </div>
     </DrawerPrimitive.Content>
   </DrawerPortal>
 ))
@@ -58,7 +65,7 @@ const DrawerHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+    className={cn("grid gap-1.5 p-4 text-center sm:text-left sticky top-0 z-10 bg-background", className)}
     {...props}
   />
 )
@@ -69,7 +76,7 @@ const DrawerFooter = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+    className={cn("mt-auto flex flex-col-reverse gap-2 p-4 sticky bottom-0 z-10 bg-background", className)}
     {...props}
   />
 )

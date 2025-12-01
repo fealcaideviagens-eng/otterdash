@@ -1,13 +1,12 @@
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalDescription,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
+import { Button } from "@/components/ui/button";
 import { Garantia } from "@/types/garantia";
 
 interface DeleteGarantiaModalProps {
@@ -33,28 +32,29 @@ export function DeleteGarantiaModal({
   };
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-          <AlertDialogDescription>
-            Tem certeza que deseja excluir {getNome()}? 
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent>
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Confirmar exclusão</ResponsiveModalTitle>
+          <ResponsiveModalDescription>
+            Tem certeza que deseja excluir {getNome()}?
             Esta ação não pode ser desfeita.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel onClick={onClose}>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
+          </ResponsiveModalDescription>
+        </ResponsiveModalHeader>
+        <ResponsiveModalFooter className="flex-col-reverse sm:flex-row gap-2">
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button
             onClick={() => {
               onConfirm();
               onClose();
             }}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            variant="destructive"
           >
             Excluir
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </ResponsiveModalFooter>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }
+

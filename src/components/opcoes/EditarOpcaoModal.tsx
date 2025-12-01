@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalFooter,
+} from "@/components/ui/responsive-modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -60,7 +61,7 @@ export function EditarOpcaoModal({
         premio: opcao.ops_premio,     // Usar campo real da tabela
         data: opcao.ops_vencimento,   // Usar campo real da tabela
       });
-      
+
       setFormattedValues({
         strike: opcao.ops_strike ? formatCurrencyValue(opcao.ops_strike) : "",
         cotacao: opcao.acao_cotacao ? formatCurrencyValue(opcao.acao_cotacao) : "",
@@ -72,7 +73,7 @@ export function EditarOpcaoModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Converter valores formatados para números antes de enviar
     const processedData = {
       ...formData,
@@ -81,7 +82,7 @@ export function EditarOpcaoModal({
       premio: formattedValues.premio ? parseCurrencyToNumber(formattedValues.premio) : formData.premio,
       quantidade: formattedValues.quantidade ? parseNumberToInt(formattedValues.quantidade) : formData.quantidade,
     };
-    
+
     onConfirm(processedData);
     onClose();
   };
@@ -112,13 +113,13 @@ export function EditarOpcaoModal({
   if (!opcao) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Editar opção</DialogTitle>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent className="sm:max-w-md">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle>Editar opção</ResponsiveModalTitle>
+        </ResponsiveModalHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 px-4 sm:px-0 pb-4 sm:pb-0">
           <div className="space-y-2">
             <Label htmlFor="opcao">Opção</Label>
             <Input
@@ -249,16 +250,16 @@ export function EditarOpcaoModal({
             </Popover>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <ResponsiveModalFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit" variant="default">
               Salvar
             </Button>
-          </div>
+          </ResponsiveModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 }

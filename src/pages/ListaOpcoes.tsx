@@ -490,33 +490,27 @@ export default function ListaOpcoes() {
 
                                 {/* Botões de Ação */}
                                 <div className="flex justify-end space-x-2 pt-4 border-t">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="rounded-full border-0"
+                                  <button
+                                    className="p-4 hover:bg-gray-100 rounded-full transition flex items-center gap-2"
                                     onClick={() => handleEdit(opcao)}
                                   >
-                                    <FileTextIcon className="h-4 w-4 mr-2" />
-                                    Editar opção
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="rounded-full border-0"
+                                    <FileTextIcon size={18} />
+                                    <span className="hidden sm:inline text-sm">Editar opção</span>
+                                  </button>
+                                  <button
+                                    className="p-4 hover:bg-gray-100 rounded-full transition flex items-center gap-2"
                                     onClick={() => handleEditEncerramento(opcao)}
                                   >
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Editar encerramento
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="rounded-full border-0 bg-red-600 hover:bg-red-700 text-white hover:text-white"
+                                    <Edit size={18} />
+                                    <span className="hidden sm:inline text-sm">Editar encerramento</span>
+                                  </button>
+                                  <button
+                                    className="p-4 text-red-600 hover:bg-red-600 hover:text-white rounded-full transition flex items-center gap-2"
                                     onClick={() => handleDelete(opcao)}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Deletar
-                                  </Button>
+                                    <Trash2 size={18} />
+                                    <span className="hidden sm:inline text-sm">Deletar</span>
+                                  </button>
                                 </div>
                               </AccordionContent>
                             </AccordionItem>
@@ -686,7 +680,7 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
         </Button>
         <div className="flex space-x-1">
           <button className="p-4 hover:bg-gray-100 rounded-full transition" onClick={() => onEditar(opcao)}><Edit size={18} /></button>
-          <button className="p-4 hover:bg-gray-100 rounded-full transition" onClick={() => onDeletar(opcao)}><Trash2 size={18} /></button>
+          <button className="p-4 text-red-600 hover:bg-red-600 hover:text-white rounded-full transition" onClick={() => onDeletar(opcao)}><Trash2 size={18} /></button>
         </div>
       </div>
     </div>

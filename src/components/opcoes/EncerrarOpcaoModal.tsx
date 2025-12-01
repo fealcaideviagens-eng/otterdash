@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  ResponsiveModal,
+  ResponsiveModalContent,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalFooter,
+} from "@/components/ui/responsive-modal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Opcao } from "@/types/database";
@@ -62,7 +62,7 @@ export const EncerrarOpcaoModal = ({
     }
 
     const premioValue = parseCurrencyToNumber(formData.premio);
-    
+
     // Validação para não aceitar valores negativos
     if (premioValue < 0) {
       toast({
@@ -81,13 +81,13 @@ export const EncerrarOpcaoModal = ({
         data: formData.data,
         quantidade: opcao.quantidade || 0,
       });
-      
+
       toast({
         title: "✅ Sucesso!",
         description: "Opção encerrada com sucesso.",
         className: "border-green-200 bg-green-50 text-green-900",
       });
-      
+
       // Reset form
       setFormData({
         premio: "0,00",
@@ -108,14 +108,14 @@ export const EncerrarOpcaoModal = ({
 
   const calcularGanho = () => {
     if (!opcao || !formData.premio) return null;
-    
+
     const premioOriginal = opcao.premio || 0;
     const premioNovo = parseCurrencyToNumber(formData.premio);
     const quantidade = opcao.quantidade || 0;
-    
+
     let ganhoReais: number;
     let ganhoPercentual: number;
-    
+
     if (opcao.operacao === 'compra') {
       // Para operações de COMPRA:
       // - Novo prêmio = 0 → Perda máxima (perda do prêmio original)
@@ -128,7 +128,7 @@ export const EncerrarOpcaoModal = ({
       ganhoReais = (premioOriginal - premioNovo) * quantidade;
       ganhoPercentual = premioOriginal > 0 ? ((premioOriginal - premioNovo) / premioOriginal) * 100 : 0;
     }
-    
+
     return { ganhoReais, ganhoPercentual };
   };
 
@@ -142,14 +142,14 @@ export const EncerrarOpcaoModal = ({
   if (!opcao) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-modal-title">Encerrar opção: {opcao.opcao}</DialogTitle>
-        </DialogHeader>
-        
+    <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+      <ResponsiveModalContent className="sm:max-w-md">
+        <ResponsiveModalHeader>
+          <ResponsiveModalTitle className="text-modal-title">Encerrar opção: {opcao.opcao}</ResponsiveModalTitle>
+        </ResponsiveModalHeader>
+
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
+          <div className="space-y-4 px-4 sm:px-0 pb-4 sm:pb-0">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <strong>Prêmio original:</strong> {formatCurrency(opcao.premio || 0)}
@@ -231,16 +231,16 @@ export const EncerrarOpcaoModal = ({
             )}
           </div>
 
-          <DialogFooter className="mt-6">
+          <ResponsiveModalFooter className="mt-6">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
             <Button type="submit" disabled={loading} variant="default">
               {loading ? "Encerrando..." : "Confirmar encerramento"}
             </Button>
-          </DialogFooter>
+          </ResponsiveModalFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveModalContent>
+    </ResponsiveModal>
   );
 };
