@@ -164,7 +164,9 @@ export const EncerrarTravaModal = ({
         <ResponsiveModal open={isOpen} onOpenChange={onClose}>
             <ResponsiveModalContent className="sm:max-w-lg max-h-[85vh] flex flex-col bg-white">
                 <ResponsiveModalHeader>
-                    <ResponsiveModalTitle className="text-modal-title">Encerrar trava de alta</ResponsiveModalTitle>
+                    <ResponsiveModalTitle className="text-modal-title">
+                        {strategy.type === 'BULL_CALL_SPREAD' ? 'Encerrar trava de alta' : 'Encerrar trava de baixa'}
+                    </ResponsiveModalTitle>
                 </ResponsiveModalHeader>
 
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">

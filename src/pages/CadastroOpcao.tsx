@@ -86,10 +86,10 @@ const STRATEGIES = [
     group: "Operar a baixa",
     title: "Queda moderada",
     subtitle: "trava de baixa - put",
-    operacao: "",
-    tipo: "",
-    disabled: true,
-    headerTitle: "",
+    operacao: "trava",
+    tipo: "put",
+    disabled: false,
+    headerTitle: "Trava de baixa",
     icon: TrendingDown,
     colorClass: "bg-red-100 text-red-700"
   }
@@ -182,7 +182,9 @@ export default function CadastroOpcao() {
     try {
       const newErrors: Record<string, string> = {};
       let hasError = false;
-      const isTrava = selectedStrategyId === 'alta_moderada';
+      const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
+      const isBullCallSpread = selectedStrategyId === 'alta_moderada';
+      const isBearPutSpread = selectedStrategyId === 'queda_moderada';
 
       // Validação Comum
       if (!formData.acao) {
@@ -222,17 +224,44 @@ export default function CadastroOpcao() {
 
         if (Object.keys(newErrors).length > 0) hasError = true;
 
-        // Validar Regra de Negócio: Trava de Alta deve ser DÉBITO
+        // Validar Regra de Negócio: Ambas Travas devem ser DÉBITO
         if (!hasError) {
+          const strikeCompra = parseCurrencyToNumber(travaData.compra.strike);
+          const strikeVenda = parseCurrencyToNumber(travaData.venda.strike);
           const premioCompra = parseCurrencyToNumber(travaData.compra.premio);
           const premioVenda = parseCurrencyToNumber(travaData.venda.premio);
           const custo = premioCompra - premioVenda;
 
+          // Validar Custo (Débito)
           if (custo <= 0) {
+            const strategyName = isBullCallSpread ? "Trava de Alta com Call" : "Trava de Baixa com Put";
             toast({
               variant: "destructive",
               title: "⚠️ Operação Inválida",
-              description: "Trava de Alta com Call deve ser um DÉBITO (Custo > 0). O prêmio da compra deve ser maior que o da venda.",
+              description: `${strategyName} deve ser um DÉBITO (Custo > 0). O prêmio da compra deve ser maior que o da venda.`,
+              className: "border-orange-200 bg-orange-50 text-orange-900",
+            });
+            setLoading(false);
+            return;
+          }
+
+          // Validar Hierarquia de Strikes
+          if (isBullCallSpread && strikeCompra >= strikeVenda) {
+            toast({
+              variant: "destructive",
+              title: "⚠️ Strikes Inválidos",
+              description: "Na Trava de Alta com Call, o Strike da COMPRA deve ser MENOR que o Strike da VENDA.",
+              className: "border-orange-200 bg-orange-50 text-orange-900",
+            });
+            setLoading(false);
+            return;
+          }
+
+          if (isBearPutSpread && strikeCompra <= strikeVenda) {
+            toast({
+              variant: "destructive",
+              title: "⚠️ Strikes Inválidos",
+              description: "Na Trava de Baixa com Put, o Strike da COMPRA deve ser MAIOR que o Strike da VENDA.",
               className: "border-orange-200 bg-orange-50 text-orange-900",
             });
             setLoading(false);
@@ -303,7 +332,7 @@ export default function CadastroOpcao() {
             user_id: user.id,
             ops_ticker: travaData.compra.ticker,
             ops_operacao: "compra",
-            ops_tipo: "call",
+            ops_tipo: isBullCallSpread ? "call" : "put",
             ops_acao: formData.acao,
             ops_strike: parseCurrencyToNumber(travaData.compra.strike),
             acao_cotacao: parseCurrencyToNumber(formData.cotacao),
@@ -313,7 +342,7 @@ export default function CadastroOpcao() {
             ops_criado_em: createdAt,
             // Novos campos de vínculo
             ops_strategy_group_id: strategyGroupId,
-            ops_strategy_type: 'BULL_CALL_SPREAD',
+            ops_strategy_type: isBullCallSpread ? 'BULL_CALL_SPREAD' : 'BEAR_PUT_SPREAD',
             ops_strategy_role: 'LONG_LEG'
           },
           // Perna de VENDA (Short Leg)
@@ -321,7 +350,7 @@ export default function CadastroOpcao() {
             user_id: user.id,
             ops_ticker: travaData.venda.ticker,
             ops_operacao: "venda",
-            ops_tipo: "call",
+            ops_tipo: isBullCallSpread ? "call" : "put",
             ops_acao: formData.acao,
             ops_strike: parseCurrencyToNumber(travaData.venda.strike),
             acao_cotacao: parseCurrencyToNumber(formData.cotacao),
@@ -331,7 +360,7 @@ export default function CadastroOpcao() {
             ops_criado_em: createdAt,
             // Novos campos de vínculo
             ops_strategy_group_id: strategyGroupId,
-            ops_strategy_type: 'BULL_CALL_SPREAD',
+            ops_strategy_type: isBullCallSpread ? 'BULL_CALL_SPREAD' : 'BEAR_PUT_SPREAD',
             ops_strategy_role: 'SHORT_LEG'
           }
         ];
@@ -633,7 +662,9 @@ export default function CadastroOpcao() {
   };
 
   const calculateOperationData = () => {
-    const isTrava = selectedStrategyId === 'alta_moderada';
+    const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
+    const isBullCallSpread = selectedStrategyId === 'alta_moderada';
+    const isBearPutSpread = selectedStrategyId === 'queda_moderada';
 
     // TRAVA-SPECIFIC CALCULATIONS
     if (isTrava) {
@@ -658,10 +689,21 @@ export default function CadastroOpcao() {
       let mostrarDistancia = false;
 
       if (quantidade > 0 && strikeCompra > 0 && strikeVenda > 0 && premioCompra > 0 && premioVenda > 0) {
-        // Financial Calculations
+        // Financial Calculations (same for both)
         custoTotal = (premioCompra - premioVenda) * quantidade;
-        lucroMaximo = ((strikeVenda - strikeCompra) * quantidade) - custoTotal;
-        breakEven = strikeCompra + (premioCompra - premioVenda);
+
+        // Lucro Máximo differs based on spread type
+        if (isBullCallSpread) {
+          // Bull Call: Max Profit = (Strike Venda - Strike Compra) - Custo
+          lucroMaximo = ((strikeVenda - strikeCompra) * quantidade) - custoTotal;
+          // Break-Even: Strike Compra + Custo Líquido
+          breakEven = strikeCompra + (premioCompra - premioVenda);
+        } else {
+          // Bear Put: Max Profit = (Strike Compra - Strike Venda) - Custo
+          lucroMaximo = ((strikeCompra - strikeVenda) * quantidade) - custoTotal;
+          // Break-Even: Strike Compra - Custo Líquido
+          breakEven = strikeCompra - (premioCompra - premioVenda);
+        }
 
         // Payoff Ratio
         if (custoTotal > 0) {
@@ -683,55 +725,111 @@ export default function CadastroOpcao() {
         if (cotacao > 0) {
           mostrarDistancia = true;
 
-          // Scenario 1: OTM (Cotação < Strike Compra) - Agressivo
-          if (cotacao < strikeCompra) {
-            // Calculate Z-Score based on compra leg
-            const today = new Date();
-            const vencimento = formData.data ? parseLocalDate(formData.data) : getNextBusinessDay();
-            const diasUteis = calculateBusinessDays(today, vencimento);
-            const timeToMaturity = diasUteis / 252;
-            const vol = volatilidade;
+          if (isBullCallSpread) {
+            // BULL CALL SPREAD RISK LOGIC (Betting on UPWARD movement)
+            // Scenario 1: OTM (Cotação < Strike Compra) - Agressivo
+            if (cotacao < strikeCompra) {
+              const today = new Date();
+              const vencimento = formData.data ? parseLocalDate(formData.data) : getNextBusinessDay();
+              const diasUteis = calculateBusinessDays(today, vencimento);
+              const timeToMaturity = diasUteis / 252;
+              const vol = volatilidade;
 
-            let score = 0;
-            if (vol > 0 && timeToMaturity > 0) {
-              const logReturn = Math.log(cotacao / strikeCompra);
-              const denominator = vol * Math.sqrt(timeToMaturity);
-              score = Math.abs(logReturn / denominator);
-            }
+              let score = 0;
+              if (vol > 0 && timeToMaturity > 0) {
+                const logReturn = Math.log(cotacao / strikeCompra);
+                const denominator = vol * Math.sqrt(timeToMaturity);
+                score = Math.abs(logReturn / denominator);
+              }
 
-            if (score <= 0.65) {
-              nivelRisco = "Moderado";
-              corRisco = "text-yellow-600";
-              progressValue = 50;
-            } else {
-              nivelRisco = "Agressivo";
-              corRisco = "text-red-600";
-              progressValue = 85;
-            }
+              if (score <= 0.65) {
+                nivelRisco = "Moderado";
+                corRisco = "text-yellow-600";
+                progressValue = 50;
+              } else {
+                nivelRisco = "Agressivo";
+                corRisco = "text-red-600";
+                progressValue = 85;
+              }
 
-            // Distance to break-even
-            distanciaAlvo = ((breakEven / cotacao) - 1) * 100;
-            distanciaLabel = `Faltam ${formatPercentage(distanciaAlvo)} para o equilíbrio`;
-          }
-          // Scenario 2: ATM (Strike Compra <= Cotação <= Strike Venda) - Moderado
-          else if (cotacao >= strikeCompra && cotacao <= strikeVenda) {
-            nivelRisco = "Moderado (ATM)";
-            corRisco = "text-yellow-600";
-            progressValue = 45;
-
-            if (cotacao < breakEven) {
+              // Distance to break-even (needs to go UP)
               distanciaAlvo = ((breakEven / cotacao) - 1) * 100;
               distanciaLabel = `Faltam ${formatPercentage(distanciaAlvo)} para o equilíbrio`;
-            } else {
+            }
+            // Scenario 2: ATM (Strike Compra <= Cotação <= Strike Venda) - Moderado
+            else if (cotacao >= strikeCompra && cotacao <= strikeVenda) {
+              nivelRisco = "Moderado (ATM)";
+              corRisco = "text-yellow-600";
+              progressValue = 45;
+
+              if (cotacao < breakEven) {
+                distanciaAlvo = ((breakEven / cotacao) - 1) * 100;
+                distanciaLabel = `Faltam ${formatPercentage(distanciaAlvo)} para o equilíbrio`;
+              } else {
+                distanciaLabel = "No Lucro ✅";
+              }
+            }
+            // Scenario 3: ITM (Cotação > Strike Venda) - Conservador
+            else {
+              nivelRisco = "Conservador (ITM)";
+              corRisco = "text-green-600";
+              progressValue = 20;
               distanciaLabel = "No Lucro ✅";
             }
-          }
-          // Scenario 3: ITM (Cotação > Strike Venda) - Conservador
-          else {
-            nivelRisco = "Conservador (ITM)";
-            corRisco = "text-green-600";
-            progressValue = 20;
-            distanciaLabel = "No Lucro ✅";
+          } else {
+            // BEAR PUT SPREAD RISK LOGIC (Betting on DOWNWARD movement)
+            // Scenario 1: OTM (Cotação > Strike Compra) - Agressivo (needs to fall)
+            if (cotacao > strikeCompra) {
+              const today = new Date();
+              const vencimento = formData.data ? parseLocalDate(formData.data) : getNextBusinessDay();
+              const diasUteis = calculateBusinessDays(today, vencimento);
+              const timeToMaturity = diasUteis / 252;
+              const vol = volatilidade;
+
+              let score = 0;
+              if (vol > 0 && timeToMaturity > 0) {
+                const logReturn = Math.log(strikeCompra / cotacao);
+                const denominator = vol * Math.sqrt(timeToMaturity);
+                score = Math.abs(logReturn / denominator);
+              }
+
+              if (score <= 0.65) {
+                nivelRisco = "Moderado";
+                corRisco = "text-yellow-600";
+                progressValue = 50;
+              } else {
+                nivelRisco = "Agressivo";
+                corRisco = "text-red-600";
+                progressValue = 85;
+              }
+
+              // Distance to break-even (needs to go DOWN)
+              // Fórmula: ((BreakEven - Cotação) / Cotação) * 100
+              // Resultado negativo indica queda necessária
+              distanciaAlvo = ((breakEven - cotacao) / cotacao) * 100;
+              distanciaLabel = `Faltam cair ${formatPercentage(Math.abs(distanciaAlvo))} para o equilíbrio`;
+            }
+            // Scenario 2: ATM (Strike Venda <= Cotação <= Strike Compra) - Moderado
+            else if (cotacao >= strikeVenda && cotacao <= strikeCompra) {
+              nivelRisco = "Moderado (ATM)";
+              corRisco = "text-yellow-600";
+              progressValue = 45;
+
+              if (cotacao > breakEven) {
+                // Fórmula: ((BreakEven - Cotação) / Cotação) * 100
+                distanciaAlvo = ((breakEven - cotacao) / cotacao) * 100;
+                distanciaLabel = `Faltam cair ${formatPercentage(Math.abs(distanciaAlvo))} para o equilíbrio`;
+              } else {
+                distanciaLabel = "No Lucro ✅";
+              }
+            }
+            // Scenario 3: ITM (Cotação < Strike Venda) - Conservador (already fell)
+            else {
+              nivelRisco = "Conservador (ITM)";
+              corRisco = "text-green-600";
+              progressValue = 20;
+              distanciaLabel = "No Lucro ✅";
+            }
           }
         }
       }
@@ -1084,7 +1182,9 @@ export default function CadastroOpcao() {
   }
 
   // ETAPA 2
-  const isTrava = selectedStrategyId === 'alta_moderada';
+  const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
+  const isBullCallSpread = selectedStrategyId === 'alta_moderada';
+  const isBearPutSpread = selectedStrategyId === 'queda_moderada';
 
   return (
     <div className="space-y-6">
@@ -1221,11 +1321,11 @@ export default function CadastroOpcao() {
                 </CardContent>
               </Card>
 
-              {/* BLOCO B: Compra da Call */}
+              {/* BLOCO B: Compra da Call/Put */}
               <Card className="bg-white border-l-4 border-l-emerald-500">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-emerald-700">
-                    Compra da call
+                    {isBullCallSpread ? "Compra da call" : "Compra da put"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1276,11 +1376,11 @@ export default function CadastroOpcao() {
                 </CardContent>
               </Card>
 
-              {/* BLOCO C: Venda da Call */}
+              {/* BLOCO C: Venda da Call/Put */}
               <Card className="bg-white border-l-4 border-l-red-500">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-red-700">
-                    Venda da call
+                    {isBullCallSpread ? "Venda da call" : "Venda da put"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

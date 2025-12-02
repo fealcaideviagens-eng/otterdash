@@ -1,4 +1,4 @@
-import { AlertTriangle, ChevronRight, TrendingUp } from "lucide-react";
+import { AlertTriangle, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import { Opcao } from "@/types/database";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { EncerrarTravaModal } from "@/components/opcoes/EncerrarTravaModal";
 import { formatDate } from "@/utils/formatters";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+
 
 interface AlertasCardProps {
   opcoes: Opcao[];
@@ -25,6 +26,7 @@ interface AlertasCardProps {
   }) => Promise<void>;
 }
 
+
 interface StrategyAlert {
   type: 'strategy';
   groupId: string;
@@ -33,7 +35,7 @@ interface StrategyAlert {
   data: string;
 }
 
-// Interface compatível com o Modal
+
 interface StrategyGroup {
   id: string;
   type: string;
@@ -46,7 +48,9 @@ interface StrategyGroup {
   quantidade: number;
 }
 
+
 type AlertItem = Opcao | StrategyAlert;
+
 
 export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCardProps) => {
   const navigate = useNavigate();
@@ -66,7 +70,6 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
     return dataValidade < hoje;
   };
 
-  // Filtrar e Agrupar opções
   const getAlertItems = (): AlertItem[] => {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -75,7 +78,6 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
     cincoDiasAFrente.setDate(hoje.getDate() + 5);
     cincoDiasAFrente.setHours(23, 59, 59, 999);
 
-    // 1. Filtrar opções relevantes (vencidas ou próximas)
     const opcoesRelevantes = opcoes.filter(opcao => {
       if (opcao.status !== 'aberta' || !opcao.data) return false;
       const [ano, mes, dia] = opcao.data.split('-').map(Number);
@@ -83,7 +85,6 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
       return dataValidade <= cincoDiasAFrente;
     });
 
-    // 2. Agrupar por Strategy Group ID
     const groups: Record<string, Opcao[]> = {};
     const singles: Opcao[] = [];
 
@@ -98,13 +99,11 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
       }
     });
 
-    // 3. Construir lista final
     const items: AlertItem[] = [...singles];
 
     Object.keys(groups).forEach(groupId => {
       const legs = groups[groupId];
       if (legs.length > 0) {
-        // Assume all legs have same expiration and strategy type
         items.push({
           type: 'strategy',
           groupId,
@@ -115,7 +114,6 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
       }
     });
 
-    // 4. Ordenar
     return items.sort((a, b) => {
       const dataA = ('type' in a && a.type === 'strategy') ? a.data : a.data!;
       const dataB = ('type' in b && b.type === 'strategy') ? b.data : b.data!;
@@ -123,11 +121,9 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
       const aVencida = isVencida(dataA);
       const bVencida = isVencida(dataB);
 
-      // Prioridade: Vencidas primeiro
       if (aVencida && !bVencida) return -1;
       if (!aVencida && bVencida) return 1;
 
-      // Secundária: Data mais próxima
       return new Date(dataA).getTime() - new Date(dataB).getTime();
     });
   };
@@ -155,20 +151,16 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
   const handleEncerrarTravaClick = (e: React.MouseEvent, strategyItem: StrategyAlert) => {
     e.stopPropagation();
 
-    // Construir objeto StrategyGroup para o modal
     const legs = strategyItem.legs;
     const compraLeg = legs.find(l => l.ops_strategy_role === 'LONG_LEG');
     const vendaLeg = legs.find(l => l.ops_strategy_role === 'SHORT_LEG');
 
-    if (!compraLeg || !vendaLeg) return; // Should not happen if data is correct
+    if (!compraLeg || !vendaLeg) return;
 
     const quantidade = compraLeg.ops_quanti || 0;
     const premioCompra = compraLeg.ops_premio || 0;
     const premioVenda = vendaLeg.ops_premio || 0;
 
-    // Custo Total (Débito) = (Premio Compra - Premio Venda) * Quantidade
-    // Se for Crédito (Venda > Compra), custo seria negativo (lucro na montagem)
-    // Mas para Trava de Alta é Débito.
     const custoTotal = (premioCompra - premioVenda);
 
     const groupData: StrategyGroup = {
@@ -178,8 +170,8 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
       acao: legs[0].ops_acao || '',
       data: strategyItem.data,
       custoTotal: custoTotal,
-      lucroMaximo: 0, // Não essencial para o modal de encerramento
-      breakEven: 0,   // Não essencial
+      lucroMaximo: 0,
+      breakEven: 0,
       quantidade: quantidade
     };
 
@@ -232,6 +224,9 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
               const isExpired = isVencida(strategyItem.data);
               const tickers = strategyItem.legs.map(l => l.ops_ticker).join(' e ');
 
+              // Identifica o tipo de trava
+              const isTravaBaixa = strategyItem.strategyType === 'BEAR_PUT_SPREAD';
+
               return (
                 <div
                   key={strategyItem.groupId}
@@ -240,10 +235,21 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <div className="hidden sm:flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-green-800" />
-                      <span className="font-semibold text-sm text-green-800 whitespace-nowrap">
-                        {getStrategyTitle(strategyItem.strategyType)}
-                      </span>
+                      {isTravaBaixa ? (
+                        <>
+                          <TrendingDown className="h-4 w-4 text-red-800" />
+                          <span className="font-semibold text-sm text-red-800 whitespace-nowrap">
+                            {getStrategyTitle(strategyItem.strategyType)}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <TrendingUp className="h-4 w-4 text-green-800" />
+                          <span className="font-semibold text-sm text-green-800 whitespace-nowrap">
+                            {getStrategyTitle(strategyItem.strategyType)}
+                          </span>
+                        </>
+                      )}
                     </div>
 
                     <span className="text-sm text-gray-700 truncate">

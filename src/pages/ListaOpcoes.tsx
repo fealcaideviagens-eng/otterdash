@@ -158,16 +158,35 @@ export default function ListaOpcoes() {
 
       if (!compraLeg || !vendaLeg) return null; // Incomplete strategy
 
+      // Detectar o tipo de estratégia
+      const strategyType = compraLeg.ops_strategy_type || 'BULL_CALL_SPREAD';
+      const isBullCallSpread = strategyType === 'BULL_CALL_SPREAD';
+      const isBearPutSpread = strategyType === 'BEAR_PUT_SPREAD';
+
       // Calculations
       const custoTotal = (compraLeg.ops_premio || 0) - (vendaLeg.ops_premio || 0);
       const strikeCompra = compraLeg.ops_strike || 0;
       const strikeVenda = vendaLeg.ops_strike || 0;
-      const lucroMaximo = (strikeVenda - strikeCompra) - custoTotal;
-      const breakEven = strikeCompra + custoTotal;
+
+      // Calcular Lucro Máximo e Break-Even baseado no tipo de estratégia
+      let lucroMaximo = 0;
+      let breakEven = 0;
+
+      if (isBullCallSpread) {
+        // Bull Call: Max Profit = (Strike Venda - Strike Compra) - Custo
+        lucroMaximo = (strikeVenda - strikeCompra) - custoTotal;
+        // Break-Even: Strike Compra + Custo
+        breakEven = strikeCompra + custoTotal;
+      } else if (isBearPutSpread) {
+        // Bear Put: Max Profit = (Strike Compra - Strike Venda) - Custo
+        lucroMaximo = (strikeCompra - strikeVenda) - custoTotal;
+        // Break-Even: Strike Compra - Custo
+        breakEven = strikeCompra - custoTotal;
+      }
 
       return {
         id: groupId,
-        type: 'BULL_CALL_SPREAD',
+        type: strategyType,
         legs,
         acao: compraLeg.ops_acao || '',
         data: compraLeg.ops_vencimento || '',
@@ -241,11 +260,14 @@ export default function ListaOpcoes() {
 
     if (!compraLeg || !vendaLeg) return;
 
+    // Detectar tipo de opção baseado na estratégia
+    const optionType = selectedStrategy.type === 'BULL_CALL_SPREAD' ? 'call' : 'put';
+
     // Mapear para o formato esperado pela função editarOpcao
     const compraFormatted = {
       opcao: data.compraData.ops_ticker,
       operacao: 'compra',
-      tipo: 'call',
+      tipo: optionType,
       acao: data.compraData.ops_acao,
       strike: data.compraData.ops_strike,
       cotacao: data.compraData.acao_cotacao,
@@ -257,7 +279,7 @@ export default function ListaOpcoes() {
     const vendaFormatted = {
       opcao: data.vendaData.ops_ticker,
       operacao: 'venda',
-      tipo: 'call',
+      tipo: optionType,
       acao: data.vendaData.ops_acao,
       strike: data.vendaData.ops_strike,
       cotacao: data.vendaData.acao_cotacao,

@@ -150,7 +150,9 @@ export function EditarTravaModal({
         <ResponsiveModal open={isOpen} onOpenChange={onClose}>
             <ResponsiveModalContent className="sm:max-w-lg max-h-[85vh] flex flex-col bg-white">
                 <ResponsiveModalHeader>
-                    <ResponsiveModalTitle>Editar trava de alta</ResponsiveModalTitle>
+                    <ResponsiveModalTitle>
+                        {strategy.type === 'BULL_CALL_SPREAD' ? 'Editar trava de alta' : 'Editar trava de baixa'}
+                    </ResponsiveModalTitle>
                 </ResponsiveModalHeader>
 
                 <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">

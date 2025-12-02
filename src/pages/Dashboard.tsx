@@ -1,4 +1,4 @@
-import { TrendingUp, PieChart, DollarSign, Plus, TrendingDown, BarChart, Calendar, Shield, Wallet, Landmark } from "lucide-react";
+import { TrendingUp, TrendingDown, PieChart, DollarSign, Plus, BarChart, Calendar, Shield, Wallet, Landmark } from "lucide-react";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { ResultsChart } from "@/components/dashboard/ResultsChart";
 import { OptionsDistributionChart } from "@/components/dashboard/OptionsDistributionChart";

@@ -36,6 +36,12 @@ export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, 
 
     if (!compraLeg || !vendaLeg) return null; // Should not happen if grouped correctly
 
+    // Detectar tipo de estratégia
+    const isBullCallSpread = strategy.type === 'BULL_CALL_SPREAD';
+    const isBearPutSpread = strategy.type === 'BEAR_PUT_SPREAD';
+    const strategyTitle = isBullCallSpread ? 'Trava de alta' : 'Trava de baixa';
+    const optionType = isBullCallSpread ? 'Call' : 'Put';
+
     // Calculate Risk/Reward for display
     const riscoMaximo = Math.abs(strategy.custoTotal); // Custo é negativo na compra, mas risco é absoluto
 
@@ -50,15 +56,15 @@ export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                    <span className="font-bold text-lg text-black">Trava de alta</span>
+                    <span className="font-bold text-lg text-black">{strategyTitle}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
                     <Badge className="bg-[#307B58] hover:bg-[#225B44] text-white px-3 py-0.5 rounded-full font-semibold text-xs">
-                        Dédito
+                        Débito
                     </Badge>
                     <Badge variant="secondary" className="bg-[#F6F6E6] text-gray-800 hover:bg-gray-200 border-0 px-3 py-0.5 rounded-full font-semibold text-xs">
-                        Call
+                        {optionType}
                     </Badge>
                     <button
                         type="button"
