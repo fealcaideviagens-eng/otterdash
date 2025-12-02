@@ -73,7 +73,7 @@ const STRATEGIES = [
     id: "queda_infinita",
     group: "Operar a baixa",
     title: "Queda infinita",
-    subtitle: "venda a seco - put",
+    subtitle: "compra a seco - put",
     operacao: "compra",
     tipo: "put",
     disabled: false,

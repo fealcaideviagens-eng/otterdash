@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Opcao, Venda } from "@/types/database";
+import { parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
 
 // Adapter functions para mapear entre formatos antigo e novo
 const mapOpsRegistryToOpcao = (data: any): Opcao => ({
@@ -140,10 +141,10 @@ export const useOpcoes = (userId?: string) => {
         ops_operacao: dadosOpcao.operacao,
         ops_tipo: dadosOpcao.tipo,
         ops_acao: dadosOpcao.acao,
-        ops_strike: dadosOpcao.strike ? parseFloat(dadosOpcao.strike.toString()) : null,
-        acao_cotacao: dadosOpcao.cotacao ? parseFloat(dadosOpcao.cotacao.toString()) : null,
-        ops_quanti: dadosOpcao.quantidade ? parseFloat(dadosOpcao.quantidade.toString()) : null,
-        ops_premio: dadosOpcao.premio ? parseFloat(dadosOpcao.premio.toString()) : null,
+        ops_strike: dadosOpcao.strike ? parseCurrencyToNumber(dadosOpcao.strike.toString()) : null,
+        acao_cotacao: dadosOpcao.cotacao ? parseCurrencyToNumber(dadosOpcao.cotacao.toString()) : null,
+        ops_quanti: dadosOpcao.quantidade ? parseNumberToInt(dadosOpcao.quantidade.toString()) : null,
+        ops_premio: dadosOpcao.premio ? parseCurrencyToNumber(dadosOpcao.premio.toString()) : null,
         ops_vencimento: dadosOpcao.data,
         ops_criado_em: new Date().toISOString()
       };
@@ -178,10 +179,10 @@ export const useOpcoes = (userId?: string) => {
         ops_operacao: dadosAtualizados.operacao,
         ops_tipo: dadosAtualizados.tipo,
         ops_acao: dadosAtualizados.acao,
-        ops_strike: dadosAtualizados.strike,
-        acao_cotacao: dadosAtualizados.cotacao,
-        ops_quanti: dadosAtualizados.quantidade,
-        ops_premio: dadosAtualizados.premio,
+        ops_strike: dadosAtualizados.strike ? (typeof dadosAtualizados.strike === 'string' ? parseCurrencyToNumber(dadosAtualizados.strike) : dadosAtualizados.strike) : null,
+        acao_cotacao: dadosAtualizados.cotacao ? (typeof dadosAtualizados.cotacao === 'string' ? parseCurrencyToNumber(dadosAtualizados.cotacao) : dadosAtualizados.cotacao) : null,
+        ops_quanti: dadosAtualizados.quantidade ? (typeof dadosAtualizados.quantidade === 'string' ? parseNumberToInt(dadosAtualizados.quantidade) : dadosAtualizados.quantidade) : null,
+        ops_premio: dadosAtualizados.premio ? (typeof dadosAtualizados.premio === 'string' ? parseCurrencyToNumber(dadosAtualizados.premio) : dadosAtualizados.premio) : null,
         ops_vencimento: dadosAtualizados.data
       };
 
