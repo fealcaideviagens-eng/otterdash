@@ -267,16 +267,65 @@ export default function CadastroOpcao() {
             setLoading(false);
             return;
           }
+
+          // --- VALIDAÇÃO SEMÂNTICA DO TICKER (5ª Letra) - TRAVAS ---
+          if (formData.data) {
+            const vencimento = parseLocalDate(formData.data);
+            const monthIndex = vencimento.getMonth(); // 0 = Jan, 11 = Dez
+            const CALL_MONTHS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+            const PUT_MONTHS = ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
+
+            const validateTicker = (ticker: string, legType: 'call' | 'put', fieldName: string) => {
+              if (!ticker || ticker.length < 5) return;
+
+              const fifthLetter = ticker.charAt(4).toUpperCase();
+              const isCallLetter = CALL_MONTHS.includes(fifthLetter);
+              const isPutLetter = PUT_MONTHS.includes(fifthLetter);
+
+              // 1. Validar Tipo
+              if (legType === 'call' && !isCallLetter) {
+                if (isPutLetter) {
+                  newErrors[fieldName] = "Ticker indica PUT (M-X), mas tipo é CALL.";
+                } else {
+                  newErrors[fieldName] = "5ª letra inválida para CALL (deve ser A-L).";
+                }
+                hasError = true;
+              } else if (legType === 'put' && !isPutLetter) {
+                if (isCallLetter) {
+                  newErrors[fieldName] = "Ticker indica CALL (A-L), mas tipo é PUT.";
+                } else {
+                  newErrors[fieldName] = "5ª letra inválida para PUT (deve ser M-X).";
+                }
+                hasError = true;
+              }
+
+              // 2. Validar Mês
+              if (!hasError) {
+                const expectedLetter = legType === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+                if (fifthLetter !== expectedLetter) {
+                  const monthName = vencimento.toLocaleString('pt-BR', { month: 'long' });
+                  const monthNameCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                  newErrors[fieldName] = `Para ${legType.toUpperCase()} em ${monthNameCap}, a letra deve ser '${expectedLetter}'.`;
+                  hasError = true;
+                }
+              }
+            };
+
+            // Validar Compra
+            validateTicker(travaData.compra.ticker, isBullCallSpread ? 'call' : 'put', 'compra.ticker');
+            // Validar Venda
+            validateTicker(travaData.venda.ticker, isBullCallSpread ? 'call' : 'put', 'venda.ticker');
+          }
         }
 
       } else {
         // Validação Específica: OUTRAS ESTRATÉGIAS (Original)
-        const tickerRegex = /^[A-Z]{5}[0-9]{1}(W[0-9])?$/;
+        const tickerRegex = /^[A-Z]{5}[0-9]{1,3}(W[0-9]?)?$/;
         if (!formData.opcao) {
           newErrors.opcao = "Preencha com o ticker da opção";
           hasError = true;
         } else if (!tickerRegex.test(formData.opcao)) {
-          newErrors.opcao = "O ticker deve ter 5 letras e pelo menos 1 número";
+          newErrors.opcao = "Formato inválido. Ex: PETRA123";
           hasError = true;
         } else if (formData.acao && formData.acao.length >= 4) {
           // Validar Ticker vs Ação (Simples)
@@ -294,6 +343,47 @@ export default function CadastroOpcao() {
         if (!formData.premio) {
           newErrors.premio = "Preencha com o prêmio";
           hasError = true;
+        }
+
+        // --- VALIDAÇÃO SEMÂNTICA DO TICKER (5ª Letra) ---
+        if (!hasError && formData.opcao && formData.opcao.length >= 5 && formData.data) {
+          const fifthLetter = formData.opcao.charAt(4).toUpperCase();
+          const vencimento = parseLocalDate(formData.data);
+          const monthIndex = vencimento.getMonth(); // 0 = Jan, 11 = Dez
+
+          const CALL_MONTHS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+          const PUT_MONTHS = ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
+
+          const isCallLetter = CALL_MONTHS.includes(fifthLetter);
+          const isPutLetter = PUT_MONTHS.includes(fifthLetter);
+
+          // 1. Validar Tipo (Call vs Put)
+          if (formData.tipo === 'call' && !isCallLetter) {
+            if (isPutLetter) {
+              newErrors.opcao = "Ticker indica PUT (M-X), mas tipo é CALL.";
+            } else {
+              newErrors.opcao = "5ª letra inválida para CALL (deve ser A-L).";
+            }
+            hasError = true;
+          } else if (formData.tipo === 'put' && !isPutLetter) {
+            if (isCallLetter) {
+              newErrors.opcao = "Ticker indica CALL (A-L), mas tipo é PUT.";
+            } else {
+              newErrors.opcao = "5ª letra inválida para PUT (deve ser M-X).";
+            }
+            hasError = true;
+          }
+
+          // 2. Validar Mês
+          if (!hasError) {
+            const expectedLetter = formData.tipo === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+            if (fifthLetter !== expectedLetter) {
+              const monthName = vencimento.toLocaleString('pt-BR', { month: 'long' });
+              const monthNameCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+              newErrors.opcao = `Para ${formData.tipo.toUpperCase()} em ${monthNameCap}, a letra deve ser '${expectedLetter}'.`;
+              hasError = true;
+            }
+          }
         }
       }
 
@@ -387,7 +477,7 @@ export default function CadastroOpcao() {
           className: "border-green-200 bg-green-50 text-green-900",
         });
 
-        // Limpar formulário e redirecionar
+        // Limpar formulário e voltar para etapa 1
         setFormData({
           opcao: "",
           acao: "",
@@ -395,7 +485,7 @@ export default function CadastroOpcao() {
           cotacao: "",
           quantidade: "",
           premio: "",
-          data: "",
+          data: formatDateForInput(getNextBusinessDay()),
           operacao: "venda",
           tipo: "call",
           status: "aberta",
@@ -405,10 +495,7 @@ export default function CadastroOpcao() {
           venda: { ticker: '', strike: '', premio: '' }
         });
 
-        // Pequeno delay para garantir que o toast apareça antes de navegar
-        setTimeout(() => {
-          navigate("/opcoes");
-        }, 1500);
+        setStep(1);
 
       } else {
         // Lógica ORIGINAL para outras estratégias
@@ -426,7 +513,7 @@ export default function CadastroOpcao() {
           className: "border-green-200 bg-green-50 text-green-900",
         });
 
-        // Limpar formulário
+        // Limpar formulário e voltar para etapa 1
         setFormData({
           opcao: "",
           acao: "",
@@ -434,15 +521,13 @@ export default function CadastroOpcao() {
           cotacao: "",
           quantidade: "",
           premio: "",
-          data: "",
+          data: formatDateForInput(getNextBusinessDay()),
           operacao: "venda",
           tipo: "call",
           status: "aberta",
         });
 
-        setTimeout(() => {
-          navigate("/opcoes");
-        }, 1500);
+        setStep(1);
       }
 
       setLoading(false);
@@ -978,7 +1063,7 @@ export default function CadastroOpcao() {
         valorTotalLabel = "Ganho máximo";
         isGanho = true;
       } else {
-        valorTotalLabel = "Perda máxima";
+        valorTotalLabel = "Risco máximo";
         isGanho = false;
         valorTotal = -valorTotal;
       }
@@ -1011,7 +1096,7 @@ export default function CadastroOpcao() {
       const premioTotal = premio * quantidade;
       if (formData.operacao === "compra") {
         percentualRelativoGarantia = (-premioTotal / garantia) * 100;
-        labelPercentualGarantia = "Perda máxima";
+        labelPercentualGarantia = "Risco máximo";
         isGanhoGarantia = false;
       } else {
         percentualRelativoGarantia = (premioTotal / garantia) * 100;
@@ -1332,7 +1417,10 @@ export default function CadastroOpcao() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="compra-ticker">Ticker da opção</Label>
-                      <div className="flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5">
+                      <div className={cn(
+                        "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
+                        errors['compra.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
+                      )}>
                         <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                           {formData.acao.substring(0, 4) || ""}
                         </div>
@@ -1349,6 +1437,9 @@ export default function CadastroOpcao() {
                           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
                         />
                       </div>
+                      {errors['compra.ticker'] && (
+                        <p className="text-xs text-red-500 mt-1">{errors['compra.ticker']}</p>
+                      )}
                     </div>
 
                     <div>
@@ -1358,8 +1449,14 @@ export default function CadastroOpcao() {
                         value={travaData.compra.strike}
                         onChange={(e) => handleTravaCurrencyChange('compra', 'strike', e.target.value)}
                         placeholder="0,00"
-                        className="placeholder-subtle mt-1.5"
+                        className={cn(
+                          "placeholder-subtle mt-1.5",
+                          errors['compra.strike'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                        )}
                       />
+                      {errors['compra.strike'] && (
+                        <p className="text-xs text-red-500 mt-1">{errors['compra.strike']}</p>
+                      )}
                     </div>
 
                     <div>
@@ -1369,8 +1466,14 @@ export default function CadastroOpcao() {
                         value={travaData.compra.premio}
                         onChange={(e) => handleTravaCurrencyChange('compra', 'premio', e.target.value)}
                         placeholder="0,00"
-                        className="placeholder-subtle mt-1.5"
+                        className={cn(
+                          "placeholder-subtle mt-1.5",
+                          errors['compra.premio'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                        )}
                       />
+                      {errors['compra.premio'] && (
+                        <p className="text-xs text-red-500 mt-1">{errors['compra.premio']}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -1387,7 +1490,10 @@ export default function CadastroOpcao() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="venda-ticker">Ticker da opção</Label>
-                      <div className="flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5">
+                      <div className={cn(
+                        "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
+                        errors['venda.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
+                      )}>
                         <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                           {formData.acao.substring(0, 4) || ""}
                         </div>
@@ -1404,6 +1510,9 @@ export default function CadastroOpcao() {
                           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
                         />
                       </div>
+                      {errors['venda.ticker'] && (
+                        <p className="text-xs text-red-500 mt-1">{errors['venda.ticker']}</p>
+                      )}
                     </div>
 
                     <div>
@@ -1413,8 +1522,14 @@ export default function CadastroOpcao() {
                         value={travaData.venda.strike}
                         onChange={(e) => handleTravaCurrencyChange('venda', 'strike', e.target.value)}
                         placeholder="0,00"
-                        className="placeholder-subtle mt-1.5"
+                        className={cn(
+                          "placeholder-subtle mt-1.5",
+                          errors['venda.strike'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                        )}
                       />
+                      {errors['venda.strike'] && (
+                        <p className="text-xs text-red-500 mt-1">{errors['venda.strike']}</p>
+                      )}
                     </div>
 
                     <div>
@@ -1424,8 +1539,14 @@ export default function CadastroOpcao() {
                         value={travaData.venda.premio}
                         onChange={(e) => handleTravaCurrencyChange('venda', 'premio', e.target.value)}
                         placeholder="0,00"
-                        className="placeholder-subtle mt-1.5"
+                        className={cn(
+                          "placeholder-subtle mt-1.5",
+                          errors['venda.premio'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                        )}
                       />
+                      {errors['venda.premio'] && (
+                        <p className="text-xs text-red-500 mt-1">{errors['venda.premio']}</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -1460,24 +1581,6 @@ export default function CadastroOpcao() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="opcao">Ticker da opção</Label>
-                      <Input
-                        id="opcao"
-                        value={formData.opcao}
-                        onChange={(e) => handleOpcaoChange(e.target.value)}
-                        placeholder="ex: PETRH123"
-                        maxLength={10}
-                        className={cn(
-                          "placeholder-subtle mt-1.5",
-                          errors.opcao ? "border-red-500 focus-visible:ring-red-500" : ""
-                        )}
-                      />
-                      {errors.opcao && (
-                        <p className="text-xs text-red-500 mt-1">{errors.opcao}</p>
-                      )}
-                    </div>
-
-                    <div>
                       <Label htmlFor="acao">Ação</Label>
                       <Input
                         id="acao"
@@ -1496,26 +1599,36 @@ export default function CadastroOpcao() {
                         <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
                       )}
                     </div>
+
+                    <div>
+                      <Label htmlFor="opcao">Ticker da opção</Label>
+                      <div className={cn(
+                        "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
+                        errors.opcao ? "border-red-500 focus-within:ring-red-500" : ""
+                      )}>
+                        <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
+                          {formData.acao.substring(0, 4) || ""}
+                        </div>
+                        <Input
+                          id="opcao"
+                          value={formData.opcao.substring(formData.acao.substring(0, 4).length)}
+                          onChange={(e) => {
+                            const prefix = formData.acao.substring(0, 4);
+                            const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
+                            handleOpcaoChange(prefix + suffix);
+                          }}
+                          placeholder="H123"
+                          maxLength={6}
+                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
+                        />
+                      </div>
+                      {errors.opcao && (
+                        <p className="text-xs text-red-500 mt-1">{errors.opcao}</p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="strike">Strike (R$)</Label>
-                      <Input
-                        id="strike"
-                        value={formData.strike}
-                        onChange={(e) => handleCurrencyChange("strike", e.target.value)}
-                        placeholder="0,00"
-                        className={cn(
-                          "placeholder-subtle mt-1.5",
-                          errors.strike ? "border-red-500 focus-visible:ring-red-500" : ""
-                        )}
-                      />
-                      {errors.strike && (
-                        <p className="text-xs text-red-500 mt-1">{errors.strike}</p>
-                      )}
-                    </div>
-
                     <div>
                       <Label htmlFor="cotacao">Cotação (R$)</Label>
                       <Input
@@ -1530,6 +1643,23 @@ export default function CadastroOpcao() {
                       />
                       {errors.cotacao && (
                         <p className="text-xs text-red-500 mt-1">{errors.cotacao}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="strike">Strike (R$)</Label>
+                      <Input
+                        id="strike"
+                        value={formData.strike}
+                        onChange={(e) => handleCurrencyChange("strike", e.target.value)}
+                        placeholder="0,00"
+                        className={cn(
+                          "placeholder-subtle mt-1.5",
+                          errors.strike ? "border-red-500 focus-visible:ring-red-500" : ""
+                        )}
+                      />
+                      {errors.strike && (
+                        <p className="text-xs text-red-500 mt-1">{errors.strike}</p>
                       )}
                     </div>
                   </div>
@@ -1779,7 +1909,7 @@ export default function CadastroOpcao() {
                   <div>
                     <Label className="text-xs text-slate-500">Risco máximo</Label>
                     <p className="font-semibold text-red-600">
-                      {operationData.custoTotal !== 0 ? formatCurrencyDisplay(operationData.custoTotal) : '-'}
+                      {operationData.custoTotal !== 0 ? formatCurrencyDisplay(-operationData.custoTotal) : '-'}
                     </p>
                   </div>
 
