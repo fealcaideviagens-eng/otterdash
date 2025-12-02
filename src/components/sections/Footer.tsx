@@ -1,11 +1,11 @@
-import { Shield } from "lucide-react";
+import { Shield, Instagram } from "lucide-react";
 
 const Footer = () => {
     return (
         <footer className="py-12 bg-foreground text-background relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 to-transparent"></div>
             <div className="container mx-auto px-4 relative">
-                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                <div className="grid md:grid-cols-3 gap-8 mb-8">
                     <div>
                         <h3 className="font-bold mb-4 text-white">Sobre</h3>
                         <p className="text-sm text-background/80">
@@ -22,6 +22,18 @@ const Footer = () => {
                         <p className="text-sm text-background/80">
                             PIX: otteropcoes@gmail.com
                         </p>
+                    </div>
+                    <div>
+                        <h3 className="font-bold mb-4 text-white">Redes sociais</h3>
+                        <a
+                            href="https://www.instagram.com/otter.ops/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm text-background/80 hover:text-white transition-colors"
+                        >
+                            <Instagram className="w-5 h-5" />
+                            <span>@otter.ops</span>
+                        </a>
                     </div>
                 </div>
                 <div className="border-t border-background/20 pt-8">
