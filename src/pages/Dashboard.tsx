@@ -202,6 +202,27 @@ export default function Dashboard() {
             await refreshData();
           }
         }}
+        onEncerrarTrava={async (data) => {
+          if (user?.id) {
+            const legs = opcoes.filter(op => op.ops_strategy_group_id === data.strategy_id);
+
+            for (const leg of legs) {
+              let premio = 0;
+              if (leg.ops_strategy_role === 'LONG_LEG') {
+                premio = data.compra_premio;
+              } else if (leg.ops_strategy_role === 'SHORT_LEG') {
+                premio = data.venda_premio;
+              }
+
+              await encerrarOpcao(leg.ops_id, {
+                premio: premio,
+                data: data.data,
+                quantidade: data.quantidade
+              });
+            }
+            await refreshData();
+          }
+        }}
       />
     </div>
   );

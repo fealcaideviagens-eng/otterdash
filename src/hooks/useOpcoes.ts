@@ -17,7 +17,10 @@ const mapOpsRegistryToOpcao = (data: any): Opcao => ({
   ops_premio: data.ops_premio,
   ops_vencimento: data.ops_vencimento,
   ops_criado_em: data.ops_criado_em,
-  
+  ops_strategy_group_id: data.ops_strategy_group_id,
+  ops_strategy_type: data.ops_strategy_type,
+  ops_strategy_role: data.ops_strategy_role,
+
   // Mapeamento para campos antigos (compatibilidade)
   opcao: data.ops_ticker || '',
   operacao: data.ops_operacao || '',
@@ -40,7 +43,7 @@ const mapOpsCompletedToVenda = (data: any): Venda => ({
   completed_quanti: data.completed_quanti,
   completed_criado_em: data.completed_criado_em,
   ops_id: data.ops_id,
-  
+
   // Mapeamento para campos antigos (compatibilidade)
   "update-id": data.completed_id,
   premio: data.completed_premio,
@@ -61,9 +64,9 @@ export const useOpcoes = (userId?: string) => {
       setLoading(false);
       return;
     }
-    
+
     console.log('useOpcoes: Carregando opções para userId:', userId);
-    
+
     try {
       // Buscar opções
       const { data: opcoesData, error: opcoesError } = await supabase
@@ -71,19 +74,19 @@ export const useOpcoes = (userId?: string) => {
         .select('*')
         .eq('user_id', userId)
         .order('ops_criado_em', { ascending: false });
-        
+
       if (opcoesError) throw opcoesError;
-      
+
       // Buscar vendas/encerramentos
       const { data: vendasData, error: vendasError } = await supabase
         .from('ops_completed')
         .select('*')
         .eq('user_id', userId);
-        
+
       if (vendasError) throw vendasError;
-      
+
       console.log('useOpcoes: Resposta do supabase:', { opcoes: opcoesData, vendas: vendasData });
-      
+
       // Mapear opções com status correto
       const opcoesFormatadas = (opcoesData || []).map(opcaoData => {
         const temVenda = vendasData?.some(venda => venda.ops_id === opcaoData.ops_id);
@@ -92,7 +95,7 @@ export const useOpcoes = (userId?: string) => {
           status: temVenda ? 'encerrada' : 'aberta'
         });
       });
-      
+
       console.log('useOpcoes: Opções formatadas:', opcoesFormatadas);
       setOpcoes(opcoesFormatadas);
     } catch (error) {
@@ -105,16 +108,16 @@ export const useOpcoes = (userId?: string) => {
 
   const carregarVendas = async () => {
     if (!userId) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('ops_completed')
         .select('*')
         .eq('user_id', userId)
         .order('completed_criado_em', { ascending: false });
-        
+
       if (error) throw error;
-      
+
       const vendasFormatadas = (data || []).map(mapOpsCompletedToVenda);
       setVendas(vendasFormatadas);
     } catch (error) {
@@ -125,11 +128,11 @@ export const useOpcoes = (userId?: string) => {
 
   const adicionarOpcao = async (dadosOpcao: any) => {
     if (!userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       console.log('Dados recebidos para adicionar:', dadosOpcao);
       console.log('User ID:', userId);
-      
+
       // Mapear dados antigos para o novo formato
       const novoFormatoOpcao = {
         user_id: userId, // Campo para RLS
@@ -144,7 +147,7 @@ export const useOpcoes = (userId?: string) => {
         ops_vencimento: dadosOpcao.data,
         ops_criado_em: new Date().toISOString()
       };
-      
+
       console.log('Dados formatados para inserir:', novoFormatoOpcao);
 
       const { data, error } = await supabase
@@ -155,7 +158,7 @@ export const useOpcoes = (userId?: string) => {
       console.log('Resposta do Supabase:', { data, error });
 
       if (error) throw error;
-      
+
       console.log('Opção cadastrada com sucesso:', data);
       await carregarOpcoes();
       return data;
@@ -167,7 +170,7 @@ export const useOpcoes = (userId?: string) => {
 
   const editarOpcao = async (opcaoId: string, dadosAtualizados: any) => {
     if (!userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       // Mapear dados antigos para o novo formato
       const dadosFormatados = {
@@ -189,7 +192,7 @@ export const useOpcoes = (userId?: string) => {
         .eq('user_id', userId);
 
       if (error) throw error;
-      
+
       await carregarOpcoes();
     } catch (error) {
       console.error('Erro ao editar:', error);
@@ -199,7 +202,7 @@ export const useOpcoes = (userId?: string) => {
 
   const deletarOpcao = async (opcaoId: string) => {
     if (!userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       // Primeiro deletar o encerramento se existir
       await supabase
@@ -216,7 +219,7 @@ export const useOpcoes = (userId?: string) => {
         .eq('user_id', userId);
 
       if (error) throw error;
-      
+
       await carregarOpcoes();
       await carregarVendas();
     } catch (error) {
@@ -227,7 +230,7 @@ export const useOpcoes = (userId?: string) => {
 
   const encerrarOpcao = async (opcaoId: string, vendaData: any) => {
     if (!userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       // Inserir dados no ops_completed
       const dadosEncerramento = {
@@ -244,7 +247,7 @@ export const useOpcoes = (userId?: string) => {
         .insert([dadosEncerramento]);
 
       if (error) throw error;
-      
+
       await carregarOpcoes();
       await carregarVendas();
     } catch (error) {
@@ -255,7 +258,7 @@ export const useOpcoes = (userId?: string) => {
 
   const editarEncerramento = async (completedId: string, dadosAtualizados: any) => {
     if (!userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       const dadosFormatados = {
         completed_premio: dadosAtualizados.premio,
@@ -270,7 +273,7 @@ export const useOpcoes = (userId?: string) => {
         .eq('user_id', userId);
 
       if (error) throw error;
-      
+
       await carregarOpcoes();
       await carregarVendas();
     } catch (error) {
@@ -283,7 +286,7 @@ export const useOpcoes = (userId?: string) => {
     const opcoesAbertas = opcoes.filter(opcao => opcao.status === 'aberta').length;
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    
+
     // Filtrar vendas do mês atual com correção de fuso horário
     const vendasMes = vendas.filter(venda => {
       let vendaDate: Date;
@@ -295,17 +298,17 @@ export const useOpcoes = (userId?: string) => {
       }
       return vendaDate.getMonth() === currentMonth && vendaDate.getFullYear() === currentYear;
     });
-    
+
     // Calcular valor ganho no mês usando a mesma lógica das outras páginas
     const valorGanhoMes = vendasMes.reduce((total, venda) => {
       const opcaoOriginal = opcoes.find(opcao => opcao.ops_id === venda.ops_id);
       if (opcaoOriginal?.ops_premio && opcaoOriginal?.ops_quanti) {
         // Valor inicial: Quantidade * Prêmio inicial
         const valorInicial = opcaoOriginal.ops_quanti * opcaoOriginal.ops_premio;
-        
+
         // Valor final: Quantidade * Novo prêmio (do encerramento)  
         const valorFinal = venda.completed_quanti * venda.completed_premio;
-        
+
         // Para vendas: lucro = valor inicial - valor final
         // Para compras: lucro = valor final - valor inicial
         const resultado = opcaoOriginal.ops_operacao === 'venda' ? valorInicial - valorFinal : valorFinal - valorInicial;
@@ -313,7 +316,7 @@ export const useOpcoes = (userId?: string) => {
       }
       return total;
     }, 0);
-    
+
     const lucroMaximoEstimado = opcoes
       .filter(opcao => opcao.status === 'aberta')
       .reduce((total, opcao) => {
@@ -341,12 +344,12 @@ export const useOpcoes = (userId?: string) => {
   }, [userId]);
 
   return {
-    opcoes, 
-    vendas, 
-    loading, 
-    addOpcao: adicionarOpcao, 
-    editarOpcao, 
-    deletarOpcao, 
+    opcoes,
+    vendas,
+    loading,
+    addOpcao: adicionarOpcao,
+    editarOpcao,
+    deletarOpcao,
     encerrarOpcao,
     editarEncerramento,
     getDashboardMetrics,

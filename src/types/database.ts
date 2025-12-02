@@ -12,7 +12,10 @@ export interface Opcao {
   ops_premio: number | null;
   ops_vencimento: string | null;
   ops_criado_em: string | null;
-  
+  ops_strategy_group_id?: string | null;
+  ops_strategy_type?: string | null;
+  ops_strategy_role?: string | null;
+
   // Aliases para compatibilidade (campos antigos)
   opcao: string;
   operacao: string;
@@ -35,7 +38,7 @@ export interface Venda {
   completed_quanti: number;
   completed_criado_em: string | null;
   ops_id: string | null;
-  
+
   // Aliases para compatibilidade (campos antigos)
   "update-id": string;
   premio: number;

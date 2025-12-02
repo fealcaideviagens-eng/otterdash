@@ -22,11 +22,26 @@ import { Opcao, Venda } from "@/types/database";
 import { formatCurrency, formatDate, formatQuantidade } from "@/utils/formatters";
 import { ChevronDown, ChevronUp, Edit, Trash2, FileText, FileTextIcon } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { StrategyCard } from "@/components/opcoes/StrategyCard";
+import { EncerrarTravaModal } from "@/components/opcoes/EncerrarTravaModal";
+import { EditarTravaModal } from "@/components/opcoes/EditarTravaModal";
 
-
+interface StrategyGroup {
+  id: string;
+  type: string;
+  legs: Opcao[];
+  acao: string;
+  data: string;
+  custoTotal: number;
+  lucroMaximo: number;
+  breakEven: number;
+  quantidade: number;
+}
 
 export default function ListaOpcoes() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { opcoes, vendas, loading, encerrarOpcao, editarOpcao, editarEncerramento, deletarOpcao, refreshData } = useOpcoes(user?.id || '');
   const [selectedOpcao, setSelectedOpcao] = useState<Opcao | null>(null);
   const [selectedVenda, setSelectedVenda] = useState<Venda | null>(null);
@@ -34,9 +49,13 @@ export default function ListaOpcoes() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editEncerramentoModalOpen, setEditEncerramentoModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedStrategy, setSelectedStrategy] = useState<StrategyGroup | null>(null);
+  const [travaModalOpen, setTravaModalOpen] = useState(false);
+  const [editTravaModalOpen, setEditTravaModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
   const [highlightedOpcaoId, setHighlightedOpcaoId] = useState<string | null>(null);
+  const [highlightedStrategyId, setHighlightedStrategyId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("abertas");
   const processedRef = useRef(false);
 
@@ -49,67 +68,213 @@ export default function ListaOpcoes() {
       if (highlightedOpcaoId) {
         setHighlightedOpcaoId(null);
       }
+      if (highlightedStrategyId) {
+        setHighlightedStrategyId(null);
+      }
     };
 
-    if (highlightedOpcaoId) {
+    if (highlightedOpcaoId || highlightedStrategyId) {
       document.addEventListener('click', handleGlobalClick);
     }
 
     return () => {
       document.removeEventListener('click', handleGlobalClick);
     };
-  }, [highlightedOpcaoId]);
+  }, [highlightedOpcaoId, highlightedStrategyId]);
 
   // Detectar parâmetro da URL e destacar o card
   useEffect(() => {
     const opcaoId = searchParams.get('opcao');
-    console.log('🔍 URL Param opcaoId:', opcaoId);
+    const strategyId = searchParams.get('strategy');
+    console.log('🔍 URL Params - opcaoId:', opcaoId, 'strategyId:', strategyId);
 
     // Só executar se não estiver carregando, tiver dados e não tiver sido processado ainda
-    if (opcaoId && opcoes.length > 0 && !loading && !processedRef.current) {
+    if ((opcaoId || strategyId) && opcoes.length > 0 && !loading && !processedRef.current) {
       console.log('🎬 Iniciando processamento...');
       processedRef.current = true; // Marcar como processado
 
-      const opcao = opcoes.find(o => o.ops_id === opcaoId);
+      if (opcaoId) {
+        const opcao = opcoes.find(o => o.ops_id === opcaoId);
+        if (opcao) {
+          if (opcao.status === 'aberta') {
+            console.log('✅ Opção está ABERTA - Destacando card');
+            setActiveTab('abertas');
+            setHighlightedOpcaoId(opcaoId);
 
-      if (opcao) {
-        if (opcao.status === 'aberta') {
-          console.log('✅ Opção está ABERTA - Destacando card');
-          setActiveTab('abertas');
-          setHighlightedOpcaoId(opcaoId);
-
+            setTimeout(() => {
+              const element = document.querySelector(`[data-opcao-id="${opcaoId}"]`);
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 500);
+          }
+          // Limpar o parâmetro da URL
           setTimeout(() => {
-            const element = document.querySelector(`[data-opcao-id="${opcaoId}"]`);
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }, 500);
+            searchParams.delete('opcao');
+            setSearchParams(searchParams, { replace: true });
+          }, 2000);
         }
+      } else if (strategyId) {
+        console.log('✅ Estratégia detectada - Destacando card');
+        setActiveTab('abertas');
+        setHighlightedStrategyId(strategyId);
+
+        setTimeout(() => {
+          const element = document.querySelector(`[data-strategy-id="${strategyId}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 500);
 
         // Limpar o parâmetro da URL
         setTimeout(() => {
-          searchParams.delete('opcao');
+          searchParams.delete('strategy');
           setSearchParams(searchParams, { replace: true });
         }, 2000);
       }
     }
   }, [opcoes, vendas, loading, searchParams, setSearchParams]);
 
-  // Ordenar opções abertas por data de validade (mais próxima da data atual primeiro)
-  const opcoesAbertas = opcoes
-    .filter(opcao => opcao.status === 'aberta')
-    .sort((a, b) => {
-      if (!a.data || !b.data) return 0;
-      const today = new Date();
-      const dateA = new Date(a.data);
-      const dateB = new Date(b.data);
+  // Função para agrupar operações
+  const groupOperations = (opcoes: Opcao[]): (Opcao | StrategyGroup)[] => {
+    const grouped: { [key: string]: Opcao[] } = {};
+    const singles: Opcao[] = [];
 
-      // Calcular diferença em dias da data atual
-      const diffA = Math.abs(dateA.getTime() - today.getTime());
-      const diffB = Math.abs(dateB.getTime() - today.getTime());
-
-      return diffA - diffB; // Ordenar da menor diferença (mais próxima) para maior
+    opcoes.forEach(opcao => {
+      if (opcao.ops_strategy_group_id) {
+        if (!grouped[opcao.ops_strategy_group_id]) {
+          grouped[opcao.ops_strategy_group_id] = [];
+        }
+        grouped[opcao.ops_strategy_group_id].push(opcao);
+      } else {
+        singles.push(opcao);
+      }
     });
+
+    const strategies: StrategyGroup[] = Object.keys(grouped).map(groupId => {
+      const legs = grouped[groupId];
+      const compraLeg = legs.find(l => l.ops_strategy_role === 'LONG_LEG');
+      const vendaLeg = legs.find(l => l.ops_strategy_role === 'SHORT_LEG');
+
+      if (!compraLeg || !vendaLeg) return null; // Incomplete strategy
+
+      // Calculations
+      const custoTotal = (compraLeg.ops_premio || 0) - (vendaLeg.ops_premio || 0);
+      const strikeCompra = compraLeg.ops_strike || 0;
+      const strikeVenda = vendaLeg.ops_strike || 0;
+      const lucroMaximo = (strikeVenda - strikeCompra) - custoTotal;
+      const breakEven = strikeCompra + custoTotal;
+
+      return {
+        id: groupId,
+        type: 'BULL_CALL_SPREAD',
+        legs,
+        acao: compraLeg.ops_acao || '',
+        data: compraLeg.ops_vencimento || '',
+        custoTotal,
+        lucroMaximo,
+        breakEven,
+        quantidade: compraLeg.ops_quanti || 0
+      };
+    }).filter(Boolean) as StrategyGroup[];
+
+    return [...strategies, ...singles];
+  };
+
+  // Ordenar e Agrupar opções abertas
+  const opcoesAbertasRaw = opcoes.filter(opcao => opcao.status === 'aberta');
+  const opcoesAbertas = groupOperations(opcoesAbertasRaw).sort((a, b) => {
+    // Sort logic (simplified for mixed types)
+    const dateA = 'legs' in a ? new Date(a.data) : new Date(a.data || '');
+    const dateB = 'legs' in b ? new Date(b.data) : new Date(b.data || '');
+    return dateA.getTime() - dateB.getTime();
+  });
+
+  const handleEncerrarTrava = (strategy: StrategyGroup) => {
+    setSelectedStrategy(strategy);
+    setTravaModalOpen(true);
+  };
+
+  const handleConfirmEncerrarTrava = async (data: {
+    strategy_id: string;
+    compra_premio: number;
+    venda_premio: number;
+    data: string;
+    quantidade: number;
+  }) => {
+    if (!selectedStrategy) return;
+
+    const compraLeg = selectedStrategy.legs.find(leg => leg.ops_strategy_role === 'LONG_LEG');
+    const vendaLeg = selectedStrategy.legs.find(leg => leg.ops_strategy_role === 'SHORT_LEG');
+
+    if (!compraLeg || !vendaLeg) return;
+
+    // Encerrar ambas as pernas
+    await encerrarOpcao(compraLeg.ops_id, {
+      premio: data.compra_premio,
+      data: data.data,
+      quantidade: data.quantidade,
+    });
+
+    await encerrarOpcao(vendaLeg.ops_id, {
+      premio: data.venda_premio,
+      data: data.data,
+      quantidade: data.quantidade,
+    });
+
+    await refreshData();
+  };
+
+  const handleEditTrava = (strategy: StrategyGroup) => {
+    setSelectedStrategy(strategy);
+    setEditTravaModalOpen(true);
+  };
+
+  const handleConfirmEditTrava = async (data: {
+    compraData: Partial<Opcao>;
+    vendaData: Partial<Opcao>;
+  }) => {
+    if (!selectedStrategy) return;
+
+    const compraLeg = selectedStrategy.legs.find(leg => leg.ops_strategy_role === 'LONG_LEG');
+    const vendaLeg = selectedStrategy.legs.find(leg => leg.ops_strategy_role === 'SHORT_LEG');
+
+    if (!compraLeg || !vendaLeg) return;
+
+    // Mapear para o formato esperado pela função editarOpcao
+    const compraFormatted = {
+      opcao: data.compraData.ops_ticker,
+      operacao: 'compra',
+      tipo: 'call',
+      acao: data.compraData.ops_acao,
+      strike: data.compraData.ops_strike,
+      cotacao: data.compraData.acao_cotacao,
+      quantidade: data.compraData.ops_quanti,
+      premio: data.compraData.ops_premio,
+      data: data.compraData.ops_vencimento,
+    };
+
+    const vendaFormatted = {
+      opcao: data.vendaData.ops_ticker,
+      operacao: 'venda',
+      tipo: 'call',
+      acao: data.vendaData.ops_acao,
+      strike: data.vendaData.ops_strike,
+      cotacao: data.vendaData.acao_cotacao,
+      quantidade: data.vendaData.ops_quanti,
+      premio: data.vendaData.ops_premio,
+      data: data.vendaData.ops_vencimento,
+    };
+
+    // Editar ambas as pernas
+    await editarOpcao(compraLeg.ops_id, compraFormatted);
+    await editarOpcao(vendaLeg.ops_id, vendaFormatted);
+    await refreshData();
+  };
+
+  // ... inside render ...
+
+
 
   // Ordenar opções finalizadas por data de encerramento (mais recente primeiro)
   const opcoesFinalizadas = opcoes
@@ -351,21 +516,39 @@ export default function ListaOpcoes() {
 
               <TabsContent value="abertas" className="mt-4">
                 <div className="cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 items-start">
-                  {opcoesAbertas.map((opcao, index) => (
-                    <CardOpcao
-                      key={`${opcao.opcao}-${index}`}
-                      opcao={opcao}
-                      isHighlighted={highlightedOpcaoId === opcao.ops_id}
-                      onEncerrar={handleEncerrar}
-                      onEditar={handleEdit}
-                      onDeletar={handleDelete}
-                      calculateDiferencaPercentual={calculateDiferencaPercentual}
-                      calculateGanhoMaximo={calculateGanhoMaximo}
-                      calculateRentabilidadeMaxima={calculateRentabilidadeMaxima}
-                      formatCurrency={formatCurrency}
-                      formatDate={formatDate}
-                    />
-                  ))}
+                  {opcoesAbertas.map((item, index) => {
+                    if ('legs' in item) {
+                      // Render Strategy Card
+                      return (
+                        <StrategyCard
+                          key={item.id}
+                          strategy={item}
+                          onEncerrar={handleEncerrar}
+                          onEncerrarTrava={handleEncerrarTrava}
+                          onEditar={handleEditTrava}
+                          onDeletar={handleDelete}
+                          isHighlighted={highlightedStrategyId === item.id}
+                        />
+                      );
+                    } else {
+                      // Render Single Option Card
+                      return (
+                        <CardOpcao
+                          key={`${item.opcao}-${index}`}
+                          opcao={item}
+                          isHighlighted={highlightedOpcaoId === item.ops_id}
+                          onEncerrar={handleEncerrar}
+                          onEditar={handleEdit}
+                          onDeletar={handleDelete}
+                          calculateDiferencaPercentual={calculateDiferencaPercentual}
+                          calculateGanhoMaximo={calculateGanhoMaximo}
+                          calculateRentabilidadeMaxima={calculateRentabilidadeMaxima}
+                          formatCurrency={formatCurrency}
+                          formatDate={formatDate}
+                        />
+                      );
+                    }
+                  })}
                 </div>
               </TabsContent>
 
@@ -567,6 +750,26 @@ export default function ListaOpcoes() {
         }}
         onConfirm={handleConfirmEditEncerramento}
       />
+
+      <EncerrarTravaModal
+        strategy={selectedStrategy}
+        isOpen={travaModalOpen}
+        onClose={() => {
+          setTravaModalOpen(false);
+          setSelectedStrategy(null);
+        }}
+        onConfirm={handleConfirmEncerrarTrava}
+      />
+
+      <EditarTravaModal
+        strategy={selectedStrategy}
+        isOpen={editTravaModalOpen}
+        onClose={() => {
+          setEditTravaModalOpen(false);
+          setSelectedStrategy(null);
+        }}
+        onConfirm={handleConfirmEditTrava}
+      />
     </div>
   );
 }
@@ -622,6 +825,12 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
           <span className="font-semibold text-xs">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
         </div>
         <div className="w-px bg-gray-200 mx-2 self-stretch" />
+        {/* Bloco Prêmio */}
+        <div className="flex flex-col items-center min-w-0">
+          <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Prêmio</span>
+          <span className="font-semibold text-xs">{opcao.premio ? formatCurrency(opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
+        </div>
+        <div className="w-px bg-gray-200 mx-2 self-stretch" />
         {/* Bloco Qnt */}
         <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Qnt</span>
@@ -632,12 +841,6 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
         <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Validade</span>
           <span className="font-semibold text-xs">{opcao.data ? formatDate(opcao.data) : '-'}</span>
-        </div>
-        <div className="w-px bg-gray-200 mx-2 self-stretch" />
-        {/* Bloco Prêmio */}
-        <div className="flex flex-col items-center min-w-0">
-          <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Prêmio</span>
-          <span className="font-semibold text-xs">{opcao.premio ? formatCurrency(opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
         </div>
       </div>
       {/* LINHA PONTILHADA → SEMPRE VISÍVEL */}
@@ -661,7 +864,7 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
           </div>
           <div className="flex justify-between items-center text-xs">
             <span className="text-sm text-gray-500 font-regular">Ganho/perda máx.</span>
-            <span className="text-sm font-semibold">{calculateGanhoMaximo(opcao) !== 0 ? 'R$ ' + formatCurrency(calculateGanhoMaximo(opcao)) : '-'}</span>
+            <span className="text-sm font-semibold">{calculateGanhoMaximo(opcao) !== 0 ? formatCurrency(calculateGanhoMaximo(opcao)) : '-'}</span>
           </div>
           <div className="flex justify-between items-center text-xs">
             <span className="text-sm text-gray-500 font-regular">Rentab. máx.</span>
