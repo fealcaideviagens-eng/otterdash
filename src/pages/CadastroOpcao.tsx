@@ -13,6 +13,7 @@ import { CalendarIcon, AlertTriangle, CheckCircle, DollarSign, Pencil, TrendingU
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -766,11 +767,11 @@ export default function CadastroOpcao() {
       let payoffRatio = 0;
       let payoffLabel = "";
       let payoffColor = "";
-      let nivelRisco = "baixo";
-      let corRisco = "text-green-600";
+      let nivelRisco = "-";
+      let corRisco = "text-slate-900";
       let progressValue = 0;
       let distanciaAlvo = 0;
-      let distanciaLabel = "";
+      let distanciaLabel = "-";
       let mostrarDistancia = false;
 
       if (quantidade > 0 && strikeCompra > 0 && strikeVenda > 0 && premioCompra > 0 && premioVenda > 0) {
@@ -839,7 +840,7 @@ export default function CadastroOpcao() {
 
               // Distance to break-even (needs to go UP)
               distanciaAlvo = ((breakEven / cotacao) - 1) * 100;
-              distanciaLabel = `Faltam ${formatPercentage(distanciaAlvo)} para o equilíbrio`;
+              distanciaLabel = `Faltam ${Math.abs(distanciaAlvo).toFixed(1)}% para o equilíbrio`;
             }
             // Scenario 2: ATM (Strike Compra <= Cotação <= Strike Venda) - Moderado
             else if (cotacao >= strikeCompra && cotacao <= strikeVenda) {
@@ -849,17 +850,17 @@ export default function CadastroOpcao() {
 
               if (cotacao < breakEven) {
                 distanciaAlvo = ((breakEven / cotacao) - 1) * 100;
-                distanciaLabel = `Faltam ${formatPercentage(distanciaAlvo)} para o equilíbrio`;
+                distanciaLabel = `Faltam ${Math.abs(distanciaAlvo).toFixed(1)}% para o equilíbrio`;
               } else {
                 distanciaLabel = "No Lucro ✅";
               }
             }
             // Scenario 3: ITM (Cotação > Strike Venda) - Conservador
             else {
-              nivelRisco = "Conservador (ITM)";
+              nivelRisco = "Conservador";
               corRisco = "text-green-600";
               progressValue = 20;
-              distanciaLabel = "No Lucro ✅";
+              distanciaLabel = "Acima do ponto de equilíbrio";
             }
           } else {
             // BEAR PUT SPREAD RISK LOGIC (Betting on DOWNWARD movement)
@@ -892,28 +893,28 @@ export default function CadastroOpcao() {
               // Fórmula: ((BreakEven - Cotação) / Cotação) * 100
               // Resultado negativo indica queda necessária
               distanciaAlvo = ((breakEven - cotacao) / cotacao) * 100;
-              distanciaLabel = `Faltam cair ${formatPercentage(Math.abs(distanciaAlvo))} para o equilíbrio`;
+              distanciaLabel = `Faltam cair ${Math.abs(distanciaAlvo).toFixed(1)}% para o equilíbrio`;
             }
             // Scenario 2: ATM (Strike Venda <= Cotação <= Strike Compra) - Moderado
             else if (cotacao >= strikeVenda && cotacao <= strikeCompra) {
-              nivelRisco = "Moderado (ATM)";
+              nivelRisco = "Moderado";
               corRisco = "text-yellow-600";
               progressValue = 45;
 
               if (cotacao > breakEven) {
                 // Fórmula: ((BreakEven - Cotação) / Cotação) * 100
                 distanciaAlvo = ((breakEven - cotacao) / cotacao) * 100;
-                distanciaLabel = `Faltam cair ${formatPercentage(Math.abs(distanciaAlvo))} para o equilíbrio`;
+                distanciaLabel = `Faltam cair ${Math.abs(distanciaAlvo).toFixed(1)}% para o equilíbrio`;
               } else {
                 distanciaLabel = "No Lucro ✅";
               }
             }
             // Scenario 3: ITM (Cotação < Strike Venda) - Conservador (already fell)
             else {
-              nivelRisco = "Conservador (ITM)";
+              nivelRisco = "Conservador";
               corRisco = "text-green-600";
               progressValue = 20;
-              distanciaLabel = "No Lucro ✅";
+              distanciaLabel = "Abaixo do ponto de equilíbrio";
             }
           }
         }
@@ -1382,6 +1383,7 @@ export default function CadastroOpcao() {
                           <Calendar
                             mode="single"
                             selected={formData.data ? parseLocalDate(formData.data) : undefined}
+                            defaultMonth={formData.data ? parseLocalDate(formData.data) : undefined}
                             onSelect={(date) => {
                               if (date) {
                                 const year = date.getFullYear();
@@ -1397,6 +1399,7 @@ export default function CadastroOpcao() {
                               return dayOfWeek === 0 || dayOfWeek === 6;
                             }}
                             initialFocus
+                            locale={ptBR}
                             className={cn("p-3 pointer-events-auto")}
                           />
                         </PopoverContent>
@@ -1703,7 +1706,7 @@ export default function CadastroOpcao() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="data">Vencimento</Label>
-                      <Popover>
+                      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -1724,6 +1727,7 @@ export default function CadastroOpcao() {
                           <Calendar
                             mode="single"
                             selected={formData.data ? parseLocalDate(formData.data) : undefined}
+                            defaultMonth={formData.data ? parseLocalDate(formData.data) : undefined}
                             onSelect={(date) => {
                               if (date) {
                                 const year = date.getFullYear();
@@ -1731,6 +1735,7 @@ export default function CadastroOpcao() {
                                 const day = String(date.getDate()).padStart(2, '0');
                                 const dateString = `${year}-${month}-${day}`;
                                 handleInputChange("data", dateString);
+                                setIsCalendarOpen(false);
                               }
                             }}
                             disabled={(date) => {
@@ -1738,6 +1743,7 @@ export default function CadastroOpcao() {
                               return dayOfWeek === 0 || dayOfWeek === 6;
                             }}
                             initialFocus
+                            locale={ptBR}
                             className={cn("p-3 pointer-events-auto")}
                           />
                         </PopoverContent>
@@ -1848,7 +1854,7 @@ export default function CadastroOpcao() {
                     </TooltipProvider>
                   </div>
                   <p className="font-semibold text-slate-900">
-                    1 : {operationData.payoffRatio.toFixed(2)}
+                    {operationData.payoffRatio > 0 ? `1 : ${parseFloat(operationData.payoffRatio.toFixed(1))}` : "-"}
                   </p>
                 </div>
 

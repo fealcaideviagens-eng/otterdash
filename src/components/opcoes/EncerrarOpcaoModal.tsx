@@ -17,6 +17,7 @@ import { formatCurrency as formatCurrencyInput, parseCurrencyToNumber } from "@/
 import { CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface EncerrarOpcaoModalProps {
@@ -41,6 +42,7 @@ export const EncerrarOpcaoModal = ({
     premio: "0,00",
     data: formatDateForInput(new Date()),
   });
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -173,7 +175,7 @@ export const EncerrarOpcaoModal = ({
 
             <div>
               <Label htmlFor="data">Data de encerramento</Label>
-              <Popover>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -194,6 +196,7 @@ export const EncerrarOpcaoModal = ({
                   <Calendar
                     mode="single"
                     selected={formData.data ? parseLocalDate(formData.data) : undefined}
+                    defaultMonth={formData.data ? parseLocalDate(formData.data) : undefined}
                     onSelect={(date) => {
                       if (date) {
                         // Usar formato ISO sem conversão de fuso horário
@@ -202,6 +205,7 @@ export const EncerrarOpcaoModal = ({
                         const day = String(date.getDate()).padStart(2, '0');
                         const dateString = `${year}-${month}-${day}`;
                         setFormData(prev => ({ ...prev, data: dateString }));
+                        setIsCalendarOpen(false);
                       }
                     }}
                     disabled={(date) => {
@@ -210,6 +214,7 @@ export const EncerrarOpcaoModal = ({
                       return dayOfWeek === 0 || dayOfWeek === 6;
                     }}
                     initialFocus
+                    locale={ptBR}
                     className={cn("p-3 pointer-events-auto")}
                   />
                 </PopoverContent>

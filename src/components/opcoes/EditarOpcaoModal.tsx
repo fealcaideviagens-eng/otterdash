@@ -23,6 +23,7 @@ import { formatCurrency, formatNumber, formatCurrencyValue, parseCurrencyToNumbe
 import { formatDateForInput, parseLocalDate } from "@/utils/formatters";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,6 +47,7 @@ export function EditarOpcaoModal({
     quantidade: "",
     premio: "",
   });
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -217,7 +219,7 @@ export function EditarOpcaoModal({
 
           <div className="space-y-2">
             <Label>Vencimento</Label>
-            <Popover>
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -238,13 +240,16 @@ export function EditarOpcaoModal({
                 <Calendar
                   mode="single"
                   selected={formData.data ? parseLocalDate(formData.data) : undefined}
+                  defaultMonth={formData.data ? parseLocalDate(formData.data) : undefined}
                   onSelect={(date) => {
                     if (date) {
                       const dateStr = formatDateForInput(date);
                       handleInputChange("data", dateStr);
+                      setIsCalendarOpen(false);
                     }
                   }}
                   initialFocus
+                  locale={ptBR}
                 />
               </PopoverContent>
             </Popover>

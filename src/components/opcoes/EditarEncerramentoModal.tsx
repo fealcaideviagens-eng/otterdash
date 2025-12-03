@@ -15,6 +15,7 @@ import { formatCurrency as formatCurrencyInput, parseCurrencyToNumber } from "@/
 import { formatDateForInput, parseLocalDate, formatQuantidade } from "@/utils/formatters";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Venda } from "@/types/database";
 
@@ -38,6 +39,7 @@ export function EditarEncerramentoModal({
     data: "",
     quantidade: 0,
   });
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const [formattedValues, setFormattedValues] = useState({
     premio: "",
@@ -116,7 +118,7 @@ export function EditarEncerramentoModal({
 
           <div>
             <Label>Data de Encerramento</Label>
-            <Popover>
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -137,13 +139,16 @@ export function EditarEncerramentoModal({
                 <Calendar
                   mode="single"
                   selected={formData.data ? parseLocalDate(formData.data) : undefined}
+                  defaultMonth={formData.data ? parseLocalDate(formData.data) : undefined}
                   onSelect={(date) => {
                     if (date) {
                       const dateStr = formatDateForInput(date);
                       setFormData({ ...formData, data: dateStr });
+                      setIsCalendarOpen(false);
                     }
                   }}
                   initialFocus
+                  locale={ptBR}
                 />
               </PopoverContent>
             </Popover>
