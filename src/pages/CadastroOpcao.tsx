@@ -685,11 +685,35 @@ export default function CadastroOpcao() {
         // Based on instructions: "fazendo join com cod_ops se necessário ou buscando direto pelo ticker"
 
         // Let's try to find the ID in cod_ops first for the ACTION (not the option ticker)
-        const { data: acaoData, error: acaoError } = await supabase
+        const normalizedTicker = formData.acao.trim().toUpperCase();
+
+        // Strategy: 
+        // 1. Try exact match (e.g. "PETR4")
+        // 2. If not found, try stripping digits (e.g. "PETR4" -> "PETR") because cod_ops might store "PETR"
+
+        let acaoData = null;
+
+        // Attempt 1: Exact match
+        const { data: dataExact } = await supabase
           .from('cod_ops' as any)
           .select('id')
-          .eq('ops_ticker', formData.acao)
+          .eq('ops_ticker', normalizedTicker)
           .maybeSingle();
+
+        acaoData = dataExact;
+
+        // Attempt 2: Strip digits if exact match failed
+        if (!acaoData && /\d+$/.test(normalizedTicker)) {
+          const tickerBase = normalizedTicker.replace(/\d+$/, '');
+
+          const { data: dataBase } = await supabase
+            .from('cod_ops' as any)
+            .select('id')
+            .eq('ops_ticker', tickerBase)
+            .maybeSingle();
+
+          acaoData = dataBase;
+        }
 
         if (acaoData && (acaoData as any).id) {
           const { data: paramData, error: paramError } = await supabase
@@ -699,7 +723,8 @@ export default function CadastroOpcao() {
             .maybeSingle();
 
           if (paramData && (paramData as any).volatilidade_anual) {
-            setVolatilidade(Number((paramData as any).volatilidade_anual));
+            const volValue = Number((paramData as any).volatilidade_anual);
+            setVolatilidade(volValue);
             return;
           }
         }
@@ -751,6 +776,10 @@ export default function CadastroOpcao() {
     const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
     const isBullCallSpread = selectedStrategyId === 'alta_moderada';
     const isBearPutSpread = selectedStrategyId === 'queda_moderada';
+    const isShortPut = selectedStrategyId === 'renda_extra_dinheiro';
+    const isShortCall = selectedStrategyId === 'renda_extra_acoes';
+    const isLongPut = selectedStrategyId === 'queda_infinita';
+    const isLongCall = selectedStrategyId === 'alta_infinita';
 
     // TRAVA-SPECIFIC CALCULATIONS
     if (isTrava) {
@@ -964,9 +993,12 @@ export default function CadastroOpcao() {
     let valorTotal = 0;
     let valorTotalLabel = "";
     let isGanho = true;
-    let nivelRisco = "baixo";
-    let corRisco = "text-green-600";
+    let nivelRisco = "-";
+    let corRisco = "text-slate-900";
     let progressValue = 0; // 0 a 100
+    let breakEven = 0;
+    let distanciaAlvo = 0;
+    let distanciaLabel = "-";
 
     if (strike > 0 && cotacao > 0) {
       // Calculate percentage difference for display
@@ -1010,22 +1042,22 @@ export default function CadastroOpcao() {
       if (formData.operacao === "venda") {
         if (isITM) {
           // Venda ITM -> Altíssimo Risco
-          nivelRisco = "Altíssimo";
+          nivelRisco = "Agressivo";
           corRisco = "text-red-800";
           progressValue = 95;
         } else {
           // Venda OTM -> Analisar Score
           if (score <= 0.50) {
-            nivelRisco = "Alto";
+            nivelRisco = "Agressivo";
             corRisco = "text-red-600";
             progressValue = 80;
           } else if (score <= 1.50) {
-            nivelRisco = "Médio";
+            nivelRisco = "Moderado";
             corRisco = "text-yellow-600";
             progressValue = 50;
           } else {
             // Score > 1.50
-            nivelRisco = "Baixo";
+            nivelRisco = "Conservador";
             corRisco = "text-green-600";
             progressValue = 20;
           }
@@ -1035,25 +1067,85 @@ export default function CadastroOpcao() {
       else {
         if (isITM) {
           // Compra ITM -> Baixíssimo Risco (já tem valor intrínseco)
-          nivelRisco = "Baixíssimo";
+          nivelRisco = "Conservador";
           corRisco = "text-emerald-600";
           progressValue = 15;
         } else {
           // Compra OTM -> Analisar Score (Risco de virar pó)
           if (score <= 0.50) {
-            nivelRisco = "Baixo";
+            nivelRisco = "Conservador";
             corRisco = "text-green-600";
             progressValue = 35;
           } else if (score <= 1.50) {
-            nivelRisco = "Médio";
+            nivelRisco = "Moderado";
             corRisco = "text-yellow-600";
             progressValue = 65;
           } else {
             // Score > 1.50 (Muito longe do dinheiro)
-            nivelRisco = "Alto";
+            nivelRisco = "Agressivo";
             corRisco = "text-red-600";
             progressValue = 90;
           }
+        }
+      }
+    }
+
+    // Short Put Specific Calculations
+    if (isShortPut && strike > 0 && premio > 0) {
+      breakEven = strike - premio;
+      if (cotacao > 0) {
+        // Distance logic: ((Cotação - Equilíbrio) / Cotação) * 100
+        distanciaAlvo = ((cotacao - breakEven) / cotacao) * 100;
+        const formattedDistancia = parseFloat(Math.abs(distanciaAlvo).toFixed(1)) + '%';
+        if (distanciaAlvo >= 0) {
+          distanciaLabel = `Faltam cair ${formattedDistancia} para o equilíbrio`;
+        } else {
+          distanciaLabel = `Ultrapassou o equilíbrio em ${formattedDistancia}`;
+        }
+      }
+    }
+
+    // Short Call Specific Calculations
+    if (isShortCall && strike > 0 && premio > 0) {
+      breakEven = strike + premio;
+      if (cotacao > 0) {
+        // Distance logic: ((BreakEven - Cotação) / Cotação) * 100
+        distanciaAlvo = ((breakEven - cotacao) / cotacao) * 100;
+        const formattedDistancia = parseFloat(Math.abs(distanciaAlvo).toFixed(1)) + '%';
+        if (distanciaAlvo >= 0) {
+          distanciaLabel = `Faltam ${formattedDistancia} para o equilíbrio`;
+        } else {
+          distanciaLabel = `Ultrapassou o equilíbrio em ${formattedDistancia}`;
+        }
+      }
+    }
+
+    // Long Put Specific Calculations
+    if (isLongPut && strike > 0 && premio > 0) {
+      breakEven = strike - premio;
+      if (cotacao > 0) {
+        // Distance logic: ((Cotação - BreakEven) / Cotação) * 100
+        distanciaAlvo = ((cotacao - breakEven) / cotacao) * 100;
+        const formattedDistancia = parseFloat(Math.abs(distanciaAlvo).toFixed(1)) + '%';
+        if (distanciaAlvo >= 0) {
+          distanciaLabel = `Faltam cair ${formattedDistancia} para o equilíbrio`;
+        } else {
+          distanciaLabel = `Ultrapassou o equilíbrio em ${formattedDistancia}`;
+        }
+      }
+    }
+
+    // Long Call Specific Calculations
+    if (isLongCall && strike > 0 && premio > 0) {
+      breakEven = strike + premio;
+      if (cotacao > 0) {
+        // Distance logic: ((BreakEven - Cotação) / Cotação) * 100
+        distanciaAlvo = ((breakEven - cotacao) / cotacao) * 100;
+        const formattedDistancia = parseFloat(Math.abs(distanciaAlvo).toFixed(1)) + '%';
+        if (distanciaAlvo >= 0) {
+          distanciaLabel = `Faltam ${formattedDistancia} para o equilíbrio`;
+        } else {
+          distanciaLabel = `Ultrapassou o equilíbrio em ${formattedDistancia}`;
         }
       }
     }
@@ -1153,6 +1245,10 @@ export default function CadastroOpcao() {
 
     return {
       isTrava: false,
+      isShortPut,
+      isShortCall,
+      isLongPut,
+      isLongCall,
       percentualDiferenca,
       valorTotal,
       valorTotalLabel,
@@ -1174,12 +1270,13 @@ export default function CadastroOpcao() {
       // Trava fields (empty for non-trava)
       custoTotal: 0,
       lucroMaximo: 0,
-      breakEven: 0,
+
+      breakEven,
       payoffRatio: 0,
       payoffLabel: "",
       payoffColor: "",
-      distanciaAlvo: 0,
-      distanciaLabel: "",
+      distanciaAlvo,
+      distanciaLabel,
       mostrarDistancia: false
     };
   };
@@ -1771,8 +1868,8 @@ export default function CadastroOpcao() {
           </CardHeader>
           <CardContent className="space-y-6">
 
-            {/* Hide "Diferença Strike vs Cotação" for trava */}
-            {!operationData.isTrava && (
+            {/* Hide "Diferença Strike vs Cotação" for trava, short put, short call, long put, and long call */}
+            {!operationData.isTrava && !operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
               <div>
                 <TooltipProvider>
                   <Tooltip>
@@ -1882,25 +1979,251 @@ export default function CadastroOpcao() {
                 </div>
               </div>
             ) : (
-              <div>
-                <Label className="text-sm text-slate-500 font-medium">Nível de risco</Label>
-                <div className="relative mt-4 flex justify-center">
-                  <div className="relative w-48 h-24 overflow-hidden">
-                    <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
-                    <div
-                      className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
-                      style={{
-                        background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
-                        transform: 'rotate(-90deg)',
-                        maskImage: 'radial-gradient(transparent 63%, black 64%)',
-                        WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
-                      }}
-                    ></div>
+              !operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
+                <div>
+                  <Label className="text-sm text-slate-500 font-medium">Nível de risco</Label>
+                  <div className="relative mt-4 flex justify-center">
+                    <div className="relative w-48 h-24 overflow-hidden">
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div
+                        className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                          transform: 'rotate(-90deg)',
+                          maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                          WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                        }}
+                      ></div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 text-center">
+                      <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                        {operationData.nivelRisco}
+                      </p>
+                    </div>
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 text-center">
-                    <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
-                      {operationData.nivelRisco}
-                    </p>
+                </div>
+              )
+            )}
+
+            {/* SHORT PUT SPECIFIC LAYOUT */}
+            {operationData.isShortPut && (
+              <div className="space-y-4 pb-4">
+                <div>
+                  <div className="flex items-center gap-1">
+                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-xs">
+                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <p className="font-semibold text-slate-900">
+                    {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Distância do ponto de equilíbrio</Label>
+                  <p className="font-semibold text-slate-900">
+                    {operationData.distanciaLabel}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <div className="relative mt-4 flex justify-center">
+                    <div className="relative w-48 h-24 overflow-hidden">
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div
+                        className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                          transform: 'rotate(-90deg)',
+                          maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                          WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                        }}
+                      ></div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 text-center">
+                      <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                        {operationData.nivelRisco}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SHORT CALL SPECIFIC LAYOUT */}
+            {operationData.isShortCall && (
+              <div className="space-y-4 pb-4">
+                <div>
+                  <div className="flex items-center gap-1">
+                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-xs">
+                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você perde. Abaixo, você ganha.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <p className="font-semibold text-slate-900">
+                    {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Distância do ponto de equilíbrio</Label>
+                  <p className="font-semibold text-slate-900">
+                    {operationData.distanciaLabel}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <div className="relative mt-4 flex justify-center">
+                    <div className="relative w-48 h-24 overflow-hidden">
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div
+                        className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                          transform: 'rotate(-90deg)',
+                          maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                          WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                        }}
+                      ></div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 text-center">
+                      <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                        {operationData.nivelRisco}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* LONG PUT SPECIFIC LAYOUT */}
+            {operationData.isLongPut && (
+              <div className="space-y-4 pb-4">
+                <div>
+                  <div className="flex items-center gap-1">
+                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-xs">
+                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você perde. Abaixo, você ganha.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <p className="font-semibold text-slate-900">
+                    {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Distância do ponto de equilíbrio</Label>
+                  <p className="font-semibold text-slate-900">
+                    {operationData.distanciaLabel}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <div className="relative mt-4 flex justify-center">
+                    <div className="relative w-48 h-24 overflow-hidden">
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div
+                        className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                          transform: 'rotate(-90deg)',
+                          maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                          WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                        }}
+                      ></div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 text-center">
+                      <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                        {operationData.nivelRisco}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* LONG CALL SPECIFIC LAYOUT */}
+            {operationData.isLongCall && (
+              <div className="space-y-4 pb-4">
+                <div>
+                  <div className="flex items-center gap-1">
+                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="text-xs">
+                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <p className="font-semibold text-slate-900">
+                    {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Distância do ponto de equilíbrio</Label>
+                  <p className="font-semibold text-slate-900">
+                    {operationData.distanciaLabel}
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <div className="relative mt-4 flex justify-center">
+                    <div className="relative w-48 h-24 overflow-hidden">
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div
+                        className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                          transform: 'rotate(-90deg)',
+                          maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                          WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                        }}
+                      ></div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 text-center">
+                      <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                        {operationData.nivelRisco}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1911,7 +2234,7 @@ export default function CadastroOpcao() {
             <div className="pt-4 border-t border-slate-100 space-y-4">
               {/* Trava-specific metrics */}
               {operationData.isTrava ? (
-                <>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-xs text-slate-500">Risco máximo</Label>
                     <p className="font-semibold text-red-600">
@@ -1925,12 +2248,13 @@ export default function CadastroOpcao() {
                       {operationData.lucroMaximo !== 0 ? formatCurrencyDisplay(operationData.lucroMaximo) : '-'}
                     </p>
                   </div>
-                </>
+                </div>
+
 
               ) : (
                 <>
                   {/* Original metrics for non-trava strategies */}
-                  {operationData.mostrarValorExercicio && (
+                  {!operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && operationData.mostrarValorExercicio && (
                     <div>
                       <Label className="text-xs text-slate-500">Valor de Exercício</Label>
                       <p className="font-semibold text-slate-900">
@@ -1939,14 +2263,16 @@ export default function CadastroOpcao() {
                     </div>
                   )}
 
-                  <div>
-                    <Label className="text-xs text-slate-500">{operationData.valorTotalLabel}</Label>
-                    <p className={`font-semibold ${operationData.isGanho ? 'text-green-600' : 'text-red-600'}`}>
-                      {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
-                    </p>
-                  </div>
+                  {!operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
+                    <div>
+                      <Label className="text-xs text-slate-500">{operationData.valorTotalLabel}</Label>
+                      <p className={`font-semibold ${operationData.isGanho ? 'text-green-600' : 'text-red-600'}`}>
+                        {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                      </p>
+                    </div>
+                  )}
 
-                  {operationData.mostrarAlavancagem && (
+                  {!operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && operationData.mostrarAlavancagem && (
                     <div>
                       <Label className="text-xs text-slate-500">Status Cobertura</Label>
                       <div className="flex items-center gap-2 mt-1">
@@ -1970,11 +2296,231 @@ export default function CadastroOpcao() {
                   )}
                 </>
               )}
+
+              {/* SHORT PUT SPECIFIC METRICS */}
+              {operationData.isShortPut && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs text-slate-500">Risco máximo</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-xs">
+                                Representa o valor que você precisará ter em conta se for exercido. Você será obrigado a comprar as ações pelo valor do Strike, independente de quanto elas estejam valendo no mercado.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <p className="font-semibold text-red-600">
+                        {operationData.valorExercicio !== 0 ? formatCurrencyDisplay(-operationData.valorExercicio) : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs text-slate-500">Lucro máximo</Label>
+                      </div>
+                      <p className="font-semibold text-green-600">
+                        {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {operationData.mostrarAlavancagem && (
+                    <div className={cn(
+                      "rounded-lg p-3 flex items-center justify-center gap-2 text-white font-bold text-sm",
+                      operationData.isAlavancado ? "bg-red-600" : "bg-green-600"
+                    )}>
+                      {operationData.isAlavancado ? (
+                        <>
+                          <AlertTriangle className="h-4 w-4 text-white" />
+                          {operationData.statusAlavancagem}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-white" />
+                          100% Coberto
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SHORT CALL SPECIFIC METRICS */}
+              {operationData.isShortCall && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs text-slate-500">Risco máximo</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-xs">
+                                Se for exercido, você terá que entregar esta quantidade de ações para o comprador ou ter {formatCurrencyDisplay((parseCurrencyToNumber(formData.strike) - parseCurrencyToNumber(formData.premio)) * parseNumberToInt(formData.quantidade))} para comprar as ações
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <p className="font-semibold text-red-600 text-sm">
+                        -{formData.quantidade || 0} ações
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs text-slate-500">Lucro máximo</Label>
+                      </div>
+                      <p className="font-semibold text-green-600">
+                        {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {operationData.mostrarAlavancagem && (
+                    <div className={cn(
+                      "rounded-lg p-3 flex items-center justify-center gap-2 text-white font-bold text-sm",
+                      operationData.isAlavancado ? "bg-red-600" : "bg-green-600"
+                    )}>
+                      {operationData.isAlavancado ? (
+                        <>
+                          <AlertTriangle className="h-4 w-4 text-white" />
+                          {operationData.statusAlavancagem}
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-white" />
+                          100% Coberto
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* LONG PUT SPECIFIC METRICS */}
+              {operationData.isLongPut && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs text-slate-500">Risco máximo</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-xs">
+                                Este é o valor máximo que você pode perder: o dinheiro que você pagou para montar a operação. Você não fica devendo nada além disso.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <p className="font-semibold text-red-600">
+                        {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs text-slate-500">Ganho máximo</Label>
+                      </div>
+                      <p className="font-semibold text-green-600">
+                        {operationData.valorTotal !== 0 ? 'Exponencial' : '-'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {operationData.mostrarAlavancagem && (
+                    <div className={cn(
+                      "rounded-lg p-3 flex items-center justify-center gap-2 text-white font-bold text-sm",
+                      operationData.isAlavancado ? "bg-red-600" : "bg-green-600"
+                    )}>
+                      {operationData.isAlavancado ? (
+                        <>
+                          <AlertTriangle className="h-4 w-4 text-white" />
+                          Especulação (Sem ativo)
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-white" />
+                          Carteira Protegida
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* LONG CALL SPECIFIC METRICS */}
+              {operationData.isLongCall && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs text-slate-500">Risco máximo</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-xs">
+                                Valor máximo que você pode perder nesta operação. Limitado ao prêmio pago.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <p className="font-semibold text-red-600">
+                        {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <Label className="text-xs text-slate-500">Ganho máximo</Label>
+                      </div>
+                      <p className="font-semibold text-green-600">
+                        {operationData.valorTotal !== 0 ? 'Exponencial' : '-'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {operationData.mostrarAlavancagem && (
+                    <div className={cn(
+                      "rounded-lg p-3 flex items-center justify-center gap-2 text-white font-bold text-sm",
+                      operationData.isAlavancado ? "bg-orange-600" : "bg-green-600"
+                    )}>
+                      {operationData.isAlavancado ? (
+                        <>
+                          <AlertTriangle className="h-4 w-4 text-white" />
+                          Especulação (Sem caixa)
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-white" />
+                          Exercício garantido
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
           </CardContent>
         </Card>
       </div>
-    </div>
+    </div >
   );
 }
