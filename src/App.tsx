@@ -20,6 +20,8 @@ import NotFound from "./pages/NotFound";
 import DadosPessoais from "./pages/DadosPessoais";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import ResetPassword from "./pages/ResetPassword";
+import NovaOperacao from "./pages/NovaOperacao";
+import CadastroRapido from "./pages/CadastroRapido";
 import { AuthCallbackHandler } from "./components/AuthCallbackHandler";
 
 const queryClient = new QueryClient({
@@ -115,7 +117,33 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/cadastro"
+        path="/nova-operacao"
+        element={
+          <ProtectedRoute>
+            <div className="flex h-screen bg-background">
+              <Sidebar />
+              <main className="flex-1 overflow-auto p-6 lg:ml-4 pb-20 lg:pb-6">
+                <NovaOperacao />
+              </main>
+            </div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cadastro-rapido"
+        element={
+          <ProtectedRoute>
+            <div className="flex h-screen bg-background">
+              <Sidebar />
+              <main className="flex-1 overflow-auto p-6 lg:ml-4 pb-20 lg:pb-6">
+                <CadastroRapido />
+              </main>
+            </div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cadastro-opcao"
         element={
           <ProtectedRoute>
             <div className="flex h-screen bg-background">

@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { StrategyCard } from "@/components/opcoes/StrategyCard";
 import { EncerrarTravaModal } from "@/components/opcoes/EncerrarTravaModal";
 import { EditarTravaModal } from "@/components/opcoes/EditarTravaModal";
+import { DeleteTravaModal } from "@/components/opcoes/DeleteTravaModal";
 
 interface StrategyGroup {
   id: string;
@@ -52,6 +53,7 @@ export default function ListaOpcoes() {
   const [selectedStrategy, setSelectedStrategy] = useState<StrategyGroup | null>(null);
   const [travaModalOpen, setTravaModalOpen] = useState(false);
   const [editTravaModalOpen, setEditTravaModalOpen] = useState(false);
+  const [deleteTravaModalOpen, setDeleteTravaModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
   const [highlightedOpcaoId, setHighlightedOpcaoId] = useState<string | null>(null);
@@ -291,6 +293,23 @@ export default function ListaOpcoes() {
     // Editar ambas as pernas
     await editarOpcao(compraLeg.ops_id, compraFormatted);
     await editarOpcao(vendaLeg.ops_id, vendaFormatted);
+    await refreshData();
+  };
+
+  const handleDeleteTrava = (strategy: StrategyGroup) => {
+    setSelectedStrategy(strategy);
+    setDeleteTravaModalOpen(true);
+  };
+
+  const handleConfirmDeleteTrava = async () => {
+    if (!selectedStrategy) return;
+
+    const compraLeg = selectedStrategy.legs.find(leg => leg.ops_strategy_role === 'LONG_LEG');
+    const vendaLeg = selectedStrategy.legs.find(leg => leg.ops_strategy_role === 'SHORT_LEG');
+
+    if (compraLeg) await deletarOpcao(compraLeg.ops_id);
+    if (vendaLeg) await deletarOpcao(vendaLeg.ops_id);
+
     await refreshData();
   };
 
@@ -549,6 +568,7 @@ export default function ListaOpcoes() {
                           onEncerrarTrava={handleEncerrarTrava}
                           onEditar={handleEditTrava}
                           onDeletar={handleDelete}
+                          onDeletarTrava={handleDeleteTrava}
                           isHighlighted={highlightedStrategyId === item.id}
                         />
                       );
@@ -629,18 +649,22 @@ export default function ListaOpcoes() {
                                   <div className="space-y-4">
                                     <h4 className="font-semibold text-base border-b pb-2">Dados da Operação</h4>
                                     <div className="space-y-3">
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Ação:</span>
-                                        <span className="font-medium">{opcao.acao || '-'}</span>
-                                      </div>
+                                      {opcao.acao && /\d/.test(opcao.acao) && (
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Ação:</span>
+                                          <span className="font-medium">{opcao.acao}</span>
+                                        </div>
+                                      )}
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Strike:</span>
                                         <span className="font-semibold text-xs">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
                                       </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Cotação no cadastro:</span>
-                                        <span className="font-medium">{opcao.cotacao ? formatCurrency(opcao.cotacao) : '-'}</span>
-                                      </div>
+                                      {!!opcao.cotacao && (
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Cotação no cadastro:</span>
+                                          <span className="font-medium">{formatCurrency(opcao.cotacao)}</span>
+                                        </div>
+                                      )}
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Quantidade:</span>
                                         <span className="font-medium">{opcao.quantidade ? (opcao.operacao === 'venda' ? `-${formatQuantidade(opcao.quantidade)}` : formatQuantidade(opcao.quantidade)) : '-'}</span>                                      </div>
@@ -792,6 +816,16 @@ export default function ListaOpcoes() {
         }}
         onConfirm={handleConfirmEditTrava}
       />
+
+      <DeleteTravaModal
+        strategy={selectedStrategy}
+        isOpen={deleteTravaModalOpen}
+        onClose={() => {
+          setDeleteTravaModalOpen(false);
+          setSelectedStrategy(null);
+        }}
+        onConfirm={handleConfirmDeleteTrava}
+      />
     </div>
   );
 }
@@ -872,18 +906,24 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
       {/* Detalhes - exibidos apenas quando expandido */}
       {expandido && (
         <div className="flex flex-col gap-3">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-sm text-gray-500 font-regular">Ação</span>
-            <span className="font-semibold text-sm">{opcao.acao || '-'}</span>
-          </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-sm text-gray-500 font-regular">Cotação</span>
-            <span className="text-sm font-bold">R$ {opcao.cotacao ? formatCurrency(opcao.cotacao) : '-'}</span>
-          </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-sm text-gray-500 font-regular">% Diferença</span>
-            <span className="px-2 py-0.5 rounded text-xs font-semibold bg-green-50 text-green-600 border border-green-200 ml-1">{calculateDiferencaPercentual(opcao)}</span>
-          </div>
+          {opcao.acao && opcao.acao.length >= 5 && (
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-sm text-gray-500 font-regular">Ação</span>
+              <span className="font-semibold text-sm">{opcao.acao}</span>
+            </div>
+          )}
+          {!!opcao.cotacao && (
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-sm text-gray-500 font-regular">Cotação</span>
+              <span className="text-sm font-bold">R$ {formatCurrency(opcao.cotacao)}</span>
+            </div>
+          )}
+          {!!opcao.cotacao && (
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-sm text-gray-500 font-regular">% Diferença</span>
+              <span className="px-2 py-0.5 rounded text-xs font-semibold bg-green-50 text-green-600 border border-green-200 ml-1">{calculateDiferencaPercentual(opcao)}</span>
+            </div>
+          )}
           <div className="flex justify-between items-center text-xs">
             <span className="text-sm text-gray-500 font-regular">Ganho/perda máx.</span>
             <span className="text-sm font-semibold">{calculateGanhoMaximo(opcao) !== 0 ? formatCurrency(calculateGanhoMaximo(opcao)) : '-'}</span>

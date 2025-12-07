@@ -23,11 +23,12 @@ interface StrategyCardProps {
     onEncerrar: (opcao: Opcao) => void; // Encerra perna individual
     onEncerrarTrava: (strategy: StrategyGroup) => void; // Encerra tudo
     onEditar: (strategy: StrategyGroup) => void; // Editar trava
+    onDeletarTrava: (strategy: StrategyGroup) => void; // Deletar trava inteira
     onDeletar: (opcao: Opcao) => void;
     isHighlighted?: boolean;
 }
 
-export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, onDeletar, isHighlighted }: StrategyCardProps) {
+export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, onDeletar, onDeletarTrava, isHighlighted }: StrategyCardProps) {
     const [expandido, setExpandido] = useState(false);
 
     // Identify legs
@@ -182,7 +183,7 @@ export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, 
                 </Button>
                 <div className="flex space-x-1">
                     <button className="p-4 hover:bg-gray-100 rounded-full transition" onClick={() => onEditar(strategy)}><Edit size={18} /></button>
-                    <button className="p-4 text-red-600 hover:bg-red-600 hover:text-white rounded-full transition" onClick={() => onDeletar(compraLeg)}><Trash2 size={18} /></button>
+                    <button className="p-4 text-red-600 hover:bg-red-600 hover:text-white rounded-full transition" onClick={() => onDeletarTrava(strategy)}><Trash2 size={18} /></button>
                 </div>
             </div>
 

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Plus, List, Home, TrendingUp, Target, Shield, LogOut, Menu, User, Wallet } from "lucide-react";
+import { CirclePlus, List, Home, TrendingUp, Target, Shield, LogOut, Menu, User, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -14,7 +14,7 @@ import {
 
 const mainNavigation = [
   { name: "Visão geral", href: "/dashboard", icon: Home },
-  { name: "Cadastro", href: "/cadastro", icon: Plus },
+  { name: "Nova operação", href: "/nova-operacao", icon: CirclePlus },
   { name: "Portfólio", href: "/opcoes", icon: Wallet },
 ];
 
@@ -44,15 +44,15 @@ export const Sidebar = () => {
           </div>
         </div>
 
-        <nav className="flex-1 flex flex-col space-y-1 p-4">
-          <div className="flex-1 space-y-1">
+        <nav className="flex-1 flex flex-col space-y-1 p-5">
+          <div className="flex-1 space-y-2">
             {navigation.map((item) => (
               <NavLink
                 key={item.name}
                 to={item.href}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center px-3 py-2 text-sm font-medium transition-colors text-white btn-pill",
+                    "flex items-center px-3 py-3 text-sm font-medium transition-colors text-white btn-pill",
                     isActive
                       ? "bg-white/15 text-white"
                       : "hover:bg-white/5"
@@ -137,9 +137,9 @@ export const Sidebar = () => {
 
             <SheetContent side="bottom" className="w-full max-h-[80vh] rounded-t-lg bg-white p-4">
               <SheetHeader className="mb-4">
-                <SheetTitle className="text-xl font-bold text-slate-900">Menu Principal</SheetTitle>
+                <SheetTitle className="text-xl font-bold text-slate-900"></SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col space-y-1">
+              <div className="flex flex-col space-y-2">
 
                 {/* ITENS ESCONDIDOS (Lucros, Metas, Garantias) */}
                 {hamburgerNavigation.map((item) => (
@@ -161,7 +161,7 @@ export const Sidebar = () => {
                 ))}
 
                 {/* BOTÃO SAIR */}
-                <div className="pt-4 border-t border-slate-200 mt-4 space-y-1">
+                <div className="pt-4 border-t border-slate-200 mt-4 space-y-2">
                   <NavLink
                     to="/dados-pessoais"
                     className={({ isActive }) =>

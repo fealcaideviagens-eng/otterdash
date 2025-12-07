@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, PieChart, DollarSign, Plus, BarChart, Calendar, Shield, Wallet, Landmark } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, CirclePlus, BarChart, Calendar, Shield, Wallet, Landmark } from "lucide-react";
 import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { ResultsChart } from "@/components/dashboard/ResultsChart";
 import { OptionsDistributionChart } from "@/components/dashboard/OptionsDistributionChart";
@@ -110,8 +110,8 @@ export default function Dashboard() {
           className="shadow-modern"
           style={{ backgroundColor: '#263C64' }}
         >
-          <Plus className="mr-2 h-4 w-4" />
-          Cadastrar opção
+          <CirclePlus className="mr-2 h-4 w-4" />
+          Nova operação
         </Button>
       </div>
 

@@ -103,7 +103,9 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
 
     Object.keys(groups).forEach(groupId => {
       const legs = groups[groupId];
-      if (legs.length > 0) {
+      // Only include strategies that have at least 2 legs (complete strategy)
+      // This filters out "orphan" legs from partially deleted strategies
+      if (legs.length >= 2) {
         items.push({
           type: 'strategy',
           groupId,

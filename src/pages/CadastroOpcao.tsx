@@ -9,102 +9,20 @@ import { useGarantias } from "@/hooks/useGarantias";
 import { useAuth } from "@/context/AuthContext";
 import { formatDateForInput, formatCurrency as formatCurrencyDisplay, formatPercentage, parseLocalDate } from "@/utils/formatters";
 import { formatCurrency, formatNumber, parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
-import { CalendarIcon, AlertTriangle, CheckCircle, DollarSign, Pencil, TrendingUp, TrendingDown, Building2, ArrowBigDownDash, ArrowBigUpDash, HelpCircle } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, AlertTriangle, CheckCircle, DollarSign, Pencil, TrendingUp, TrendingDown, Building2, ArrowBigDownDash, ArrowBigUpDash, HelpCircle, Layers2, ChevronDown, Edit, Trash2, CirclePlus, ChevronLeft } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { STRATEGIES } from "@/constants/strategies";
+import { StrategySelector } from "@/components/operations/StrategySelector";
+import { getRiskColorHex, CALL_MONTHS, PUT_MONTHS } from "@/components/operations/smart-flow/utils";
+import type { OpcaoFormData, TravaLeg, TravaData, Draft } from "@/components/operations/smart-flow/types";
+import { DateInput } from "@/components/operations/inputs/DateInput";
+import { SuccessModal } from "@/components/operations/SuccessModal";
 
-// ESTRATÉGIAS MAPEADAS
-const STRATEGIES = [
-  {
-    id: "renda_extra_acoes",
-    group: "Renda extra",
-    title: "Com ações",
-    subtitle: "venda de call",
-    operacao: "venda",
-    tipo: "call",
-    disabled: false,
-    headerTitle: "Renda extra - venda de call",
-    icon: Building2, // <--- Referência ao ícone importado
-    colorClass: "bg-blue-100 text-blue-700" // <--- Classe de cor
 
-  },
-  {
-    id: "renda_extra_dinheiro",
-    group: "Renda extra",
-    title: "Com dinheiro",
-    subtitle: "venda de put",
-    operacao: "venda",
-    tipo: "put",
-    disabled: false,
-    headerTitle: "Renda extra - venda de put",
-    icon: DollarSign,
-    colorClass: "bg-blue-100 text-blue-700"
-  },
-  {
-    id: "alta_infinita",
-    group: "Operar a alta",
-    title: "Alta infinita",
-    subtitle: "compra a seco - call",
-    operacao: "compra",
-    tipo: "call",
-    disabled: false,
-    headerTitle: "Compra de call",
-    icon: ArrowBigUpDash,
-    colorClass: "bg-green-100 text-green-700"
-  },
-  {
-    id: "alta_moderada",
-    group: "Operar a alta",
-    title: "Alta moderada",
-    subtitle: "trava de alta - call",
-    operacao: "trava",
-    tipo: "call",
-    disabled: false,
-    headerTitle: "Trava de alta",
-    icon: TrendingUp,
-    colorClass: "bg-green-100 text-green-700"
-  },
-  {
-    id: "queda_infinita",
-    group: "Operar a baixa",
-    title: "Queda infinita",
-    subtitle: "compra a seco - put",
-    operacao: "compra",
-    tipo: "put",
-    disabled: false,
-    headerTitle: "Compra de put",
-    icon: ArrowBigDownDash,
-    colorClass: "bg-red-100 text-red-700"
-  },
-  {
-    id: "queda_moderada",
-    group: "Operar a baixa",
-    title: "Queda moderada",
-    subtitle: "trava de baixa - put",
-    operacao: "trava",
-    tipo: "put",
-    disabled: false,
-    headerTitle: "Trava de baixa",
-    icon: TrendingDown,
-    colorClass: "bg-red-100 text-red-700"
-  }
-];
-
-// Helper para converter cores Tailwind em Hex para o gradiente CSS
-const getRiskColorHex = (className: string) => {
-  if (className.includes("emerald")) return "#10b981";
-  if (className.includes("green")) return "#16a34a";
-  if (className.includes("yellow")) return "#ca8a04";
-  if (className.includes("red-800")) return "#991b1b";
-  if (className.includes("red")) return "#dc2626";
-  return "#16a34a"; // Default green
-};
 
 export default function CadastroOpcao() {
   const { user } = useAuth();
@@ -113,20 +31,25 @@ export default function CadastroOpcao() {
   const { garantias } = useGarantias({ userId: user?.id });
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const [step, setStep] = useState(1);
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>("renda_extra_acoes");
+  const currentStrategy = STRATEGIES.find(s => s.id === selectedStrategyId);
   const [volatilidade, setVolatilidade] = useState<number>(0.40); // Default 40%
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [travaData, setTravaData] = useState({
+  const [travaData, setTravaData] = useState<TravaData>({
     compra: { ticker: '', strike: '', premio: '' },
     venda: { ticker: '', strike: '', premio: '' }
   });
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [expandedDrafts, setExpandedDrafts] = useState<string[]>([]);
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
 
   const getNextBusinessDay = () => {
     const today = new Date();
-    let nextBusinessDay = new Date(today);
+    const nextBusinessDay = new Date(today);
     const dayOfWeek = today.getDay();
     if (dayOfWeek === 6) {
       nextBusinessDay.setDate(today.getDate() + 2);
@@ -147,7 +70,7 @@ export default function CadastroOpcao() {
     return count < 1 ? 1 : count; // Force at least 1 day
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<OpcaoFormData>({
     opcao: "",
     operacao: "",
     tipo: "",
@@ -156,7 +79,7 @@ export default function CadastroOpcao() {
     cotacao: "",
     quantidade: "",
     premio: "",
-    data: formatDateForInput(getNextBusinessDay()),
+    data: "",
     status: "aberta",
   });
 
@@ -269,54 +192,6 @@ export default function CadastroOpcao() {
             return;
           }
 
-          // --- VALIDAÇÃO SEMÂNTICA DO TICKER (5ª Letra) - TRAVAS ---
-          if (formData.data) {
-            const vencimento = parseLocalDate(formData.data);
-            const monthIndex = vencimento.getMonth(); // 0 = Jan, 11 = Dez
-            const CALL_MONTHS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-            const PUT_MONTHS = ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
-
-            const validateTicker = (ticker: string, legType: 'call' | 'put', fieldName: string) => {
-              if (!ticker || ticker.length < 5) return;
-
-              const fifthLetter = ticker.charAt(4).toUpperCase();
-              const isCallLetter = CALL_MONTHS.includes(fifthLetter);
-              const isPutLetter = PUT_MONTHS.includes(fifthLetter);
-
-              // 1. Validar Tipo
-              if (legType === 'call' && !isCallLetter) {
-                if (isPutLetter) {
-                  newErrors[fieldName] = "Ticker indica PUT (M-X), mas tipo é CALL.";
-                } else {
-                  newErrors[fieldName] = "5ª letra inválida para CALL (deve ser A-L).";
-                }
-                hasError = true;
-              } else if (legType === 'put' && !isPutLetter) {
-                if (isCallLetter) {
-                  newErrors[fieldName] = "Ticker indica CALL (A-L), mas tipo é PUT.";
-                } else {
-                  newErrors[fieldName] = "5ª letra inválida para PUT (deve ser M-X).";
-                }
-                hasError = true;
-              }
-
-              // 2. Validar Mês
-              if (!hasError) {
-                const expectedLetter = legType === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
-                if (fifthLetter !== expectedLetter) {
-                  const monthName = vencimento.toLocaleString('pt-BR', { month: 'long' });
-                  const monthNameCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-                  newErrors[fieldName] = `Para ${legType.toUpperCase()} em ${monthNameCap}, a letra deve ser '${expectedLetter}'.`;
-                  hasError = true;
-                }
-              }
-            };
-
-            // Validar Compra
-            validateTicker(travaData.compra.ticker, isBullCallSpread ? 'call' : 'put', 'compra.ticker');
-            // Validar Venda
-            validateTicker(travaData.venda.ticker, isBullCallSpread ? 'call' : 'put', 'venda.ticker');
-          }
         }
 
       } else {
@@ -344,47 +219,6 @@ export default function CadastroOpcao() {
         if (!formData.premio) {
           newErrors.premio = "Preencha com o prêmio";
           hasError = true;
-        }
-
-        // --- VALIDAÇÃO SEMÂNTICA DO TICKER (5ª Letra) ---
-        if (!hasError && formData.opcao && formData.opcao.length >= 5 && formData.data) {
-          const fifthLetter = formData.opcao.charAt(4).toUpperCase();
-          const vencimento = parseLocalDate(formData.data);
-          const monthIndex = vencimento.getMonth(); // 0 = Jan, 11 = Dez
-
-          const CALL_MONTHS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-          const PUT_MONTHS = ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
-
-          const isCallLetter = CALL_MONTHS.includes(fifthLetter);
-          const isPutLetter = PUT_MONTHS.includes(fifthLetter);
-
-          // 1. Validar Tipo (Call vs Put)
-          if (formData.tipo === 'call' && !isCallLetter) {
-            if (isPutLetter) {
-              newErrors.opcao = "Ticker indica PUT (M-X), mas tipo é CALL.";
-            } else {
-              newErrors.opcao = "5ª letra inválida para CALL (deve ser A-L).";
-            }
-            hasError = true;
-          } else if (formData.tipo === 'put' && !isPutLetter) {
-            if (isCallLetter) {
-              newErrors.opcao = "Ticker indica CALL (A-L), mas tipo é PUT.";
-            } else {
-              newErrors.opcao = "5ª letra inválida para PUT (deve ser M-X).";
-            }
-            hasError = true;
-          }
-
-          // 2. Validar Mês
-          if (!hasError) {
-            const expectedLetter = formData.tipo === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
-            if (fifthLetter !== expectedLetter) {
-              const monthName = vencimento.toLocaleString('pt-BR', { month: 'long' });
-              const monthNameCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-              newErrors.opcao = `Para ${formData.tipo.toUpperCase()} em ${monthNameCap}, a letra deve ser '${expectedLetter}'.`;
-              hasError = true;
-            }
-          }
         }
       }
 
@@ -472,11 +306,7 @@ export default function CadastroOpcao() {
           return;
         }
 
-        toast({
-          title: "✅ Trava Cadastrada!",
-          description: "Estratégia salva com sucesso.",
-          className: "border-green-200 bg-green-50 text-green-900",
-        });
+
 
         // Limpar formulário e voltar para etapa 1
         setFormData({
@@ -496,7 +326,8 @@ export default function CadastroOpcao() {
           venda: { ticker: '', strike: '', premio: '' }
         });
 
-        setStep(1);
+        setSuccessModalOpen(true);
+        // setStep(1); // Moved to modal action
 
       } else {
         // Lógica ORIGINAL para outras estratégias
@@ -508,11 +339,7 @@ export default function CadastroOpcao() {
 
         await addOpcao(dadosOpcao);
 
-        toast({
-          title: "✅ Opção Cadastrada!",
-          description: "Sua operação foi salva com sucesso.",
-          className: "border-green-200 bg-green-50 text-green-900",
-        });
+
 
         // Limpar formulário e voltar para etapa 1
         setFormData({
@@ -528,7 +355,8 @@ export default function CadastroOpcao() {
           status: "aberta",
         });
 
-        setStep(1);
+        setSuccessModalOpen(true);
+        // setStep(1); // Moved to modal action
       }
 
       setLoading(false);
@@ -558,6 +386,52 @@ export default function CadastroOpcao() {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     clearError(field);
+
+    // Se a data foi alterada, atualizar os tickers com a 5ª letra
+    if (field === 'data') {
+      const prefix = formData.acao.substring(0, 4);
+      if (prefix.length === 4 && value) {
+        const vencimento = parseLocalDate(value);
+        const monthIndex = vencimento.getMonth();
+        const isBullCallSpread = selectedStrategyId === 'alta_moderada';
+        const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
+
+        if (isTrava) {
+          const letter = isBullCallSpread ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+
+          // Atualizar os tickers mantendo os números que já existem
+          setTravaData(prev => ({
+            ...prev,
+            compra: {
+              ...prev.compra,
+              ticker: prev.compra.ticker.length > 5
+                ? prefix + letter + prev.compra.ticker.substring(5)
+                : prefix + letter
+            },
+            venda: {
+              ...prev.venda,
+              ticker: prev.venda.ticker.length > 5
+                ? prefix + letter + prev.venda.ticker.substring(5)
+                : prefix + letter
+            }
+          }));
+        } else {
+          // Lógica para Opção Simples
+          if (formData.opcao && formData.opcao.length >= 4) {
+            const type = formData.tipo === 'put' ? 'put' : 'call';
+            const letter = type === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+
+            let newTicker = formData.opcao;
+            if (newTicker.length >= 5) {
+              newTicker = newTicker.substring(0, 4) + letter + newTicker.substring(5);
+            } else {
+              newTicker = newTicker + letter;
+            }
+            handleOpcaoChange(newTicker);
+          }
+        }
+      }
+    }
   };
 
   const handleCurrencyChange = (field: string, value: string) => {
@@ -650,8 +524,8 @@ export default function CadastroOpcao() {
           .eq('ops_ticker', prefix)
           .maybeSingle();
 
-        if (data && (data as any).ops_acao) {
-          setFormData(prev => ({ ...prev, acao: (data as any).ops_acao }));
+        if (data && (data as { ops_acao: string }).ops_acao) {
+          setFormData(prev => ({ ...prev, acao: (data as { ops_acao: string }).ops_acao }));
         } else {
           // If not found in DB, use the first 4 letters
           setFormData(prev => ({ ...prev, acao: prefix }));
@@ -715,15 +589,15 @@ export default function CadastroOpcao() {
           acaoData = dataBase;
         }
 
-        if (acaoData && (acaoData as any).id) {
+        if (acaoData && (acaoData as { id: string }).id) {
           const { data: paramData, error: paramError } = await supabase
             .from('ativos_parametros' as any)
             .select('volatilidade_anual')
-            .eq('cod_ops_id', (acaoData as any).id)
+            .eq('cod_ops_id', (acaoData as { id: string }).id)
             .maybeSingle();
 
-          if (paramData && (paramData as any).volatilidade_anual) {
-            const volValue = Number((paramData as any).volatilidade_anual);
+          if (paramData && (paramData as { volatilidade_anual: number }).volatilidade_anual) {
+            const volValue = Number((paramData as { volatilidade_anual: number }).volatilidade_anual);
             setVolatilidade(volValue);
             return;
           }
@@ -762,12 +636,24 @@ export default function CadastroOpcao() {
       setFormData(prev => ({ ...prev, acao: cleanValue }));
       clearError('acao');
 
-      // Auto-fill tickers with the first 4 letters
+      // Auto-fill tickers with the first 4 letters + 5th letter (month) if we have a date
       const prefix = cleanValue.substring(0, 4).replace(/[^A-Z]/g, '');
+
+      // Se temos data e é uma trava, adicionar a 5ª letra
+      let tickerPrefix = prefix;
+      const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
+      if (formData.data && isTrava && prefix.length === 4) {
+        const vencimento = parseLocalDate(formData.data);
+        const monthIndex = vencimento.getMonth();
+        const isBullCallSpread = selectedStrategyId === 'alta_moderada';
+        const letter = isBullCallSpread ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+        tickerPrefix = prefix + letter;
+      }
+
       setTravaData(prev => ({
         ...prev,
-        compra: { ...prev.compra, ticker: prefix },
-        venda: { ...prev.venda, ticker: prefix }
+        compra: { ...prev.compra, ticker: tickerPrefix },
+        venda: { ...prev.venda, ticker: tickerPrefix }
       }));
     }
   };
@@ -952,6 +838,10 @@ export default function CadastroOpcao() {
       return {
         // Trava-specific fields
         isTrava: true,
+        isShortPut: false,
+        isShortCall: false,
+        isLongPut: false,
+        isLongCall: false,
         custoTotal,
         lucroMaximo,
         breakEven,
@@ -1281,80 +1171,264 @@ export default function CadastroOpcao() {
     };
   };
 
+  // Load drafts from localStorage on mount
+  useEffect(() => {
+    const loadDrafts = () => {
+      try {
+        const stored = localStorage.getItem('operation_drafts');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          // Filter out expired drafts (older than 20 minutes)
+          const now = Date.now();
+          const validDrafts = parsed.filter((draft: Draft) => {
+            const expiresAt = draft.expiresAt || 0;
+            return now < expiresAt;
+          });
+
+          // Update localStorage if any drafts were removed
+          if (validDrafts.length !== parsed.length) {
+            localStorage.setItem('operation_drafts', JSON.stringify(validDrafts));
+          }
+
+          setDrafts(validDrafts);
+        }
+      } catch (error) {
+        console.error('Error loading drafts:', error);
+      }
+    };
+
+    loadDrafts();
+
+    // Cleanup expired drafts every minute
+    const interval = setInterval(loadDrafts, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSaveDraft = () => {
+    try {
+      const operationData = calculateOperationData();
+      const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
+
+      const draftData = {
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (20 * 60 * 1000), // 20 minutes
+        strategyId: selectedStrategyId,
+        strategyName: currentStrategy?.title || '',
+        isTrava,
+        formData: { ...formData },
+        travaData: isTrava ? { ...travaData } : undefined,
+        operationData: {
+          ...operationData
+          // Don't save strategyIcon and strategyColor as they are React components
+        }
+      };
+
+      let updatedDrafts;
+
+      if (editingDraftId) {
+        // Update existing draft
+        updatedDrafts = drafts.map(d =>
+          d.id === editingDraftId
+            ? { ...d, ...draftData }
+            : d
+        );
+
+        // If for some reason the draft wasn't found (e.g. expired/deleted), create new
+        if (!updatedDrafts.find(d => d.id === editingDraftId)) {
+          const newDraft = { id: crypto.randomUUID(), ...draftData };
+          updatedDrafts = [...drafts, newDraft];
+          setEditingDraftId(newDraft.id);
+        }
+      } else {
+        // Create new draft
+        const newDraft = { id: crypto.randomUUID(), ...draftData };
+        updatedDrafts = [...drafts, newDraft];
+        // Optionally set editingDraftId to this new draft so subsequent saves update it
+        setEditingDraftId(newDraft.id);
+      }
+
+      setDrafts(updatedDrafts);
+      localStorage.setItem('operation_drafts', JSON.stringify(updatedDrafts));
+
+      toast({
+        title: "✅ Rascunho salvo!",
+        description: "Operação salva temporariamente por 20 minutos.",
+        className: "bg-green-50 border-green-200 text-green-900",
+      });
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao salvar rascunho",
+        description: "Tente novamente.",
+      });
+    }
+  };
+
+  const handleDeleteDraft = (draftId: string) => {
+    const updatedDrafts = drafts.filter(d => d.id !== draftId);
+    setDrafts(updatedDrafts);
+    localStorage.setItem('operation_drafts', JSON.stringify(updatedDrafts));
+
+    if (editingDraftId === draftId) {
+      setEditingDraftId(null);
+      // Optionally clear form? Let's keep it to avoid data loss if accidental delete
+    }
+
+    toast({
+      title: "Rascunho excluído",
+      description: "O rascunho foi removido.",
+    });
+  };
+
+  const handleAddDraftToPortfolio = async (draft: Draft) => {
+    try {
+      setLoading(true);
+
+      if (draft.isTrava) {
+        if (!user?.id) throw new Error("Usuário não identificado");
+
+        const isBullCallSpread = draft.strategyId === 'alta_moderada';
+        const strategyGroupId = crypto.randomUUID();
+        const createdAt = new Date().toISOString();
+        const travaData = draft.travaData;
+        const formData = draft.formData;
+
+        const payload = [
+          // Perna de COMPRA (Long Leg)
+          {
+            user_id: user.id,
+            ops_ticker: travaData.compra.ticker,
+            ops_operacao: "compra",
+            ops_tipo: isBullCallSpread ? "call" : "put",
+            ops_acao: formData.acao,
+            ops_strike: parseCurrencyToNumber(travaData.compra.strike),
+            acao_cotacao: parseCurrencyToNumber(formData.cotacao),
+            ops_quanti: parseNumberToInt(formData.quantidade),
+            ops_premio: parseCurrencyToNumber(travaData.compra.premio),
+            ops_vencimento: formData.data || null,
+            ops_criado_em: createdAt,
+            ops_strategy_group_id: strategyGroupId,
+            ops_strategy_type: isBullCallSpread ? 'BULL_CALL_SPREAD' : 'BEAR_PUT_SPREAD',
+            ops_strategy_role: 'LONG_LEG'
+          },
+          // Perna de VENDA (Short Leg)
+          {
+            user_id: user.id,
+            ops_ticker: travaData.venda.ticker,
+            ops_operacao: "venda",
+            ops_tipo: isBullCallSpread ? "call" : "put",
+            ops_acao: formData.acao,
+            ops_strike: parseCurrencyToNumber(travaData.venda.strike),
+            acao_cotacao: parseCurrencyToNumber(formData.cotacao),
+            ops_quanti: parseNumberToInt(formData.quantidade),
+            ops_premio: parseCurrencyToNumber(travaData.venda.premio),
+            ops_vencimento: formData.data || null,
+            ops_criado_em: createdAt,
+            ops_strategy_group_id: strategyGroupId,
+            ops_strategy_type: isBullCallSpread ? 'BULL_CALL_SPREAD' : 'BEAR_PUT_SPREAD',
+            ops_strategy_role: 'SHORT_LEG'
+          }
+        ];
+
+        const { error } = await supabase.from('ops_registry').insert(payload);
+        if (error) throw error;
+
+      } else {
+        await addOpcao(draft.formData);
+      }
+
+      // Remove draft after adding
+      handleDeleteDraft(draft.id);
+
+      // If we were editing this draft, clear the editing state and form
+      if (editingDraftId === draft.id) {
+        setEditingDraftId(null);
+        setFormData({
+          opcao: "",
+          operacao: "",
+          tipo: "",
+          acao: "",
+          strike: "",
+          cotacao: "",
+          quantidade: "",
+          premio: "",
+          data: formatDateForInput(getNextBusinessDay()),
+          status: "aberta",
+        });
+        setStep(1); // Go back to strategy selection or keep in form? User said "mantenha na pagina".
+        // Actually, "mantenha na pagina que ele está" usually means don't navigate away.
+        // But if the draft is gone, showing the empty form might be confusing or correct.
+        // Let's keep the user on the page (Step 2) but maybe clear the form to indicate success?
+        // Or better: Don't clear the form, just clear the ID. The user might want to add another similar one.
+        // But the requirement says "remover o card do rascunho".
+        // Let's just clear the ID.
+      }
+
+      toast({
+        title: "✅ Opção Cadastrada!",
+        description: "Sua operação foi salva com sucesso no portfólio.",
+        className: "border-green-200 bg-green-50 text-green-900",
+      });
+    } catch (error) {
+      console.error('Error adding draft to portfolio:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao adicionar opção",
+        description: "Tente novamente.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditDraft = (draft: Draft) => {
+    // Load draft data into form
+    setSelectedStrategyId(draft.strategyId);
+    setFormData(draft.formData);
+    if (draft.isTrava && draft.travaData) {
+      setTravaData(draft.travaData);
+    }
+    setEditingDraftId(draft.id);
+    setStep(2);
+
+    toast({
+      title: "Rascunho carregado",
+      description: "Você pode editar e salvar as alterações.",
+    });
+  };
+
   const operationData = calculateOperationData();
-  const currentStrategy = STRATEGIES.find(s => s.id === selectedStrategyId);
+  // const currentStrategy = STRATEGIES.find(s => s.id === selectedStrategyId); // Moved to top
 
   // ETAPA 1
   if (step === 1) {
-    const groups = ["Renda extra", "Operar a alta", "Operar a baixa"];
-
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-sm font-medium text-muted-foreground">Cadastro de opções</h1>
-          <h2 className="text-3xl font-bold text-foreground">Escolha sua estratégia</h2>
+          <h1 className="text-3xl font-bold text-foreground">Escolha sua estratégia</h1>
+          <p className="text-slate-600 mt-2">Selecione o tipo de operação para continuarmos.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {groups.map(groupName => (
-            <Card key={groupName} className="h-full bg-white">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-bold">{groupName}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {STRATEGIES.filter(s => s.group === groupName).map(strategy => (
-                  <div
-                    key={strategy.id}
-                    className={cn(
-                      "flex items-center justify-between py-3 px-5 rounded-full transition-colors",
-                      strategy.disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:bg-slate-50",
-                      selectedStrategyId === strategy.id && !strategy.disabled ? "bg-slate-50" : ""
-                    )}
-                    onClick={() => !strategy.disabled && setSelectedStrategyId(strategy.id)}
-                  >
-                    <div className="flex items-center gap-3">
-                      {/* Div do Ícone com cor dinâmica e ícone dinâmico */}
-                      <div className={cn(
-                        "h-10 w-10 rounded-full flex items-center justify-center",
-                        strategy.colorClass
-                      )}>
-                        <strategy.icon className="h-5 w-5" />
-                      </div>
+        <StrategySelector
+          selectedStrategyId={selectedStrategyId}
+          onSelectStrategy={setSelectedStrategyId}
+        />
 
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-sm text-slate-900">{strategy.title}</span>
-                        <span className="text-xs text-slate-500">{strategy.subtitle}</span>
-                      </div>
-                    </div>
+        <div className="flex gap-4">
+          <Button
+            variant="outline"
+            size="lg"
+            className="px-8 rounded-full flex items-center gap-2"
+            onClick={() => navigate("/nova-operacao")}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Voltar
+          </Button>
 
-                    {strategy.disabled ? (
-                      <span className="text-[10px] font-medium bg-[#F1F0EA] text-[#6D6845] px-2 py-1 rounded-full">
-                        em breve
-                      </span>
-                    ) : (
-                      <div className={cn(
-                        "h-5 w-5 rounded-full border-2 flex items-center justify-center",
-                        selectedStrategyId === strategy.id
-                          ? "border-blue-600"
-                          : "border-slate-300"
-                      )}>
-                        {selectedStrategyId === strategy.id && (
-                          <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div>
-          {/* CORREÇÃO: Botão estilo Pill */}
           <Button
             size="lg"
-            className="w-full sm:w-auto px-8 rounded-full"
+            className="px-8 rounded-full"
             onClick={handleContinueToForm}
           >
             Continuar
@@ -1372,8 +1446,10 @@ export default function CadastroOpcao() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-sm font-medium text-muted-foreground">Cadastro de opções</h1>
-        <h2 className="text-3xl font-bold text-foreground">Preencha os dados da opção</h2>
+        <h1 className="text-3xl font-bold text-foreground"> Simule sua operação</h1>
+        <p className="text-slate-600 mt-2 max-w-3xl">
+          Compare rascunhos e registre suas operações quando finalizar.
+        </p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
@@ -1392,12 +1468,14 @@ export default function CadastroOpcao() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleBackToStrategies}
+                    type="button"
+                    onClick={handleSaveDraft}
                     className="flex items-center gap-1 text-slate-600 hover:text-slate-900 rounded-full px-3"
                   >
-                    <Pencil className="h-3 w-3" />
-                    alterar
+                    <Layers2 className="h-3 w-3" />
+                    Salvar rascunho
                   </Button>
+
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1459,48 +1537,14 @@ export default function CadastroOpcao() {
 
                     <div>
                       <Label htmlFor="data">Vencimento</Label>
-                      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background mt-1.5",
-                              !formData.data && "text-muted-foreground"
-                            )}
-                          >
-                            {formData.data ? (
-                              format(parseLocalDate(formData.data), "dd/MM/yyyy")
-                            ) : (
-                              <span>Selecione a data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={formData.data ? parseLocalDate(formData.data) : undefined}
-                            defaultMonth={formData.data ? parseLocalDate(formData.data) : undefined}
-                            onSelect={(date) => {
-                              if (date) {
-                                const year = date.getFullYear();
-                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                const day = String(date.getDate()).padStart(2, '0');
-                                const dateString = `${year}-${month}-${day}`;
-                                handleInputChange("data", dateString);
-                                setIsCalendarOpen(false);
-                              }
-                            }}
-                            disabled={(date) => {
-                              const dayOfWeek = date.getDay();
-                              return dayOfWeek === 0 || dayOfWeek === 6;
-                            }}
-                            initialFocus
-                            locale={ptBR}
-                            className={cn("p-3 pointer-events-auto")}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <DateInput
+                        id="data"
+                        label=""
+                        value={formData.data}
+                        onChange={(value) => handleInputChange("data", value)}
+                        error={errors.data}
+                        className="mt-1.5"
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -1515,33 +1559,6 @@ export default function CadastroOpcao() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="compra-ticker">Ticker da opção</Label>
-                      <div className={cn(
-                        "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                        errors['compra.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
-                      )}>
-                        <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
-                          {formData.acao.substring(0, 4) || ""}
-                        </div>
-                        <Input
-                          id="compra-ticker"
-                          value={travaData.compra.ticker.substring(formData.acao.substring(0, 4).length)}
-                          onChange={(e) => {
-                            const prefix = formData.acao.substring(0, 4);
-                            const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
-                            handleTravaChange('compra', 'ticker', prefix + suffix);
-                          }}
-                          placeholder="H123"
-                          maxLength={6}
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
-                        />
-                      </div>
-                      {errors['compra.ticker'] && (
-                        <p className="text-xs text-red-500 mt-1">{errors['compra.ticker']}</p>
-                      )}
-                    </div>
-
                     <div>
                       <Label htmlFor="compra-strike">Strike (R$)</Label>
                       <Input
@@ -1575,6 +1592,33 @@ export default function CadastroOpcao() {
                         <p className="text-xs text-red-500 mt-1">{errors['compra.premio']}</p>
                       )}
                     </div>
+
+                    <div>
+                      <Label htmlFor="compra-ticker">Ticker da opção</Label>
+                      <div className={cn(
+                        "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
+                        errors['compra.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
+                      )}>
+                        <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
+                          {formData.acao.substring(0, 4) || ""}
+                        </div>
+                        <Input
+                          id="compra-ticker"
+                          value={travaData.compra.ticker.substring(formData.acao.substring(0, 4).length)}
+                          onChange={(e) => {
+                            const prefix = formData.acao.substring(0, 4);
+                            const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
+                            handleTravaChange('compra', 'ticker', prefix + suffix);
+                          }}
+                          placeholder="H123"
+                          maxLength={6}
+                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
+                        />
+                      </div>
+                      {errors['compra.ticker'] && (
+                        <p className="text-xs text-red-500 mt-1">{errors['compra.ticker']}</p>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1588,33 +1632,6 @@ export default function CadastroOpcao() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="venda-ticker">Ticker da opção</Label>
-                      <div className={cn(
-                        "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                        errors['venda.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
-                      )}>
-                        <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
-                          {formData.acao.substring(0, 4) || ""}
-                        </div>
-                        <Input
-                          id="venda-ticker"
-                          value={travaData.venda.ticker.substring(formData.acao.substring(0, 4).length)}
-                          onChange={(e) => {
-                            const prefix = formData.acao.substring(0, 4);
-                            const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
-                            handleTravaChange('venda', 'ticker', prefix + suffix);
-                          }}
-                          placeholder="H123"
-                          maxLength={6}
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
-                        />
-                      </div>
-                      {errors['venda.ticker'] && (
-                        <p className="text-xs text-red-500 mt-1">{errors['venda.ticker']}</p>
-                      )}
-                    </div>
-
                     <div>
                       <Label htmlFor="venda-strike">Strike (R$)</Label>
                       <Input
@@ -1648,12 +1665,48 @@ export default function CadastroOpcao() {
                         <p className="text-xs text-red-500 mt-1">{errors['venda.premio']}</p>
                       )}
                     </div>
+
+                    <div>
+                      <Label htmlFor="venda-ticker">Ticker da opção</Label>
+                      <div className={cn(
+                        "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
+                        errors['venda.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
+                      )}>
+                        <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
+                          {formData.acao.substring(0, 4) || ""}
+                        </div>
+                        <Input
+                          id="venda-ticker"
+                          value={travaData.venda.ticker.substring(formData.acao.substring(0, 4).length)}
+                          onChange={(e) => {
+                            const prefix = formData.acao.substring(0, 4);
+                            const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
+                            handleTravaChange('venda', 'ticker', prefix + suffix);
+                          }}
+                          placeholder="H123"
+                          maxLength={6}
+                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
+                        />
+                      </div>
+                      {errors['venda.ticker'] && (
+                        <p className="text-xs text-red-500 mt-1">{errors['venda.ticker']}</p>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Botão de Submit */}
-              <div className="pt-2">
+              <div className="pt-4 flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                  className="w-full sm:w-auto px-6 rounded-full flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Voltar
+                </Button>
                 <Button type="submit" disabled={loading} className="w-full sm:w-auto px-8 rounded-full">
                   {loading ? "Cadastrando..." : "Concluir cadastro"}
                 </Button>
@@ -1661,201 +1714,184 @@ export default function CadastroOpcao() {
             </form>
           ) : (
             // LAYOUT ORIGINAL PARA OUTRAS ESTRATÉGIAS
-            <Card className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between pb-6">
-                <CardTitle className="text-xl font-bold">
-                  {currentStrategy?.headerTitle || "Nova opção"}
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBackToStrategies}
-                  className="flex items-center gap-1 text-slate-600 hover:text-slate-900 rounded-full px-3"
-                >
-                  <Pencil className="h-3 w-3" />
-                  alterar
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Card className="bg-white">
+                <CardHeader className="flex flex-row items-center justify-between pb-6">
+                  <CardTitle className="text-xl font-bold">
+                    {currentStrategy?.headerTitle || "Nova opção"}
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={handleSaveDraft}
+                    className="flex items-center gap-1 text-slate-600 hover:text-slate-900 rounded-full px-3"
+                  >
+                    <Layers2 className="h-3 w-3" />
+                    Salvar rascunho
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="acao">Ação</Label>
-                      <Input
-                        id="acao"
-                        ref={acaoInputRef}
-                        onFocus={handleAcaoFocus}
-                        value={formData.acao}
-                        onChange={(e) => handleAcaoChange(e.target.value)}
-                        placeholder="ex: PETR4"
-                        maxLength={6}
-                        className={cn(
-                          "placeholder-subtle mt-1.5",
-                          errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
-                        )}
-                      />
-                      {errors.acao && (
-                        <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
-                      )}
-                    </div>
+                    {/* Unifiquei em um único grid para manter a ordem fluida (Esq -> Dir -> Esq...) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                    <div>
-                      <Label htmlFor="opcao">Ticker da opção</Label>
-                      <div className={cn(
-                        "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                        errors.opcao ? "border-red-500 focus-within:ring-red-500" : ""
-                      )}>
-                        <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
-                          {formData.acao.substring(0, 4) || ""}
-                        </div>
+                      {/* 1. Ação */}
+                      <div>
+                        <Label htmlFor="acao">Ação</Label>
                         <Input
-                          id="opcao"
-                          value={formData.opcao.substring(formData.acao.substring(0, 4).length)}
-                          onChange={(e) => {
-                            const prefix = formData.acao.substring(0, 4);
-                            const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
-                            handleOpcaoChange(prefix + suffix);
-                          }}
-                          placeholder="H123"
+                          id="acao"
+                          ref={acaoInputRef}
+                          onFocus={handleAcaoFocus}
+                          value={formData.acao}
+                          onChange={(e) => handleAcaoChange(e.target.value)}
+                          placeholder="ex: PETR4"
                           maxLength={6}
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
+                          className={cn(
+                            "placeholder-subtle mt-1.5",
+                            errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
+                          )}
+                        />
+                        {errors.acao && (
+                          <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
+                        )}
+                      </div>
+
+                      {/* 2. Cotação */}
+                      <div>
+                        <Label htmlFor="cotacao">Cotação (R$)</Label>
+                        <Input
+                          id="cotacao"
+                          value={formData.cotacao}
+                          onChange={(e) => handleCurrencyChange("cotacao", e.target.value)}
+                          placeholder="0,00"
+                          className={cn(
+                            "placeholder-subtle mt-1.5",
+                            errors.cotacao ? "border-red-500 focus-visible:ring-red-500" : ""
+                          )}
+                        />
+                        {errors.cotacao && (
+                          <p className="text-xs text-red-500 mt-1">{errors.cotacao}</p>
+                        )}
+                      </div>
+
+                      {/* 3. Quantidade */}
+                      <div>
+                        <Label htmlFor="quantidade">Quantidade</Label>
+                        <Input
+                          id="quantidade"
+                          value={formData.quantidade}
+                          onChange={(e) => handleNumberChange("quantidade", e.target.value)}
+                          placeholder="100"
+                          className={cn(
+                            "placeholder-subtle mt-1.5",
+                            errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
+                          )}
+                        />
+                        {errors.quantidade && (
+                          <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
+                        )}
+                      </div>
+
+                      {/* 4. Vencimento */}
+                      <div>
+                        <Label htmlFor="data">Vencimento</Label>
+                        <DateInput
+                          id="data"
+                          label=""
+                          value={formData.data}
+                          onChange={(value) => handleInputChange("data", value)}
+                          error={errors.data}
+                          className="mt-1.5"
                         />
                       </div>
-                      {errors.opcao && (
-                        <p className="text-xs text-red-500 mt-1">{errors.opcao}</p>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="cotacao">Cotação (R$)</Label>
-                      <Input
-                        id="cotacao"
-                        value={formData.cotacao}
-                        onChange={(e) => handleCurrencyChange("cotacao", e.target.value)}
-                        placeholder="0,00"
-                        className={cn(
-                          "placeholder-subtle mt-1.5",
-                          errors.cotacao ? "border-red-500 focus-visible:ring-red-500" : ""
+                      {/* 5. Strike */}
+                      <div>
+                        <Label htmlFor="strike">Strike (R$)</Label>
+                        <Input
+                          id="strike"
+                          value={formData.strike}
+                          onChange={(e) => handleCurrencyChange("strike", e.target.value)}
+                          placeholder="0,00"
+                          className={cn(
+                            "placeholder-subtle mt-1.5",
+                            errors.strike ? "border-red-500 focus-visible:ring-red-500" : ""
+                          )}
+                        />
+                        {errors.strike && (
+                          <p className="text-xs text-red-500 mt-1">{errors.strike}</p>
                         )}
-                      />
-                      {errors.cotacao && (
-                        <p className="text-xs text-red-500 mt-1">{errors.cotacao}</p>
-                      )}
-                    </div>
+                      </div>
 
-                    <div>
-                      <Label htmlFor="strike">Strike (R$)</Label>
-                      <Input
-                        id="strike"
-                        value={formData.strike}
-                        onChange={(e) => handleCurrencyChange("strike", e.target.value)}
-                        placeholder="0,00"
-                        className={cn(
-                          "placeholder-subtle mt-1.5",
-                          errors.strike ? "border-red-500 focus-visible:ring-red-500" : ""
+                      {/* 6. Prêmio */}
+                      <div>
+                        <Label htmlFor="premio">Prêmio (R$)</Label>
+                        <Input
+                          id="premio"
+                          value={formData.premio}
+                          onChange={(e) => handleCurrencyChange("premio", e.target.value)}
+                          placeholder="0,00"
+                          className={cn(
+                            "placeholder-subtle mt-1.5",
+                            errors.premio ? "border-red-500 focus-visible:ring-red-500" : ""
+                          )}
+                        />
+                        {errors.premio && (
+                          <p className="text-xs text-red-500 mt-1">{errors.premio}</p>
                         )}
-                      />
-                      {errors.strike && (
-                        <p className="text-xs text-red-500 mt-1">{errors.strike}</p>
-                      )}
-                    </div>
-                  </div>
+                      </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="quantidade">Quantidade</Label>
-                      <Input
-                        id="quantidade"
-                        value={formData.quantidade}
-                        onChange={(e) => handleNumberChange("quantidade", e.target.value)}
-                        placeholder="100"
-                        className={cn(
-                          "placeholder-subtle mt-1.5",
-                          errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
-                        )}
-                      />
-                      {errors.quantidade && (
-                        <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <Label htmlFor="premio">Prêmio (R$)</Label>
-                      <Input
-                        id="premio"
-                        value={formData.premio}
-                        onChange={(e) => handleCurrencyChange("premio", e.target.value)}
-                        placeholder="0,00"
-                        className={cn(
-                          "placeholder-subtle mt-1.5",
-                          errors.premio ? "border-red-500 focus-visible:ring-red-500" : ""
-                        )}
-                      />
-                      {errors.premio && (
-                        <p className="text-xs text-red-500 mt-1">{errors.premio}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="data">Vencimento</Label>
-                      <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background mt-1.5",
-                              !formData.data && "text-muted-foreground"
-                            )}
-                          >
-                            {formData.data ? (
-                              format(parseLocalDate(formData.data), "dd/MM/yyyy")
-                            ) : (
-                              <span>Selecione a data</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={formData.data ? parseLocalDate(formData.data) : undefined}
-                            defaultMonth={formData.data ? parseLocalDate(formData.data) : undefined}
-                            onSelect={(date) => {
-                              if (date) {
-                                const year = date.getFullYear();
-                                const month = String(date.getMonth() + 1).padStart(2, '0');
-                                const day = String(date.getDate()).padStart(2, '0');
-                                const dateString = `${year}-${month}-${day}`;
-                                handleInputChange("data", dateString);
-                                setIsCalendarOpen(false);
-                              }
+                      {/* 7. Ticker da opção */}
+                      <div>
+                        <Label htmlFor="opcao">Ticker da opção</Label>
+                        <div className={cn(
+                          "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
+                          errors.opcao ? "border-red-500 focus-within:ring-red-500" : ""
+                        )}>
+                          <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
+                            {formData.acao.substring(0, 4) || ""}
+                          </div>
+                          <Input
+                            id="opcao"
+                            value={formData.opcao.substring(formData.acao.substring(0, 4).length)}
+                            onChange={(e) => {
+                              const prefix = formData.acao.substring(0, 4);
+                              const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
+                              handleOpcaoChange(prefix + suffix);
                             }}
-                            disabled={(date) => {
-                              const dayOfWeek = date.getDay();
-                              return dayOfWeek === 0 || dayOfWeek === 6;
-                            }}
-                            initialFocus
-                            locale={ptBR}
-                            className={cn("p-3 pointer-events-auto")}
+                            placeholder="H123"
+                            maxLength={6}
+                            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
                           />
-                        </PopoverContent>
-                      </Popover>
+                        </div>
+                        {errors.opcao && (
+                          <p className="text-xs text-red-500 mt-1">{errors.opcao}</p>
+                        )}
+                      </div>
+
                     </div>
                   </div>
+                </CardContent>
 
-                  <div className="pt-4">
-                    <Button type="submit" disabled={loading} className="w-full sm:w-auto px-8 rounded-full">
-                      {loading ? "Cadastrando..." : "Concluir cadastro"}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+              </Card>
+
+              <div className="pt-4 flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(1)}
+                  className="w-full sm:w-auto px-6 rounded-full flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Voltar
+                </Button>
+                <Button type="submit" disabled={loading} className="w-full sm:w-auto px-8 rounded-full">
+                  {loading ? "Cadastrando..." : "Concluir cadastro"}
+                </Button>
+              </div>
+            </form>
           )}
         </div>
 
@@ -2521,6 +2557,258 @@ export default function CadastroOpcao() {
           </CardContent>
         </Card>
       </div>
-    </div >
+
+      {/* Rascunhos salvos section */}
+      {step === 2 && drafts.length > 0 && (
+        <div className="mt-24 border-t pt-8">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">Rascunhos salvos</h2>
+          <p className="text-sm text-slate-600 mb-6">
+            Ajuste os parâmetros e veja em tempo real como essa operação impacta seu risco e retorno.
+            Salve os melhores cenários para rascunho para comparar depois.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+            {drafts.map((draft) => {
+              const isExpanded = expandedDrafts.includes(draft.id);
+
+              return (
+                <Card key={draft.id} className="bg-white overflow-hidden">
+                  {/* Header with ticker */}
+                  <CardHeader
+                    className="cursor-pointer hover:bg-slate-50 transition-colors pb-4"
+                    onClick={() => {
+                      if (isExpanded) {
+                        setExpandedDrafts(prev => prev.filter(id => id !== draft.id));
+                      } else {
+                        setExpandedDrafts(prev => [...prev, draft.id]);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold text-slate-900">
+                        {draft.isTrava
+                          ? `${draft.travaData?.compra?.ticker || 'CP'} / ${draft.travaData?.venda?.ticker || 'VD'}`
+                          : (draft.formData.opcao || 'PETRH363')
+                        }
+                      </h3>
+                      <ChevronDown className={cn(
+                        "h-5 w-5 text-slate-400 transition-transform",
+                        isExpanded && "transform rotate-180"
+                      )} />
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="pt-0 space-y-4">
+                    {/* 3-column grid: Strike, Qnt, Vencimento with dividers */}
+                    <div className="grid grid-cols-3 gap-0 text-center divide-x divide-slate-200">
+                      <div className="px-2">
+                        <p className="text-xs text-slate-500 mb-1">Strike</p>
+                        <p className="font-semibold text-sm truncate">
+                          {draft.isTrava
+                            ? `${draft.travaData?.compra?.strike || '-'} / ${draft.travaData?.venda?.strike || '-'}`
+                            : (draft.formData.strike ? formatCurrencyDisplay(parseCurrencyToNumber(draft.formData.strike)) : '-')
+                          }
+                        </p>
+                      </div>
+                      <div className="px-2">
+                        <p className="text-xs text-slate-500 mb-1">Qnt</p>
+                        <p className="font-semibold text-sm">{draft.formData.quantidade || '-'}</p>
+                      </div>
+                      <div className="px-2">
+                        <p className="text-xs text-slate-500 mb-1">Vencimento</p>
+                        <p className="font-semibold text-sm">
+                          {draft.formData.data ? format(parseLocalDate(draft.formData.data), 'dd/MM/yyyy') : '-'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Dotted separator */}
+                    <div className="border-t border-dashed border-slate-300" />
+
+                    {/* Expanded content */}
+                    {isExpanded && draft.operationData && (
+                      <>
+                        {/* Break-even point */}
+                        {draft.operationData.breakEven && draft.operationData.breakEven !== 0 && (
+                          <div>
+                            <div className="flex items-center gap-1 mb-1">
+                              <p className="text-sm text-slate-600">Ponto de equilíbrio</p>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">Preço da ação onde você não ganha nem perde</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <p className="text-lg font-bold text-slate-900">
+                              {formatCurrencyDisplay(draft.operationData.breakEven)}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Distance to break-even */}
+                        {draft.operationData.distanciaLabel && draft.operationData.distanciaLabel !== '-' && (
+                          <div>
+                            <p className="text-sm text-slate-600 mb-1">Distância do ponto de equilíbrio</p>
+                            <p className="text-base font-bold text-slate-900">
+                              {draft.operationData.distanciaLabel}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Risk/Return Ratio */}
+                        {draft.operationData.payoffRatio > 0 && (
+                          <div>
+                            <div className="flex items-center gap-1 mb-1">
+                              <p className="text-sm text-slate-600">Relação risco/retorno</p>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">Para cada R$ 1,00 de risco, quanto você pode ganhar</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <p className="text-base font-bold text-slate-900">
+                              1 : {parseFloat(draft.operationData.payoffRatio.toFixed(1))}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Risk level with semicircular gauge */}
+                        {draft.operationData.nivelRisco && draft.operationData.nivelRisco !== '-' && (
+                          <div>
+                            <p className="text-sm text-slate-600 mb-3">Nível de risco</p>
+                            <div className="relative flex justify-center">
+                              <div className="relative w-48 h-24 overflow-hidden">
+                                <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                                <div
+                                  className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                                  style={{
+                                    background: `conic-gradient(${getRiskColorHex(draft.operationData.corRisco)} 0deg ${draft.operationData.progressValue * 1.8}deg, transparent ${draft.operationData.progressValue * 1.8}deg 360deg)`,
+                                    transform: 'rotate(-90deg)',
+                                    maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                                    WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                                  }}
+                                ></div>
+                              </div>
+                              <div className="absolute bottom-0 left-0 right-0 text-center">
+                                <p className={cn("font-bold text-lg capitalize", draft.operationData.corRisco)}>
+                                  {draft.operationData.nivelRisco}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Dotted separator between gauge and risk/profit */}
+                        {draft.operationData.nivelRisco && draft.operationData.nivelRisco !== '-' && (
+                          <div className="border-t border-dashed border-slate-300" />
+                        )}
+
+                        {/* Max risk and max profit */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center gap-1 mb-1">
+                              <p className="text-sm text-slate-600">Risco máximo</p>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">Máximo que você pode perder nesta operação</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <p className="text-base font-bold text-red-600">
+                              {draft.operationData.riscoMaximo
+                                ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.riscoMaximo))}`
+                                : draft.operationData.valorTotal
+                                  ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.valorTotal))}`
+                                  : '-'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-slate-600 mb-1">Lucro máximo</p>
+                            <p className="text-base font-bold text-green-600">
+                              {draft.operationData.lucroMaximoLabel ||
+                                (draft.operationData.lucroMaximo && draft.operationData.lucroMaximo !== 0
+                                  ? formatCurrencyDisplay(draft.operationData.lucroMaximo)
+                                  : 'Exponencial')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Dotted separator before buttons */}
+                        <div className="border-t border-dashed border-slate-300" />
+                      </>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-3">
+                      <Button
+                        size="lg"
+                        className="flex-1 rounded-full bg-[#263C64] hover:bg-[#1e3050] text-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddDraftToPortfolio(draft);
+                        }}
+                      >
+                        <CirclePlus className="h-5 w-5 mr-2" />
+                        Adicionar
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="rounded-full h-12 w-12"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditDraft(draft);
+                        }}
+                      >
+                        <Edit className="h-5 w-5 text-slate-600" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="rounded-full h-12 w-12 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteDraft(draft.id);
+                        }}
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      <SuccessModal
+        isOpen={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
+        onGoToPortfolio={() => {
+          setSuccessModalOpen(false);
+          navigate("/opcoes");
+        }}
+        onAddAnother={() => {
+          setSuccessModalOpen(false);
+          setStep(1);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    </div>
   );
 }
