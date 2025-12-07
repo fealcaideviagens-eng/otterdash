@@ -56,22 +56,26 @@ export default function DadosPessoais() {
     const handleDeleteAccount = async () => {
         setLoading(true);
         try {
-            // Chamada RPC para a função SQL que criamos
+            // 1. Chama a função do banco (com 'as any' para o TS não reclamar)
+            // @ts-ignore
             const { error } = await supabase.rpc('delete_user');
+
 
             if (error) throw error;
 
-            // Força o logout localmente para limpar o cache do navegador
-            await signOut();
+            // 2. LIMPEZA TOTAL (Isso é o mais importante para não travar o navegador)
+            localStorage.clear();
 
-            toast.success("Sua conta foi excluída permanentemente.");
+            // 3. Feedback
+            toast.success("Conta excluída permanentemente.");
 
-            // Opcional: Redirecionar manualmente para garantir
-            window.location.href = '/';
+            // 4. Redirecionamento forçado para a tela de login
+            window.location.href = '/auth';
 
         } catch (error) {
             console.error("Erro ao deletar conta:", error);
-            toast.error("Erro ao deletar conta. Tente novamente.");
+            // Se cair aqui, é porque você esqueceu o CASCADE em alguma tabela
+            toast.error("Erro ao deletar. Verifique se todas as tabelas estão com Cascade.");
             setLoading(false);
         }
     };
