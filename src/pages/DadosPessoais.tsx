@@ -56,17 +56,22 @@ export default function DadosPessoais() {
     const handleDeleteAccount = async () => {
         setLoading(true);
         try {
-            const { error } = await supabase.auth.updateUser({
-                data: { deleted: true, deleted_at: new Date().toISOString() }
-            });
+            // Chamada RPC para a função SQL que criamos
+            const { error } = await supabase.rpc('delete_user');
 
             if (error) throw error;
 
+            // Força o logout localmente para limpar o cache do navegador
             await signOut();
-            toast.success("Conta deletada com sucesso.");
+
+            toast.success("Sua conta foi excluída permanentemente.");
+
+            // Opcional: Redirecionar manualmente para garantir
+            window.location.href = '/';
+
         } catch (error) {
             console.error("Erro ao deletar conta:", error);
-            toast.error("Erro ao deletar conta.");
+            toast.error("Erro ao deletar conta. Tente novamente.");
             setLoading(false);
         }
     };

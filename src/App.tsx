@@ -98,9 +98,9 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Index />} />
-      <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
-      <Route path="/esqueci-senha" element={user ? <Navigate to="/dashboard" replace /> : <EsqueciSenha />} />
+      <Route path="/" element={user && !user.user_metadata?.deleted ? <Navigate to="/dashboard" replace /> : <Index />} />
+      <Route path="/auth" element={user && !user.user_metadata?.deleted ? <Navigate to="/dashboard" replace /> : <Auth />} />
+      <Route path="/esqueci-senha" element={user && !user.user_metadata?.deleted ? <Navigate to="/dashboard" replace /> : <EsqueciSenha />} />
       {/* Rota /reset-password SEMPRE acessível - sem redirecionamento */}
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route
