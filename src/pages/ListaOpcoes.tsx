@@ -647,7 +647,7 @@ export default function ListaOpcoes() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 p-4 bg-muted/30 rounded-lg">
                                   {/* Dados da Operação Original */}
                                   <div className="space-y-4">
-                                    <h4 className="font-semibold text-base border-b pb-2">Dados da Operação</h4>
+                                    <h4 className="font-semibold text-base border-b pb-2">Dados da operação</h4>
                                     <div className="space-y-3">
                                       {opcao.acao && /\d/.test(opcao.acao) && (
                                         <div className="flex justify-between">
@@ -670,7 +670,7 @@ export default function ListaOpcoes() {
                                         <span className="font-medium">{opcao.quantidade ? (opcao.operacao === 'venda' ? `-${formatQuantidade(opcao.quantidade)}` : formatQuantidade(opcao.quantidade)) : '-'}</span>                                      </div>
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Prêmio inicial:</span>
-                                        <span className="font-semibold text-xs">
+                                        <span className="font-medium">
                                           {opcao.premio ? formatCurrency(opcao.operacao === 'compra' ? -opcao.premio : opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}
                                         </span>
                                       </div>
@@ -683,7 +683,7 @@ export default function ListaOpcoes() {
 
                                   {/* Dados do Encerramento */}
                                   <div className="space-y-4">
-                                    <h4 className="font-semibold text-base border-b pb-2">Dados do Encerramento</h4>
+                                    <h4 className="font-semibold text-base border-b pb-2">Dados do encerramento</h4>
                                     <div className="space-y-3">
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Prêmio final:</span>

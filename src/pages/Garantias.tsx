@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Pencil, Trash2, TrendingUp, Landmark, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Pencil, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Building2, Banknote } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { formatCurrency, parseCurrencyToNumber } from "@/utils/inputFormatters";
@@ -161,11 +161,11 @@ export default function Garantias() {
     <Tabs defaultValue="acoes" className="space-y-6">
       <TabsList>
         <TabsTrigger value="acoes">
-          <TrendingUp className="mr-2 h-4 w-4" />
+          <Building2 className="mr-2 h-4 w-4" />
           Ações
         </TabsTrigger>
         <TabsTrigger value="renda-fixa">
-          <Landmark className="mr-2 h-4 w-4" />
+          <Banknote className="mr-2 h-4 w-4" />
           Renda Fixa
         </TabsTrigger>
       </TabsList>

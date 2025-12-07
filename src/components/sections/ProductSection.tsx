@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
     BarChart3,
     DollarSign,
-    TrendingUp,
+    BookOpenText,
     Wallet,
     Skull,
     PiggyBank,
@@ -10,7 +10,7 @@ import {
 
 const ProductSection = () => {
     return (
-        <section id="produto" className="py-20 bg-white">
+        <section id="produto" className="py-20 bg-gray-100">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-bold mb-4">
@@ -22,87 +22,111 @@ const ProductSection = () => {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 mb-12">
-                    <Card className="bg-[#f5f5f5] hover:shadow-modern-lg transition-all hover:-translate-y-1">
-                        <CardContent className="pt-6">
-                            <div className="rounded-full bg-brand-purple w-12 h-12 flex items-center justify-center mb-4 mx-auto">
-                                <BarChart3 className="w-6 h-6 text-white" />
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                        <CardContent className="p-8">
+
+                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <BarChart3 className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2 text-center">
+
+                            <h3 className="text-2xl font-semibold mb-2">
                                 Dashboard intuitivo
                             </h3>
-                            <p className="text-muted-foreground text-center">
+
+                            <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-300">
                                 Tenha visão geral de resultados de todas as suas operações
                             </p>
+
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-[#f5f5f5] hover:shadow-modern-lg transition-all hover:-translate-y-1">
-                        <CardContent className="pt-6">
-                            <div className="rounded-full bg-brand-purple w-12 h-12 flex items-center justify-center mb-4 mx-auto">
-                                <Wallet className="w-6 h-6 text-white" />
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                        <CardContent className="p-8">
+
+                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <Wallet className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2 text-center">
+
+                            <h3 className="text-2xl font-semibold mb-2">
                                 Portfólio completo
                             </h3>
-                            <p className="text-muted-foreground text-center">
+
+                            <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-300">
                                 Tenha acesso as suas operações abertas e as finalizadas com histórico completo
                             </p>
+
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-[#f5f5f5] hover:shadow-modern-lg transition-all hover:-translate-y-1">
-                        <CardContent className="pt-6">
-                            <div className="rounded-full bg-brand-purple w-12 h-12 flex items-center justify-center mb-4 mx-auto">
-                                <Skull className="w-6 h-6 text-white" />
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                        <CardContent className="p-8">
+
+                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <Skull className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2 text-center">
+
+                            <h3 className="text-2xl font-semibold mb-2">
                                 Analise de risco
                             </h3>
-                            <p className="text-muted-foreground text-center">
+
+                            <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-300">
                                 Cadastre suas opções com ajuda de risco feita com IA
                             </p>
+
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-[#f5f5f5] hover:shadow-modern-lg transition-all hover:-translate-y-1">
-                        <CardContent className="pt-6">
-                            <div className="rounded-full bg-brand-purple w-12 h-12 flex items-center justify-center mb-4 mx-auto">
-                                <DollarSign className="w-6 h-6 text-white" />
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                        <CardContent className="p-8">
+
+                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <DollarSign className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2 text-center">
+
+                            <h3 className="text-2xl font-semibold mb-2">
                                 Simule sua saída
                             </h3>
-                            <p className="text-muted-foreground text-center">
+
+                            <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-300">
                                 Antes de finalizar sua opção, simule seu lucro ou prejuízo
                             </p>
+
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-[#f5f5f5] hover:shadow-modern-lg transition-all hover:-translate-y-1">
-                        <CardContent className="pt-6">
-                            <div className="rounded-full bg-brand-purple w-12 h-12 flex items-center justify-center mb-4 mx-auto">
-                                <TrendingUp className="w-6 h-6 text-white" />
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                        <CardContent className="p-8">
+
+                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <BookOpenText className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2 text-center">
+
+                            <h3 className="text-2xl font-semibold mb-2">
                                 Histórico de rentabilidade
                             </h3>
-                            <p className="text-muted-foreground text-center">
-                                Tenha visão mês a mês dos seus resultados de forma consolidada
+
+                            <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-300">
+                                Verifique o histórico de rentabilidade de suas opções
                             </p>
+
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-[#f5f5f5] hover:shadow-modern-lg transition-all hover:-translate-y-1">
-                        <CardContent className="pt-6">
-                            <div className="rounded-full bg-brand-purple w-12 h-12 flex items-center justify-center mb-4 mx-auto">
-                                <PiggyBank className="w-6 h-6 text-white" />
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                        <CardContent className="p-8">
+
+                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <PiggyBank className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
                             </div>
-                            <h3 className="text-xl font-semibold mb-2 text-center">
+
+                            <h3 className="text-2xl font-semibold mb-2">
                                 Garantias em mãos
                             </h3>
-                            <p className="text-muted-foreground text-center">
-                                Faça a gestão da sua própria garantia para não depender da corretora
+
+                            <p className="text-muted-foreground group-hover:text-white/90 transition-colors duration-300">
+                                Tenha visão mês a mês dos seus resultados de forma consolidada
                             </p>
+
                         </CardContent>
                     </Card>
 

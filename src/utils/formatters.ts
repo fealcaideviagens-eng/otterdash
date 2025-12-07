@@ -1,8 +1,12 @@
 export const formatCurrency = (value: number): string => {
+  // CORREÇÃO: Remove o sinal negativo de zeros
+  // Se o valor for -0 ou algo como -0.00001 que arredonda para 0, forçamos 0.
+  const cleanValue = Object.is(value, -0) || Math.abs(value) < 0.005 ? 0 : value;
+
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL'
-  }).format(value);
+  }).format(cleanValue);
 };
 
 export const formatDate = (date: string | Date): string => {

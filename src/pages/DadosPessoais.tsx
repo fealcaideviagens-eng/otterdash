@@ -38,11 +38,21 @@ export default function DadosPessoais() {
 
         setLoading(true);
         try {
+            // Atualiza na tabela pública
+            const { error: dbError } = await supabase
+                .from('client')
+                .update({ nome: nome })
+                .eq('id', user?.id);
+
+            if (dbError) throw dbError;
+
+            // Mantém sync com auth
             const { error } = await supabase.auth.updateUser({
                 data: { nome: nome }
             });
 
             if (error) throw error;
+
 
             toast.success("Nome atualizado com sucesso!");
         } catch (error) {

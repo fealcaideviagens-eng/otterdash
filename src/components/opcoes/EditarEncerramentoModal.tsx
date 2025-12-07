@@ -88,7 +88,7 @@ export function EditarEncerramentoModal({
         </ResponsiveModalHeader>
         <form onSubmit={handleSubmit} className="space-y-4 px-4 sm:px-0 pb-4 sm:pb-0">
           <div>
-            <Label htmlFor="premio">Prêmio de Encerramento</Label>
+            <Label htmlFor="premio">Prêmio de encerramento</Label>
             <Input
               id="premio"
               value={formattedValues.premio}
@@ -117,7 +117,7 @@ export function EditarEncerramentoModal({
           </div>
 
           <div>
-            <Label>Data de Encerramento</Label>
+            <Label>Data de encerramento</Label>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
