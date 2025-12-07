@@ -20,8 +20,8 @@ import { useOpcoes } from "@/hooks/useOpcoes";
 import { useAuth } from "@/context/AuthContext";
 import { Opcao, Venda } from "@/types/database";
 import { formatCurrency, formatDate, formatQuantidade } from "@/utils/formatters";
-import { ChevronDown, ChevronUp, Edit, Trash2, FileText, FileTextIcon } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { ChevronDown, ChevronUp, Edit, Trash2, FileText, FileTextIcon, CirclePlus } from "lucide-react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { StrategyCard } from "@/components/opcoes/StrategyCard";
 import { EncerrarTravaModal } from "@/components/opcoes/EncerrarTravaModal";
@@ -41,6 +41,7 @@ interface StrategyGroup {
 }
 
 export default function ListaOpcoes() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const { opcoes, vendas, loading, encerrarOpcao, editarOpcao, editarEncerramento, deletarOpcao, refreshData } = useOpcoes(user?.id || '');
@@ -543,10 +544,19 @@ export default function ListaOpcoes() {
         </CardHeader>
         <CardContent>
           {opcoes.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                Nenhuma opção cadastrada ainda.
+            <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+              <p className="text-muted-foreground text-lg">
+                Nenhuma opção cadastrada ainda
               </p>
+
+              <Button
+                onClick={() => navigate("/nova-operacao")} // Ajuste a rota se for /cadastro ou /nova-operacao
+                className="shadow-modern hover:bg-[#1e3050] transition-colors"
+                style={{ backgroundColor: '#263C64' }}
+              >
+                <CirclePlus className="mr-2 h-4 w-4" />
+                Cadastre uma opção
+              </Button>
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
