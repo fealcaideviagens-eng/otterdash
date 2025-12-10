@@ -171,9 +171,9 @@ export default function CadastroRapido() {
         try {
             await addOpcao({
                 opcao: formData.ticker,
-                strike: parseCurrencyToNumber(formData.strike),
-                premio: parseCurrencyToNumber(formData.premio),
-                quantidade: parseNumberToInt(formData.quantidade),
+                strike: formData.strike,
+                premio: formData.premio,
+                quantidade: formData.quantidade,
                 data: formData.vencimento,
                 operacao: selectedOp.operacao,
                 tipo: selectedOp.tipo,
