@@ -759,7 +759,7 @@ export default function CadastroOpcao() {
             }
             // Scenario 2: ATM (Strike Compra <= Cotação <= Strike Venda) - Moderado
             else if (cotacao >= strikeCompra && cotacao <= strikeVenda) {
-              nivelRisco = "Moderado (ATM)";
+              nivelRisco = "Moderado";
               corRisco = "text-yellow-600";
               progressValue = 45;
 
@@ -1465,6 +1465,7 @@ export default function CadastroOpcao() {
                   <CardTitle className="text-xl font-bold">
                     {currentStrategy?.headerTitle || "Trava de alta"}
                   </CardTitle>
+                  {/* BOTÃO COMENTADO TEMPORARIAMENTE PARA CORREÇÃO FUTURA
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1475,7 +1476,7 @@ export default function CadastroOpcao() {
                     <Layers2 className="h-3 w-3" />
                     Salvar rascunho
                   </Button>
-
+                  */}
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1720,6 +1721,7 @@ export default function CadastroOpcao() {
                   <CardTitle className="text-xl font-bold">
                     {currentStrategy?.headerTitle || "Nova opção"}
                   </CardTitle>
+                  {/* BOTÃO COMENTADO TEMPORARIAMENTE PARA CORREÇÃO FUTURA
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1730,6 +1732,7 @@ export default function CadastroOpcao() {
                     <Layers2 className="h-3 w-3" />
                     Salvar rascunho
                   </Button>
+                  */}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
