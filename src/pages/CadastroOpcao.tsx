@@ -163,7 +163,7 @@ export default function CadastroOpcao() {
               variant: "destructive",
               title: "⚠️ Operação Inválida",
               description: `${strategyName} deve ser um DÉBITO (Custo > 0). O prêmio da compra deve ser maior que o da venda.`,
-              className: "border-orange-200 bg-orange-50 text-orange-900",
+              className: "border-warning-bg bg-warning-bg text-warning-foreground",
             });
             setLoading(false);
             return;
@@ -175,7 +175,7 @@ export default function CadastroOpcao() {
               variant: "destructive",
               title: "⚠️ Strikes Inválidos",
               description: "Na Trava de Alta com Call, o Strike da COMPRA deve ser MENOR que o Strike da VENDA.",
-              className: "border-orange-200 bg-orange-50 text-orange-900",
+              className: "border-warning-bg bg-warning-bg text-warning-foreground",
             });
             setLoading(false);
             return;
@@ -186,7 +186,7 @@ export default function CadastroOpcao() {
               variant: "destructive",
               title: "⚠️ Strikes Inválidos",
               description: "Na Trava de Baixa com Put, o Strike da COMPRA deve ser MAIOR que o Strike da VENDA.",
-              className: "border-orange-200 bg-orange-50 text-orange-900",
+              className: "border-warning-bg bg-warning-bg text-warning-foreground",
             });
             setLoading(false);
             return;
@@ -228,7 +228,7 @@ export default function CadastroOpcao() {
           variant: "destructive",
           title: "❌ Erro no formulário!",
           description: "Verifique os campos destacados em vermelho.",
-          className: "border-red-200 bg-red-50 text-red-900",
+          className: "border-destructive/30 bg-destructive/10 text-destructive",
         });
         setLoading(false);
         return;
@@ -366,7 +366,7 @@ export default function CadastroOpcao() {
         variant: "destructive",
         title: "❌ Erro!",
         description: "Erro ao cadastrar opção. Tente novamente.",
-        className: "border-red-200 bg-red-50 text-red-900",
+        className: "border-destructive/30 bg-destructive/10 text-destructive",
       });
     } finally {
       setLoading(false);
@@ -524,8 +524,13 @@ export default function CadastroOpcao() {
           .eq('ops_ticker', prefix)
           .maybeSingle();
 
-        if (data && (data as { ops_acao: string }).ops_acao) {
-          setFormData(prev => ({ ...prev, acao: (data as { ops_acao: string }).ops_acao }));
+        if (data != null) {
+          const typedData = data as unknown as { ops_acao?: string };
+          if (typeof typedData.ops_acao === 'string') {
+            setFormData(prev => ({ ...prev, acao: typedData.ops_acao! }));
+          } else {
+            setFormData(prev => ({ ...prev, acao: prefix }));
+          }
         } else {
           // If not found in DB, use the first 4 letters
           setFormData(prev => ({ ...prev, acao: prefix }));
@@ -596,10 +601,13 @@ export default function CadastroOpcao() {
             .eq('cod_ops_id', (acaoData as { id: string }).id)
             .maybeSingle();
 
-          if (paramData && (paramData as { volatilidade_anual: number }).volatilidade_anual) {
-            const volValue = Number((paramData as { volatilidade_anual: number }).volatilidade_anual);
-            setVolatilidade(volValue);
-            return;
+          if (paramData != null) {
+            const typedParamData = paramData as unknown as { volatilidade_anual?: number };
+            const volValue = typedParamData.volatilidade_anual != null ? Number(typedParamData.volatilidade_anual) : NaN;
+            if (!isNaN(volValue)) {
+              setVolatilidade(volValue);
+              return;
+            }
           }
         }
 
@@ -683,7 +691,7 @@ export default function CadastroOpcao() {
       let payoffLabel = "";
       let payoffColor = "";
       let nivelRisco = "-";
-      let corRisco = "text-slate-900";
+      let corRisco = "text-foreground";
       let progressValue = 0;
       let distanciaAlvo = 0;
       let distanciaLabel = "-";
@@ -712,13 +720,13 @@ export default function CadastroOpcao() {
 
           if (payoffRatio < 1.0) {
             payoffLabel = "Payoff Baixo";
-            payoffColor = "text-orange-600 bg-orange-50 border-orange-200";
+            payoffColor = "text-warning bg-warning-bg border-warning-bg";
           } else if (payoffRatio >= 2.0) {
             payoffLabel = "Payoff Excelente";
-            payoffColor = "text-green-600 bg-green-50 border-green-200";
+            payoffColor = "text-success bg-success-bg border-success-bg";
           } else {
             payoffLabel = "Equilibrado";
-            payoffColor = "text-blue-600 bg-blue-50 border-blue-200";
+            payoffColor = "text-info bg-info-bg border-info-bg";
           }
         }
 
@@ -745,11 +753,11 @@ export default function CadastroOpcao() {
 
               if (score <= 0.65) {
                 nivelRisco = "Moderado";
-                corRisco = "text-yellow-600";
+                corRisco = "text-warning";
                 progressValue = 50;
               } else {
                 nivelRisco = "Agressivo";
-                corRisco = "text-red-600";
+                corRisco = "text-destructive";
                 progressValue = 85;
               }
 
@@ -760,7 +768,7 @@ export default function CadastroOpcao() {
             // Scenario 2: ATM (Strike Compra <= Cotação <= Strike Venda) - Moderado
             else if (cotacao >= strikeCompra && cotacao <= strikeVenda) {
               nivelRisco = "Moderado";
-              corRisco = "text-yellow-600";
+              corRisco = "text-warning";
               progressValue = 45;
 
               if (cotacao < breakEven) {
@@ -773,7 +781,7 @@ export default function CadastroOpcao() {
             // Scenario 3: ITM (Cotação > Strike Venda) - Conservador
             else {
               nivelRisco = "Conservador";
-              corRisco = "text-green-600";
+              corRisco = "text-success";
               progressValue = 20;
               distanciaLabel = "Acima do ponto de equilíbrio";
             }
@@ -796,11 +804,11 @@ export default function CadastroOpcao() {
 
               if (score <= 0.65) {
                 nivelRisco = "Moderado";
-                corRisco = "text-yellow-600";
+                corRisco = "text-warning";
                 progressValue = 50;
               } else {
                 nivelRisco = "Agressivo";
-                corRisco = "text-red-600";
+                corRisco = "text-destructive";
                 progressValue = 85;
               }
 
@@ -813,7 +821,7 @@ export default function CadastroOpcao() {
             // Scenario 2: ATM (Strike Venda <= Cotação <= Strike Compra) - Moderado
             else if (cotacao >= strikeVenda && cotacao <= strikeCompra) {
               nivelRisco = "Moderado";
-              corRisco = "text-yellow-600";
+              corRisco = "text-warning";
               progressValue = 45;
 
               if (cotacao > breakEven) {
@@ -827,7 +835,7 @@ export default function CadastroOpcao() {
             // Scenario 3: ITM (Cotação < Strike Venda) - Conservador (already fell)
             else {
               nivelRisco = "Conservador";
-              corRisco = "text-green-600";
+              corRisco = "text-success";
               progressValue = 20;
               distanciaLabel = "Abaixo do ponto de equilíbrio";
             }
@@ -884,7 +892,7 @@ export default function CadastroOpcao() {
     let valorTotalLabel = "";
     let isGanho = true;
     let nivelRisco = "-";
-    let corRisco = "text-slate-900";
+    let corRisco = "text-foreground";
     let progressValue = 0; // 0 a 100
     let breakEven = 0;
     let distanciaAlvo = 0;
@@ -933,13 +941,13 @@ export default function CadastroOpcao() {
         if (isITM) {
           // Venda ITM -> Altíssimo Risco
           nivelRisco = "Agressivo";
-          corRisco = "text-red-800";
+          corRisco = "text-destructive";
           progressValue = 95;
         } else {
           // Venda OTM -> Analisar Score
           if (score <= 0.50) {
             nivelRisco = "Agressivo";
-            corRisco = "text-red-600";
+            corRisco = "text-destructive";
             progressValue = 80;
           } else if (score <= 1.50) {
             nivelRisco = "Moderado";
@@ -948,7 +956,7 @@ export default function CadastroOpcao() {
           } else {
             // Score > 1.50
             nivelRisco = "Conservador";
-            corRisco = "text-green-600";
+            corRisco = "text-success";
             progressValue = 20;
           }
         }
@@ -958,13 +966,13 @@ export default function CadastroOpcao() {
         if (isITM) {
           // Compra ITM -> Baixíssimo Risco (já tem valor intrínseco)
           nivelRisco = "Conservador";
-          corRisco = "text-emerald-600";
+          corRisco = "text-success";
           progressValue = 15;
         } else {
           // Compra OTM -> Analisar Score (Risco de virar pó)
           if (score <= 0.50) {
             nivelRisco = "Conservador";
-            corRisco = "text-green-600";
+            corRisco = "text-success";
             progressValue = 35;
           } else if (score <= 1.50) {
             nivelRisco = "Moderado";
@@ -973,7 +981,7 @@ export default function CadastroOpcao() {
           } else {
             // Score > 1.50 (Muito longe do dinheiro)
             nivelRisco = "Agressivo";
-            corRisco = "text-red-600";
+            corRisco = "text-destructive";
             progressValue = 90;
           }
         }
@@ -1253,7 +1261,7 @@ export default function CadastroOpcao() {
       toast({
         title: "✅ Rascunho salvo!",
         description: "Operação salva temporariamente por 20 minutos.",
-        className: "bg-green-50 border-green-200 text-green-900",
+        className: "bg-success-bg border-success-bg text-success-foreground",
       });
     } catch (error) {
       console.error('Error saving draft:', error);
@@ -1368,7 +1376,7 @@ export default function CadastroOpcao() {
       toast({
         title: "✅ Opção Cadastrada!",
         description: "Sua operação foi salva com sucesso no portfólio.",
-        className: "border-green-200 bg-green-50 text-green-900",
+        className: "border-success-bg bg-success-bg text-success-foreground",
       });
     } catch (error) {
       console.error('Error adding draft to portfolio:', error);
@@ -1407,7 +1415,7 @@ export default function CadastroOpcao() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Escolha sua estratégia</h1>
-          <p className="text-slate-600 mt-2">Selecione o tipo de operação para continuarmos.</p>
+          <p className="text-muted-foreground mt-2">Selecione o tipo de operação para continuarmos.</p>
         </div>
 
         <StrategySelector
@@ -1447,7 +1455,7 @@ export default function CadastroOpcao() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground"> Simule sua operação</h1>
-        <p className="text-slate-600 mt-2 max-w-3xl">
+        <p className="text-muted-foreground mt-2 max-w-3xl">
           Compare rascunhos e registre suas operações quando finalizar.
         </p>
       </div>
@@ -1471,7 +1479,7 @@ export default function CadastroOpcao() {
                     size="sm"
                     type="button"
                     onClick={handleSaveDraft}
-                    className="flex items-center gap-1 text-slate-600 hover:text-slate-900 rounded-full px-3"
+                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground rounded-full px-3"
                   >
                     <Layers2 className="h-3 w-3" />
                     Salvar rascunho
@@ -1492,11 +1500,11 @@ export default function CadastroOpcao() {
                         maxLength={6}
                         className={cn(
                           "placeholder-subtle mt-1.5",
-                          errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
+                          errors.acao ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                       />
                       {errors.acao && (
-                        <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
+                        <p className="text-xs text-destructive mt-1">{errors.acao}</p>
                       )}
                     </div>
 
@@ -1509,11 +1517,11 @@ export default function CadastroOpcao() {
                         placeholder="0,00"
                         className={cn(
                           "placeholder-subtle mt-1.5",
-                          errors.cotacao ? "border-red-500 focus-visible:ring-red-500" : ""
+                          errors.cotacao ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                       />
                       {errors.cotacao && (
-                        <p className="text-xs text-red-500 mt-1">{errors.cotacao}</p>
+                        <p className="text-xs text-destructive mt-1">{errors.cotacao}</p>
                       )}
                     </div>
                   </div>
@@ -1528,11 +1536,11 @@ export default function CadastroOpcao() {
                         placeholder="100"
                         className={cn(
                           "placeholder-subtle mt-1.5",
-                          errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
+                          errors.quantidade ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                       />
                       {errors.quantidade && (
-                        <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
+                        <p className="text-xs text-destructive mt-1">{errors.quantidade}</p>
                       )}
                     </div>
 
@@ -1554,7 +1562,7 @@ export default function CadastroOpcao() {
               {/* BLOCO B: Compra da Call/Put */}
               <Card className="bg-white border-l-4 border-l-emerald-500">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold text-emerald-700">
+                  <CardTitle className="text-lg font-bold text-success">
                     {isBullCallSpread ? "Compra da call" : "Compra da put"}
                   </CardTitle>
                 </CardHeader>
@@ -1569,11 +1577,11 @@ export default function CadastroOpcao() {
                         placeholder="0,00"
                         className={cn(
                           "placeholder-subtle mt-1.5",
-                          errors['compra.strike'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                          errors['compra.strike'] ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                       />
                       {errors['compra.strike'] && (
-                        <p className="text-xs text-red-500 mt-1">{errors['compra.strike']}</p>
+                        <p className="text-xs text-destructive mt-1">{errors['compra.strike']}</p>
                       )}
                     </div>
 
@@ -1586,11 +1594,11 @@ export default function CadastroOpcao() {
                         placeholder="0,00"
                         className={cn(
                           "placeholder-subtle mt-1.5",
-                          errors['compra.premio'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                          errors['compra.premio'] ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                       />
                       {errors['compra.premio'] && (
-                        <p className="text-xs text-red-500 mt-1">{errors['compra.premio']}</p>
+                        <p className="text-xs text-destructive mt-1">{errors['compra.premio']}</p>
                       )}
                     </div>
 
@@ -1598,7 +1606,7 @@ export default function CadastroOpcao() {
                       <Label htmlFor="compra-ticker">Ticker da opção</Label>
                       <div className={cn(
                         "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                        errors['compra.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
+                        errors['compra.ticker'] ? "border-destructive focus-within:ring-destructive" : ""
                       )}>
                         <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                           {formData.acao.substring(0, 4) || ""}
@@ -1617,7 +1625,7 @@ export default function CadastroOpcao() {
                         />
                       </div>
                       {errors['compra.ticker'] && (
-                        <p className="text-xs text-red-500 mt-1">{errors['compra.ticker']}</p>
+                        <p className="text-xs text-destructive mt-1">{errors['compra.ticker']}</p>
                       )}
                     </div>
                   </div>
@@ -1627,7 +1635,7 @@ export default function CadastroOpcao() {
               {/* BLOCO C: Venda da Call/Put */}
               <Card className="bg-white border-l-4 border-l-red-500">
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold text-red-700">
+                  <CardTitle className="text-lg font-bold text-destructive">
                     {isBullCallSpread ? "Venda da call" : "Venda da put"}
                   </CardTitle>
                 </CardHeader>
@@ -1642,11 +1650,11 @@ export default function CadastroOpcao() {
                         placeholder="0,00"
                         className={cn(
                           "placeholder-subtle mt-1.5",
-                          errors['venda.strike'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                          errors['venda.strike'] ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                       />
                       {errors['venda.strike'] && (
-                        <p className="text-xs text-red-500 mt-1">{errors['venda.strike']}</p>
+                        <p className="text-xs text-destructive mt-1">{errors['venda.strike']}</p>
                       )}
                     </div>
 
@@ -1659,11 +1667,11 @@ export default function CadastroOpcao() {
                         placeholder="0,00"
                         className={cn(
                           "placeholder-subtle mt-1.5",
-                          errors['venda.premio'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                          errors['venda.premio'] ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                       />
                       {errors['venda.premio'] && (
-                        <p className="text-xs text-red-500 mt-1">{errors['venda.premio']}</p>
+                        <p className="text-xs text-destructive mt-1">{errors['venda.premio']}</p>
                       )}
                     </div>
 
@@ -1671,7 +1679,7 @@ export default function CadastroOpcao() {
                       <Label htmlFor="venda-ticker">Ticker da opção</Label>
                       <div className={cn(
                         "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                        errors['venda.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
+                        errors['venda.ticker'] ? "border-destructive focus-within:ring-destructive" : ""
                       )}>
                         <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                           {formData.acao.substring(0, 4) || ""}
@@ -1690,7 +1698,7 @@ export default function CadastroOpcao() {
                         />
                       </div>
                       {errors['venda.ticker'] && (
-                        <p className="text-xs text-red-500 mt-1">{errors['venda.ticker']}</p>
+                        <p className="text-xs text-destructive mt-1">{errors['venda.ticker']}</p>
                       )}
                     </div>
                   </div>
@@ -1727,7 +1735,7 @@ export default function CadastroOpcao() {
                     size="sm"
                     type="button"
                     onClick={handleSaveDraft}
-                    className="flex items-center gap-1 text-slate-600 hover:text-slate-900 rounded-full px-3"
+                    className="flex items-center gap-1 text-muted-foreground hover:text-foreground rounded-full px-3"
                   >
                     <Layers2 className="h-3 w-3" />
                     Salvar rascunho
@@ -1753,11 +1761,11 @@ export default function CadastroOpcao() {
                           maxLength={6}
                           className={cn(
                             "placeholder-subtle mt-1.5",
-                            errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
+                            errors.acao ? "border-destructive focus-visible:ring-destructive" : ""
                           )}
                         />
                         {errors.acao && (
-                          <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
+                          <p className="text-xs text-destructive mt-1">{errors.acao}</p>
                         )}
                       </div>
 
@@ -1771,11 +1779,11 @@ export default function CadastroOpcao() {
                           placeholder="0,00"
                           className={cn(
                             "placeholder-subtle mt-1.5",
-                            errors.cotacao ? "border-red-500 focus-visible:ring-red-500" : ""
+                            errors.cotacao ? "border-destructive focus-visible:ring-destructive" : ""
                           )}
                         />
                         {errors.cotacao && (
-                          <p className="text-xs text-red-500 mt-1">{errors.cotacao}</p>
+                          <p className="text-xs text-destructive mt-1">{errors.cotacao}</p>
                         )}
                       </div>
 
@@ -1789,11 +1797,11 @@ export default function CadastroOpcao() {
                           placeholder="100"
                           className={cn(
                             "placeholder-subtle mt-1.5",
-                            errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
+                            errors.quantidade ? "border-destructive focus-visible:ring-destructive" : ""
                           )}
                         />
                         {errors.quantidade && (
-                          <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
+                          <p className="text-xs text-destructive mt-1">{errors.quantidade}</p>
                         )}
                       </div>
 
@@ -1820,11 +1828,11 @@ export default function CadastroOpcao() {
                           placeholder="0,00"
                           className={cn(
                             "placeholder-subtle mt-1.5",
-                            errors.strike ? "border-red-500 focus-visible:ring-red-500" : ""
+                            errors.strike ? "border-destructive focus-visible:ring-destructive" : ""
                           )}
                         />
                         {errors.strike && (
-                          <p className="text-xs text-red-500 mt-1">{errors.strike}</p>
+                          <p className="text-xs text-destructive mt-1">{errors.strike}</p>
                         )}
                       </div>
 
@@ -1838,11 +1846,11 @@ export default function CadastroOpcao() {
                           placeholder="0,00"
                           className={cn(
                             "placeholder-subtle mt-1.5",
-                            errors.premio ? "border-red-500 focus-visible:ring-red-500" : ""
+                            errors.premio ? "border-destructive focus-visible:ring-destructive" : ""
                           )}
                         />
                         {errors.premio && (
-                          <p className="text-xs text-red-500 mt-1">{errors.premio}</p>
+                          <p className="text-xs text-destructive mt-1">{errors.premio}</p>
                         )}
                       </div>
 
@@ -1851,7 +1859,7 @@ export default function CadastroOpcao() {
                         <Label htmlFor="opcao">Ticker da opção</Label>
                         <div className={cn(
                           "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                          errors.opcao ? "border-red-500 focus-within:ring-red-500" : ""
+                          errors.opcao ? "border-destructive focus-within:ring-destructive" : ""
                         )}>
                           <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                             {formData.acao.substring(0, 4) || ""}
@@ -1870,7 +1878,7 @@ export default function CadastroOpcao() {
                           />
                         </div>
                         {errors.opcao && (
-                          <p className="text-xs text-red-500 mt-1">{errors.opcao}</p>
+                          <p className="text-xs text-destructive mt-1">{errors.opcao}</p>
                         )}
                       </div>
 
@@ -1914,12 +1922,12 @@ export default function CadastroOpcao() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="cursor-help">
-                        <Label className="text-sm text-slate-500 font-medium">
+                        <Label className="text-sm text-muted-foreground font-medium">
                           Diferença Strike vs Cotação
                         </Label>
                         <p className={`text-2xl font-bold mt-1 ${operationData.percentualDiferenca >= 0
-                          ? 'text-emerald-500'
-                          : 'text-orange-500'
+                          ? 'text-success'
+                          : 'text-warning'
                           }`}>
                           {formatPercentage(operationData.percentualDiferenca)}
                         </p>
@@ -1947,11 +1955,11 @@ export default function CadastroOpcao() {
               <div className="space-y-4 pb-4">
                 <div>
                   <div className="flex items-center gap-1">
-                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <Label className="text-xs text-muted-foreground">Ponto de equilíbrio</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                          <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <p className="text-xs">
@@ -1961,25 +1969,25 @@ export default function CadastroOpcao() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <p className="font-semibold text-slate-900">
+                  <p className="font-semibold text-foreground">
                     {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Distância do alvo</Label>
-                  <p className="font-semibold text-slate-900">
+                    <Label className="text-xs text-muted-foreground">Distância do alvo</Label>
+                  <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
                 </div>
 
                 <div>
                   <div className="flex items-center gap-1">
-                    <Label className="text-xs text-slate-500">Relação risco/retorno</Label>
+                    <Label className="text-xs text-muted-foreground">Relação risco/retorno</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                          <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <p className="text-xs">
@@ -1989,16 +1997,16 @@ export default function CadastroOpcao() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <p className="font-semibold text-slate-900">
+                  <p className="font-semibold text-foreground">
                     {operationData.payoffRatio > 0 ? `1 : ${parseFloat(operationData.payoffRatio.toFixed(1))}` : "-"}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <Label className="text-xs text-muted-foreground">Nível de risco</Label>
                   <div className="relative mt-4 flex justify-center">
                     <div className="relative w-48 h-24 overflow-hidden">
-                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
                       <div
                         className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
                         style={{
@@ -2020,10 +2028,10 @@ export default function CadastroOpcao() {
             ) : (
               !operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
                 <div>
-                  <Label className="text-sm text-slate-500 font-medium">Nível de risco</Label>
+                  <Label className="text-sm text-muted-foreground font-medium">Nível de risco</Label>
                   <div className="relative mt-4 flex justify-center">
                     <div className="relative w-48 h-24 overflow-hidden">
-                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
                       <div
                         className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
                         style={{
@@ -2049,11 +2057,11 @@ export default function CadastroOpcao() {
               <div className="space-y-4 pb-4">
                 <div>
                   <div className="flex items-center gap-1">
-                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <Label className="text-xs text-muted-foreground">Ponto de equilíbrio</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                          <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <p className="text-xs">
@@ -2063,23 +2071,23 @@ export default function CadastroOpcao() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <p className="font-semibold text-slate-900">
+                  <p className="font-semibold text-foreground">
                     {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Distância do ponto de equilíbrio</Label>
-                  <p className="font-semibold text-slate-900">
+                      <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                  <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <Label className="text-xs text-muted-foreground">Nível de risco</Label>
                   <div className="relative mt-4 flex justify-center">
                     <div className="relative w-48 h-24 overflow-hidden">
-                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
                       <div
                         className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
                         style={{
@@ -2105,11 +2113,11 @@ export default function CadastroOpcao() {
               <div className="space-y-4 pb-4">
                 <div>
                   <div className="flex items-center gap-1">
-                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <Label className="text-xs text-muted-foreground">Ponto de equilíbrio</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                          <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <p className="text-xs">
@@ -2119,23 +2127,23 @@ export default function CadastroOpcao() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <p className="font-semibold text-slate-900">
+                  <p className="font-semibold text-foreground">
                     {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Distância do ponto de equilíbrio</Label>
-                  <p className="font-semibold text-slate-900">
+                      <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                  <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <Label className="text-xs text-muted-foreground">Nível de risco</Label>
                   <div className="relative mt-4 flex justify-center">
                     <div className="relative w-48 h-24 overflow-hidden">
-                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
                       <div
                         className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
                         style={{
@@ -2161,11 +2169,11 @@ export default function CadastroOpcao() {
               <div className="space-y-4 pb-4">
                 <div>
                   <div className="flex items-center gap-1">
-                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <Label className="text-xs text-muted-foreground">Ponto de equilíbrio</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                          <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <p className="text-xs">
@@ -2175,23 +2183,23 @@ export default function CadastroOpcao() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <p className="font-semibold text-slate-900">
+                  <p className="font-semibold text-foreground">
                     {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Distância do ponto de equilíbrio</Label>
-                  <p className="font-semibold text-slate-900">
+                      <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                  <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <Label className="text-xs text-muted-foreground">Nível de risco</Label>
                   <div className="relative mt-4 flex justify-center">
                     <div className="relative w-48 h-24 overflow-hidden">
-                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
                       <div
                         className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
                         style={{
@@ -2217,11 +2225,11 @@ export default function CadastroOpcao() {
               <div className="space-y-4 pb-4">
                 <div>
                   <div className="flex items-center gap-1">
-                    <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
+                    <Label className="text-xs text-muted-foreground">Ponto de equilíbrio</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                          <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="max-w-xs">
                           <p className="text-xs">
@@ -2231,23 +2239,23 @@ export default function CadastroOpcao() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <p className="font-semibold text-slate-900">
+                  <p className="font-semibold text-foreground">
                     {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Distância do ponto de equilíbrio</Label>
-                  <p className="font-semibold text-slate-900">
+                      <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                  <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-xs text-slate-500">Nível de risco</Label>
+                  <Label className="text-xs text-muted-foreground">Nível de risco</Label>
                   <div className="relative mt-4 flex justify-center">
                     <div className="relative w-48 h-24 overflow-hidden">
-                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                      <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
                       <div
                         className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
                         style={{
@@ -2270,20 +2278,20 @@ export default function CadastroOpcao() {
 
 
 
-            <div className="pt-4 border-t border-slate-100 space-y-4">
+            <div className="pt-4 border-t border-border space-y-4">
               {/* Trava-specific metrics */}
               {operationData.isTrava ? (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-xs text-slate-500">Risco máximo</Label>
-                    <p className="font-semibold text-red-600">
+                    <Label className="text-xs text-muted-foreground">Risco máximo</Label>
+                    <p className="font-semibold text-destructive">
                       {operationData.custoTotal !== 0 ? formatCurrencyDisplay(-operationData.custoTotal) : '-'}
                     </p>
                   </div>
 
                   <div>
-                    <Label className="text-xs text-slate-500">Lucro máximo</Label>
-                    <p className="font-semibold text-green-600">
+                    <Label className="text-xs text-muted-foreground">Lucro máximo</Label>
+                    <p className="font-semibold text-success">
                       {operationData.lucroMaximo !== 0 ? formatCurrencyDisplay(operationData.lucroMaximo) : '-'}
                     </p>
                   </div>
@@ -2295,8 +2303,8 @@ export default function CadastroOpcao() {
                   {/* Original metrics for non-trava strategies */}
                   {!operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && operationData.mostrarValorExercicio && (
                     <div>
-                      <Label className="text-xs text-slate-500">Valor de Exercício</Label>
-                      <p className="font-semibold text-slate-900">
+                      <Label className="text-xs text-muted-foreground">Valor de Exercício</Label>
+                      <p className="font-semibold text-foreground">
                         {formatCurrencyDisplay(operationData.valorExercicio)}
                       </p>
                     </div>
@@ -2304,8 +2312,8 @@ export default function CadastroOpcao() {
 
                   {!operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
                     <div>
-                      <Label className="text-xs text-slate-500">{operationData.valorTotalLabel}</Label>
-                      <p className={`font-semibold ${operationData.isGanho ? 'text-green-600' : 'text-red-600'}`}>
+                      <Label className="text-xs text-muted-foreground">{operationData.valorTotalLabel}</Label>
+                      <p className={`font-semibold ${operationData.isGanho ? 'text-success' : 'text-destructive'}`}>
                         {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
                       </p>
                     </div>
@@ -2313,19 +2321,19 @@ export default function CadastroOpcao() {
 
                   {!operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && operationData.mostrarAlavancagem && (
                     <div>
-                      <Label className="text-xs text-slate-500">Status Cobertura</Label>
+                      <Label className="text-xs text-muted-foreground">Status Cobertura</Label>
                       <div className="flex items-center gap-2 mt-1">
                         {operationData.isAlavancado ? (
                           <>
-                            <AlertTriangle className="h-4 w-4 text-orange-600" />
-                            <span className="text-sm font-bold text-orange-600">
+                            <AlertTriangle className="h-4 w-4 text-warning" />
+                            <span className="text-sm font-bold text-warning">
                               {operationData.statusAlavancagem}
                             </span>
                           </>
                         ) : (
                           <>
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-bold text-green-600">
+                            <CheckCircle className="h-4 w-4 text-success" />
+                            <span className="text-sm font-bold text-success">
                               {operationData.statusAlavancagem}
                             </span>
                           </>
@@ -2342,11 +2350,11 @@ export default function CadastroOpcao() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-slate-500">Risco máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Risco máximo</Label>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                              <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <p className="text-xs">
@@ -2356,15 +2364,15 @@ export default function CadastroOpcao() {
                           </Tooltip>
                         </TooltipProvider>
                       </div>
-                      <p className="font-semibold text-red-600">
+                      <p className="font-semibold text-destructive">
                         {operationData.valorExercicio !== 0 ? formatCurrencyDisplay(-operationData.valorExercicio) : '-'}
                       </p>
                     </div>
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-slate-500">Lucro máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Lucro máximo</Label>
                       </div>
-                      <p className="font-semibold text-green-600">
+                      <p className="font-semibold text-success">
                         {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
                       </p>
                     </div>
@@ -2373,7 +2381,7 @@ export default function CadastroOpcao() {
                   {operationData.mostrarAlavancagem && (
                     <div className={cn(
                       "rounded-lg p-3 flex items-center justify-center gap-2 text-white font-bold text-sm",
-                      operationData.isAlavancado ? "bg-red-600" : "bg-green-600"
+                      operationData.isAlavancado ? "bg-destructive" : "bg-success"
                     )}>
                       {operationData.isAlavancado ? (
                         <>
@@ -2397,11 +2405,11 @@ export default function CadastroOpcao() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-slate-500">Risco máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Risco máximo</Label>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                              <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <p className="text-xs">
@@ -2411,15 +2419,15 @@ export default function CadastroOpcao() {
                           </Tooltip>
                         </TooltipProvider>
                       </div>
-                      <p className="font-semibold text-red-600 text-sm">
+                      <p className="font-semibold text-destructive text-sm">
                         -{formData.quantidade || 0} ações
                       </p>
                     </div>
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-slate-500">Lucro máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Lucro máximo</Label>
                       </div>
-                      <p className="font-semibold text-green-600">
+                      <p className="font-semibold text-success">
                         {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
                       </p>
                     </div>
@@ -2428,7 +2436,7 @@ export default function CadastroOpcao() {
                   {operationData.mostrarAlavancagem && (
                     <div className={cn(
                       "rounded-lg p-3 flex items-center justify-center gap-2 text-white font-bold text-sm",
-                      operationData.isAlavancado ? "bg-red-600" : "bg-green-600"
+                      operationData.isAlavancado ? "bg-destructive" : "bg-success"
                     )}>
                       {operationData.isAlavancado ? (
                         <>
@@ -2452,11 +2460,11 @@ export default function CadastroOpcao() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-slate-500">Risco máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Risco máximo</Label>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                              <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <p className="text-xs">
@@ -2466,15 +2474,15 @@ export default function CadastroOpcao() {
                           </Tooltip>
                         </TooltipProvider>
                       </div>
-                      <p className="font-semibold text-red-600">
+                      <p className="font-semibold text-destructive">
                         {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
                       </p>
                     </div>
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-slate-500">Ganho máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Ganho máximo</Label>
                       </div>
-                      <p className="font-semibold text-green-600">
+                      <p className="font-semibold text-success">
                         {operationData.valorTotal !== 0 ? 'Exponencial' : '-'}
                       </p>
                     </div>
@@ -2483,7 +2491,7 @@ export default function CadastroOpcao() {
                   {operationData.mostrarAlavancagem && (
                     <div className={cn(
                       "rounded-lg p-3 flex items-center justify-center gap-2 text-white font-bold text-sm",
-                      operationData.isAlavancado ? "bg-red-600" : "bg-green-600"
+                      operationData.isAlavancado ? "bg-destructive" : "bg-success"
                     )}>
                       {operationData.isAlavancado ? (
                         <>
@@ -2507,11 +2515,11 @@ export default function CadastroOpcao() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-slate-500">Risco máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Risco máximo</Label>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                              <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
                               <p className="text-xs">
@@ -2521,15 +2529,15 @@ export default function CadastroOpcao() {
                           </Tooltip>
                         </TooltipProvider>
                       </div>
-                      <p className="font-semibold text-red-600">
+                      <p className="font-semibold text-destructive">
                         {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
                       </p>
                     </div>
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-slate-500">Ganho máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Ganho máximo</Label>
                       </div>
-                      <p className="font-semibold text-green-600">
+                      <p className="font-semibold text-success">
                         {operationData.valorTotal !== 0 ? 'Exponencial' : '-'}
                       </p>
                     </div>
@@ -2538,7 +2546,7 @@ export default function CadastroOpcao() {
                   {operationData.mostrarAlavancagem && (
                     <div className={cn(
                       "rounded-lg p-3 flex items-center justify-center gap-2 text-white font-bold text-sm",
-                      operationData.isAlavancado ? "bg-orange-600" : "bg-green-600"
+                      operationData.isAlavancado ? "bg-warning" : "bg-success"
                     )}>
                       {operationData.isAlavancado ? (
                         <>
@@ -2564,8 +2572,8 @@ export default function CadastroOpcao() {
       {/* Rascunhos salvos section */}
       {step === 2 && drafts.length > 0 && (
         <div className="mt-24 border-t pt-8">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Rascunhos salvos</h2>
-          <p className="text-sm text-slate-600 mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Rascunhos salvos</h2>
+          <p className="text-sm text-muted-foreground mb-6">
             Ajuste os parâmetros e veja em tempo real como essa operação impacta seu risco e retorno.
             Salve os melhores cenários para rascunho para comparar depois.
           </p>
@@ -2578,7 +2586,7 @@ export default function CadastroOpcao() {
                 <Card key={draft.id} className="bg-white overflow-hidden">
                   {/* Header with ticker */}
                   <CardHeader
-                    className="cursor-pointer hover:bg-slate-50 transition-colors pb-4"
+                    className="cursor-pointer hover:bg-muted transition-colors pb-4"
                     onClick={() => {
                       if (isExpanded) {
                         setExpandedDrafts(prev => prev.filter(id => id !== draft.id));
@@ -2588,14 +2596,14 @@ export default function CadastroOpcao() {
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold text-slate-900">
+                      <h3 className="text-xl font-bold text-foreground">
                         {draft.isTrava
                           ? `${draft.travaData?.compra?.ticker || 'CP'} / ${draft.travaData?.venda?.ticker || 'VD'}`
                           : (draft.formData.opcao || 'PETRH363')
                         }
                       </h3>
                       <ChevronDown className={cn(
-                        "h-5 w-5 text-slate-400 transition-transform",
+                        "h-5 w-5 text-muted-foreground transition-transform",
                         isExpanded && "transform rotate-180"
                       )} />
                     </div>
@@ -2605,7 +2613,7 @@ export default function CadastroOpcao() {
                     {/* 3-column grid: Strike, Qnt, Vencimento with dividers */}
                     <div className="grid grid-cols-3 gap-0 text-center divide-x divide-slate-200">
                       <div className="px-2">
-                        <p className="text-xs text-slate-500 mb-1">Strike</p>
+                        <p className="text-xs text-muted-foreground mb-1">Strike</p>
                         <p className="font-semibold text-sm truncate">
                           {draft.isTrava
                             ? `${draft.travaData?.compra?.strike || '-'} / ${draft.travaData?.venda?.strike || '-'}`
@@ -2614,11 +2622,11 @@ export default function CadastroOpcao() {
                         </p>
                       </div>
                       <div className="px-2">
-                        <p className="text-xs text-slate-500 mb-1">Qnt</p>
+                        <p className="text-xs text-muted-foreground mb-1">Qnt</p>
                         <p className="font-semibold text-sm">{draft.formData.quantidade || '-'}</p>
                       </div>
                       <div className="px-2">
-                        <p className="text-xs text-slate-500 mb-1">Vencimento</p>
+                        <p className="text-xs text-muted-foreground mb-1">Vencimento</p>
                         <p className="font-semibold text-sm">
                           {draft.formData.data ? format(parseLocalDate(draft.formData.data), 'dd/MM/yyyy') : '-'}
                         </p>
@@ -2626,7 +2634,7 @@ export default function CadastroOpcao() {
                     </div>
 
                     {/* Dotted separator */}
-                    <div className="border-t border-dashed border-slate-300" />
+                    <div className="border-t border-dashed border-border/60" />
 
                     {/* Expanded content */}
                     {isExpanded && draft.operationData && (
@@ -2635,11 +2643,11 @@ export default function CadastroOpcao() {
                         {draft.operationData.breakEven && draft.operationData.breakEven !== 0 && (
                           <div>
                             <div className="flex items-center gap-1 mb-1">
-                              <p className="text-sm text-slate-600">Ponto de equilíbrio</p>
+                              <p className="text-sm text-muted-foreground">Ponto de equilíbrio</p>
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p className="text-xs">Preço da ação onde você não ganha nem perde</p>
@@ -2647,7 +2655,7 @@ export default function CadastroOpcao() {
                                 </Tooltip>
                               </TooltipProvider>
                             </div>
-                            <p className="text-lg font-bold text-slate-900">
+                            <p className="text-lg font-bold text-foreground">
                               {formatCurrencyDisplay(draft.operationData.breakEven)}
                             </p>
                           </div>
@@ -2671,7 +2679,7 @@ export default function CadastroOpcao() {
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p className="text-xs">Para cada R$ 1,00 de risco, quanto você pode ganhar</p>
@@ -2691,7 +2699,7 @@ export default function CadastroOpcao() {
                             <p className="text-sm text-slate-600 mb-3">Nível de risco</p>
                             <div className="relative flex justify-center">
                               <div className="relative w-48 h-24 overflow-hidden">
-                                <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-slate-100 box-border"></div>
+                                <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
                                 <div
                                   className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
                                   style={{
@@ -2713,7 +2721,7 @@ export default function CadastroOpcao() {
 
                         {/* Dotted separator between gauge and risk/profit */}
                         {draft.operationData.nivelRisco && draft.operationData.nivelRisco !== '-' && (
-                          <div className="border-t border-dashed border-slate-300" />
+                          <div className="border-t border-dashed border-border/60" />
                         )}
 
                         {/* Max risk and max profit */}
@@ -2724,7 +2732,7 @@ export default function CadastroOpcao() {
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p className="text-xs">Máximo que você pode perder nesta operação</p>
@@ -2732,8 +2740,8 @@ export default function CadastroOpcao() {
                                 </Tooltip>
                               </TooltipProvider>
                             </div>
-                            <p className="text-base font-bold text-red-600">
-                              {draft.operationData.riscoMaximo
+                            <p className="text-base font-bold text-destructive">
+                              {draft.operationData.riscoMaximo !== undefined
                                 ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.riscoMaximo))}`
                                 : draft.operationData.valorTotal
                                   ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.valorTotal))}`
@@ -2742,9 +2750,10 @@ export default function CadastroOpcao() {
                           </div>
                           <div>
                             <p className="text-sm text-slate-600 mb-1">Lucro máximo</p>
-                            <p className="text-base font-bold text-green-600">
-                              {draft.operationData.lucroMaximoLabel ||
-                                (draft.operationData.lucroMaximo && draft.operationData.lucroMaximo !== 0
+                            <p className="text-base font-bold text-success">
+                              {draft.operationData.lucroMaximoLabel !== undefined
+                                ? draft.operationData.lucroMaximoLabel
+                                : (draft.operationData.lucroMaximo && draft.operationData.lucroMaximo !== 0
                                   ? formatCurrencyDisplay(draft.operationData.lucroMaximo)
                                   : 'Exponencial')}
                             </p>
@@ -2752,7 +2761,7 @@ export default function CadastroOpcao() {
                         </div>
 
                         {/* Dotted separator before buttons */}
-                        <div className="border-t border-dashed border-slate-300" />
+                        <div className="border-t border-dashed border-border/60" />
                       </>
                     )}
 
@@ -2760,7 +2769,7 @@ export default function CadastroOpcao() {
                     <div className="flex items-center gap-3">
                       <Button
                         size="lg"
-                        className="flex-1 rounded-full bg-[#263C64] hover:bg-[#1e3050] text-white"
+                        className="flex-1 rounded-full bg-brand-blue-dark hover:bg-brand-blue text-white"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleAddDraftToPortfolio(draft);
@@ -2783,7 +2792,7 @@ export default function CadastroOpcao() {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="rounded-full h-12 w-12 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="rounded-full h-12 w-12 text-destructive hover:text-destructive/90 hover:bg-destructive/10"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteDraft(draft.id);

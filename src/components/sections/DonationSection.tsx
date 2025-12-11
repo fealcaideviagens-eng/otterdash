@@ -4,7 +4,7 @@ import iconpix from "@/assets/icon-pix.png";
 
 const DonationSection = () => {
     return (
-        <section id="gratuito" className="py-20 bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#1C2E51]">
+        <section id="gratuito" className="py-20 bg-gradient-to-br from-brand-blue via-brand-blue-dark to-[#1C2E51]">
             <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center mb-12">

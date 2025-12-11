@@ -226,7 +226,7 @@ export function DraftsList({
                                 <div className="flex items-center gap-3">
                                     <Button
                                         size="lg"
-                                        className="flex-1 rounded-full bg-[#263C64] hover:bg-[#1e3050] text-white"
+                                        className="flex-1 rounded-full bg-brand-blue-dark hover:bg-brand-blue text-white"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleAddDraftToPortfolio(draft);

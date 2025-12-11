@@ -32,7 +32,7 @@ export const Sidebar = () => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-64 h-screen flex-col border-r border-blue-200" style={{ backgroundColor: '#263C64' }}>
+      <div className="hidden lg:flex w-64 h-screen flex-col border-r border-blue-200 bg-brand-blue-dark">
         <div className="flex h-16 items-center justify-center border-b border-blue-300 px-6">
           <div className="flex items-center space-x-2">
             <img
@@ -92,7 +92,7 @@ export const Sidebar = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-blue-200" style={{ backgroundColor: '#263C64' }}>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-blue-200 bg-brand-blue-dark">
         <nav className="flex justify-around py-2">
 
           {/* ITENS PRINCIPAIS (Visão Geral, Cadastro, Portfólio) */}

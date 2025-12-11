@@ -91,11 +91,11 @@ export function TravaForm({
                                 maxLength={6}
                                 className={cn(
                                     "placeholder-subtle mt-1.5",
-                                    errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
+                                    errors.acao ? "border-destructive focus-visible:ring-destructive" : ""
                                 )}
                             />
                             {errors.acao && (
-                                <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
+                                <p className="text-xs text-destructive mt-1">{errors.acao}</p>
                             )}
                         </div>
 
@@ -108,11 +108,11 @@ export function TravaForm({
                                 placeholder="0,00"
                                 className={cn(
                                     "placeholder-subtle mt-1.5",
-                                    errors.cotacao ? "border-red-500 focus-visible:ring-red-500" : ""
+                                    errors.cotacao ? "border-destructive focus-visible:ring-destructive" : ""
                                 )}
                             />
                             {errors.cotacao && (
-                                <p className="text-xs text-red-500 mt-1">{errors.cotacao}</p>
+                                <p className="text-xs text-destructive mt-1">{errors.cotacao}</p>
                             )}
                         </div>
                     </div>
@@ -127,11 +127,11 @@ export function TravaForm({
                                 placeholder="100"
                                 className={cn(
                                     "placeholder-subtle mt-1.5",
-                                    errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
+                                    errors.quantidade ? "border-destructive focus-visible:ring-destructive" : ""
                                 )}
                             />
                             {errors.quantidade && (
-                                <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
+                                <p className="text-xs text-destructive mt-1">{errors.quantidade}</p>
                             )}
                         </div>
 
@@ -197,7 +197,7 @@ export function TravaForm({
                             <Label htmlFor="compra-ticker">Ticker da opção</Label>
                             <div className={cn(
                                 "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                                errors['compra.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
+                                errors['compra.ticker'] ? "border-destructive focus-within:ring-destructive" : ""
                             )}>
                                 <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                                     {formData.acao.substring(0, 4) || ""}
@@ -244,7 +244,7 @@ export function TravaForm({
                                 />
                             </div>
                             {errors['compra.ticker'] && (
-                                <p className="text-xs text-red-500 mt-1">{errors['compra.ticker']}</p>
+                                <p className="text-xs text-destructive mt-1">{errors['compra.ticker']}</p>
                             )}
                         </div>
 
@@ -257,11 +257,11 @@ export function TravaForm({
                                 placeholder="0,00"
                                 className={cn(
                                     "placeholder-subtle mt-1.5",
-                                    errors['compra.strike'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                                    errors['compra.strike'] ? "border-destructive focus-visible:ring-destructive" : ""
                                 )}
                             />
                             {errors['compra.strike'] && (
-                                <p className="text-xs text-red-500 mt-1">{errors['compra.strike']}</p>
+                                <p className="text-xs text-destructive mt-1">{errors['compra.strike']}</p>
                             )}
                         </div>
 
@@ -274,11 +274,11 @@ export function TravaForm({
                                 placeholder="0,00"
                                 className={cn(
                                     "placeholder-subtle mt-1.5",
-                                    errors['compra.premio'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                                    errors['compra.premio'] ? "border-destructive focus-visible:ring-destructive" : ""
                                 )}
                             />
                             {errors['compra.premio'] && (
-                                <p className="text-xs text-red-500 mt-1">{errors['compra.premio']}</p>
+                                <p className="text-xs text-destructive mt-1">{errors['compra.premio']}</p>
                             )}
                         </div>
                     </div>
@@ -298,7 +298,7 @@ export function TravaForm({
                             <Label htmlFor="venda-ticker">Ticker da opção</Label>
                             <div className={cn(
                                 "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                                errors['venda.ticker'] ? "border-red-500 focus-within:ring-red-500" : ""
+                                errors['venda.ticker'] ? "border-destructive focus-within:ring-destructive" : ""
                             )}>
                                 <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                                     {formData.acao.substring(0, 4) || ""}
@@ -345,7 +345,7 @@ export function TravaForm({
                                 />
                             </div>
                             {errors['venda.ticker'] && (
-                                <p className="text-xs text-red-500 mt-1">{errors['venda.ticker']}</p>
+                                <p className="text-xs text-destructive mt-1">{errors['venda.ticker']}</p>
                             )}
                         </div>
 
@@ -358,11 +358,11 @@ export function TravaForm({
                                 placeholder="0,00"
                                 className={cn(
                                     "placeholder-subtle mt-1.5",
-                                    errors['venda.strike'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                                    errors['venda.strike'] ? "border-destructive focus-visible:ring-destructive" : ""
                                 )}
                             />
                             {errors['venda.strike'] && (
-                                <p className="text-xs text-red-500 mt-1">{errors['venda.strike']}</p>
+                                <p className="text-xs text-destructive mt-1">{errors['venda.strike']}</p>
                             )}
                         </div>
 
@@ -375,11 +375,11 @@ export function TravaForm({
                                 placeholder="0,00"
                                 className={cn(
                                     "placeholder-subtle mt-1.5",
-                                    errors['venda.premio'] ? "border-red-500 focus-visible:ring-red-500" : ""
+                                    errors['venda.premio'] ? "border-destructive focus-visible:ring-destructive" : ""
                                 )}
                             />
                             {errors['venda.premio'] && (
-                                <p className="text-xs text-red-500 mt-1">{errors['venda.premio']}</p>
+                                <p className="text-xs text-destructive mt-1">{errors['venda.premio']}</p>
                             )}
                         </div>
                     </div>

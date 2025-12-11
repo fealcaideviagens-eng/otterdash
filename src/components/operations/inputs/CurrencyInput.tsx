@@ -40,11 +40,11 @@ export function CurrencyInput({
                 disabled={disabled}
                 className={cn(
                     "placeholder-subtle mt-1.5",
-                    error ? "border-red-500 focus-visible:ring-red-500" : ""
+                    error ? "border-destructive focus-visible:ring-destructive" : ""
                 )}
             />
             {error && (
-                <p className="text-xs text-red-500 mt-1">{error}</p>
+                <p className="text-xs text-destructive mt-1">{error}</p>
             )}
         </div>
     );

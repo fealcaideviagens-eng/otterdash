@@ -24,10 +24,10 @@ const Index = () => {
       />
       <TopNav />
       {/* Hero Section */}
-      <section id="home" className="relative overflow-hidden bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#1C2E51]">
+      <section id="home" className="relative overflow-hidden bg-gradient-to-br from-brand-blue via-brand-blue-dark to-[#1C2E51]">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
-        <div className="relative overflow-hidden bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#4a0047] pt-20 pb-0 md:pb-0">
+        <div className="relative overflow-hidden bg-gradient-to-br from-brand-blue via-brand-blue-dark to-[#4a0047] pt-20 pb-0 md:pb-0">
 
           {/* IMAGEM DE FUNDO COM OPACIDADE */}
           <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-5" style={{ backgroundImage: `url(${backgroundlp})` }} />
@@ -47,7 +47,7 @@ const Index = () => {
                 <Button
                   asChild
                   size="lg"
-                  className="bg-white text-brand-purple hover:bg-white/90 text-lg px-8 shadow-lg rounded-full"
+                  className="bg-white text-brand-blue hover:bg-white/90 text-lg px-8 shadow-lg rounded-full"
                 >
                   <Link to="/auth?mode=login">
                     Crie sua conta <ArrowRight className="ml-2 w-5 h-5" />

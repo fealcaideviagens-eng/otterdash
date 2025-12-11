@@ -551,8 +551,7 @@ export default function ListaOpcoes() {
 
               <Button
                 onClick={() => navigate("/nova-operacao")} // Ajuste a rota se for /cadastro ou /nova-operacao
-                className="shadow-modern hover:bg-[#1e3050] transition-colors"
-                style={{ backgroundColor: '#263C64' }}
+                className="shadow-modern hover:bg-brand-blue transition-colors bg-brand-blue-dark"
               >
                 <CirclePlus className="mr-2 h-4 w-4" />
                 Cadastre uma opção
@@ -627,7 +626,7 @@ export default function ListaOpcoes() {
                                     <span className="font-medium">{opcao.opcao}</span>
                                     <Badge
                                       variant={opcao.operacao === 'compra' ? 'default' : 'destructive'}
-                                      className={`hidden sm:inline-flex ${opcao.operacao === 'compra' ? 'bg-[#307B58] text-white hover:bg-[#225B44]' : ''}`}
+                                      className={`hidden sm:inline-flex ${opcao.operacao === 'compra' ? 'bg-buy text-buy-foreground hover:bg-buy/90' : ''}`}
                                     >
                                       {opcao.operacao?.charAt(0).toUpperCase() + opcao.operacao?.slice(1) || '-'}
                                     </Badge>
@@ -635,8 +634,8 @@ export default function ListaOpcoes() {
                                       <Badge
                                         variant="secondary"
                                         className={`hidden sm:inline-flex ${opcao.tipo === 'put'
-                                          ? 'bg-[#F6F6E6] text-gray-800 hover:bg-gray-200 border-0'
-                                          : 'bg-[#F6F6E6] text-gray-800 hover:bg-gray-200 border-0'
+                                          ? 'bg-neutral-bg text-foreground hover:bg-muted border-0'
+                                          : 'bg-neutral-bg text-foreground hover:bg-muted border-0'
                                           }`}
                                       >
                                         {opcao.tipo.charAt(0).toUpperCase() + opcao.tipo.slice(1)}
@@ -845,7 +844,7 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
   return (
     <div
       className={`relative bg-white rounded-2xl border 
-      ${isHighlighted ? 'border-[#263C64] ring-2 ring-[#263C64]/20' : 'border-gray-200'}
+      ${isHighlighted ? 'border-brand-blue-dark ring-2 ring-brand-blue-dark/20' : 'border-border'}
       transition-all duration-300 flex flex-col
       ${expandido ? 'min-h-[250px] py-7' : 'min-h-[100px] py-7 '}
       px-5
@@ -859,8 +858,8 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
           {/* Tag Operação */}
           <span
             className={`text-xs font-semibold px-4 py-0.5 rounded-full 
-              ${opcao.operacao === 'compra' ? 'bg-[#307B58] text-white' : ''}
-              ${opcao.operacao === 'venda' ? 'bg-[#D41010] text-white' : ''}
+              ${opcao.operacao === 'compra' ? 'bg-buy text-buy-foreground' : ''}
+              ${opcao.operacao === 'venda' ? 'bg-sell text-sell-foreground' : ''}
             `}
           >
             {opcao.operacao === 'compra' ? 'Compra' : 'Venda'}
@@ -868,13 +867,13 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
           {/* Tag Tipo */}
           <span
             className={`text-xs font-semibold px-4 py-0.5 rounded-full 
-              ${opcao.tipo === 'put' ? 'bg-[#F6F6E6] text-gray-800' : ''}
-              ${opcao.tipo === 'call' ? 'bg-[#F6F6E6] text-gray-800' : ''}
+              ${opcao.tipo === 'put' ? 'bg-neutral-bg text-foreground' : ''}
+              ${opcao.tipo === 'call' ? 'bg-neutral-bg text-foreground' : ''}
             `}
           >
             {opcao.tipo ? (opcao.tipo.charAt(0).toUpperCase() + opcao.tipo.slice(1)) : '-'}
           </span>
-          <button type="button" className="ml-2 p-1 rounded-full hover:bg-gray-200 transition" onClick={() => setExpandido(e => !e)}>
+          <button type="button" className="ml-2 p-1 rounded-full hover:bg-muted transition" onClick={() => setExpandido(e => !e)}>
             {expandido ? (
               <ChevronUp size={22} />
             ) : (
@@ -890,19 +889,19 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Strike</span>
           <span className="font-semibold text-xs">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
         </div>
-        <div className="w-px bg-gray-200 mx-2 self-stretch" />
+        <div className="w-px bg-border mx-2 self-stretch" />
         {/* Bloco Prêmio */}
         <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Prêmio</span>
           <span className="font-semibold text-xs">{opcao.premio ? formatCurrency(opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
         </div>
-        <div className="w-px bg-gray-200 mx-2 self-stretch" />
+        <div className="w-px bg-border mx-2 self-stretch" />
         {/* Bloco Qnt */}
         <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Qnt</span>
           <span className="font-semibold text-xs">{formatQuantidade(opcao.quantidade)}</span>
         </div>
-        <div className="w-px bg-gray-200 mx-2 self-stretch" />
+        <div className="w-px bg-border mx-2 self-stretch" />
         {/* Bloco Validade */}
         <div className="flex flex-col items-center min-w-0">
           <span className="text-[10px] uppercase text-gray-500 font-bold pb-0.5">Validade</span>
@@ -948,7 +947,7 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
       <div className={`flex items-center justify-between ${expandido ? 'mt-6' : 'mt-2'} pt-2 gap-2`}>
         <Button
           className="text-white text-sm font-semibold rounded-full px-5 py-2 transition whitespace-nowrap border-0 shadow-none"
-          style={{ backgroundColor: '#263C64' }}
+          className="bg-brand-blue-dark"
           onClick={() => onEncerrar(opcao)}
         >
           Encerrar opção

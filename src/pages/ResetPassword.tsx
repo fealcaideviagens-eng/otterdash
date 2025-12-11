@@ -206,7 +206,7 @@ export default function ResetPassword() {
     };
 
     return (
-        <div className="min-h-screen flex bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#1C2E51]">
+        <div className="min-h-screen flex bg-gradient-to-br from-brand-blue via-brand-blue-dark to-[#1C2E51]">
             <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
 
             {/* Lado Esquerdo - Imagem da Lontra (oculto no mobile) */}

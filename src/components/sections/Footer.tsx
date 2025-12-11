@@ -3,7 +3,7 @@ import { Shield, Instagram } from "lucide-react";
 const Footer = () => {
     return (
         <footer className="py-12 bg-foreground text-background relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-blue-dark/20 to-transparent"></div>
             <div className="container mx-auto px-4 relative">
                 <div className="grid md:grid-cols-3 gap-8 mb-8">
                     <div>

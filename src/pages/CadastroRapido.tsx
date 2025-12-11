@@ -335,7 +335,7 @@ export default function CadastroRapido() {
 
                 <Button
                     size="lg"
-                    className="px-8 rounded-full bg-[#263C64] hover:bg-[#1e3050]"
+                    className="px-8 rounded-full bg-brand-blue-dark hover:bg-brand-blue"
                     onClick={handleSubmit}
                     disabled={loading}
                 >

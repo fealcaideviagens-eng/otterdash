@@ -62,16 +62,48 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				'brand-purple': {
-					DEFAULT: 'hsl(var(--brand-purple))',
-					light: 'hsl(var(--brand-purple-light))',
-					dark: 'hsl(var(--brand-purple-dark))'
+				'brand-blue': {
+					DEFAULT: 'hsl(var(--brand-blue))',
+					light: 'hsl(var(--brand-blue-light))',
+					dark: 'hsl(var(--brand-blue-dark))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))',
+					bg: 'hsl(var(--success-bg))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))',
+					bg: 'hsl(var(--warning-bg))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))',
+					bg: 'hsl(var(--info-bg))'
+				},
+				buy: {
+					DEFAULT: 'hsl(var(--buy))',
+					foreground: 'hsl(var(--buy-foreground))',
+					bg: 'hsl(var(--buy-bg))'
+				},
+				sell: {
+					DEFAULT: 'hsl(var(--sell))',
+					foreground: 'hsl(var(--sell-foreground))'
+				},
+				neutral: {
+					bg: 'hsl(var(--neutral-bg))',
+					'bg-light': 'hsl(var(--neutral-bg-light))',
+					'bg-lighter': 'hsl(var(--neutral-bg-lighter))'
 				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'var(--radius-sm)',
+				xl: 'var(--radius-lg)',
+				'2xl': 'var(--radius-xl)',
+				full: 'var(--radius-full)'
 			},
 			keyframes: {
 				'accordion-down': {

@@ -41,7 +41,7 @@ export function DateInput({
                         className={cn(
                             "w-full justify-start text-left font-normal h-10 rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background",
                             !value && "text-muted-foreground",
-                            error ? "border-red-500 focus-visible:ring-red-500" : ""
+                            error ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                     >
                         {value ? (
@@ -78,7 +78,7 @@ export function DateInput({
                 </PopoverContent>
             </Popover>
             {error && (
-                <p className="text-xs text-red-500 mt-1">{error}</p>
+                <p className="text-xs text-destructive mt-1">{error}</p>
             )}
         </div>
     );

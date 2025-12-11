@@ -51,7 +51,7 @@ export function StrategySelector({ selectedStrategyId, onSelectStrategy }: Strat
                                 </div>
 
                                 {strategy.disabled ? (
-                                    <span className="text-[10px] font-medium bg-[#F1F0EA] text-[#6D6845] px-2 py-1 rounded-full">
+                                    <span className="text-[10px] font-medium bg-neutral-bg-lighter text-muted-foreground px-2 py-1 rounded-full">
                                         em breve
                                     </span>
                                 ) : (

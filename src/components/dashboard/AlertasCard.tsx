@@ -232,34 +232,34 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
               return (
                 <div
                   key={strategyItem.groupId}
-                  className="flex items-center justify-between p-3 rounded-lg bg-[#FBFBF2] cursor-pointer hover:bg-[#F6F6E6] dark:hover:bg-gray-950/30 transition-colors border border-amber-100"
+                  className="flex items-center justify-between p-3 rounded-lg bg-neutral-bg-light cursor-pointer hover:bg-neutral-bg dark:hover:bg-gray-950/30 transition-colors border border-warning-bg"
                   onClick={() => navigate(`/opcoes?strategy=${strategyItem.groupId}`)}
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <div className="hidden sm:flex items-center gap-2">
                       {isTravaBaixa ? (
                         <>
-                          <TrendingDown className="h-4 w-4 text-red-800" />
-                          <span className="font-semibold text-sm text-red-800 whitespace-nowrap">
+                          <TrendingDown className="h-4 w-4 text-destructive" />
+                          <span className="font-semibold text-sm text-destructive whitespace-nowrap">
                             {getStrategyTitle(strategyItem.strategyType)}
                           </span>
                         </>
                       ) : (
                         <>
-                          <TrendingUp className="h-4 w-4 text-green-800" />
-                          <span className="font-semibold text-sm text-green-800 whitespace-nowrap">
+                          <TrendingUp className="h-4 w-4 text-success" />
+                          <span className="font-semibold text-sm text-success whitespace-nowrap">
                             {getStrategyTitle(strategyItem.strategyType)}
                           </span>
                         </>
                       )}
                     </div>
 
-                    <span className="text-sm text-gray-700 truncate">
+                    <span className="text-sm text-muted-foreground truncate">
                       <span className="font-medium">{tickers}</span>
                     </span>
 
                     <div className="ml-auto flex items-center gap-3">
-                      <span className="text-xs text-gray-900 hidden sm:inline">
+                      <span className="text-xs text-foreground hidden sm:inline">
                         {isExpired ? 'Trava vencida' : `Próximo ao vencimento: ${formatDate(strategyItem.data)}`}
                       </span>
                       {isExpired && (
@@ -275,7 +275,7 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
                     </div>
                   </div>
                   {!isExpired && (
-                    <ChevronRight className="h-4 w-4 text-gray-900 ml-4" />
+                    <ChevronRight className="h-4 w-4 text-foreground ml-4" />
                   )}
                 </div>
               );
@@ -286,20 +286,20 @@ export const AlertasCard = ({ opcoes, onEncerrar, onEncerrarTrava }: AlertasCard
             return (
               <div
                 key={opcao.ops_id + index}
-                className="flex items-center justify-between p-3 rounded-lg bg-[#FBFBF2] cursor-pointer hover:bg-[#F6F6E6] dark:hover:bg-gray-950/30 transition-colors"
+                className="flex items-center justify-between p-3 rounded-lg bg-neutral-bg-light cursor-pointer hover:bg-neutral-bg dark:hover:bg-gray-950/30 transition-colors"
                 onClick={() => navigate(`/opcoes?opcao=${opcao.ops_id}`)}
               >
                 <div className="flex items-center gap-3 flex-1">
                   <div className="hidden sm:flex items-center gap-2">
                     <Badge
                       variant={opcao.operacao === 'compra' ? 'default' : 'destructive'}
-                      className={`text-xs ${opcao.operacao === 'compra' ? 'bg-[#307B58] text-white hover:bg-[#225B44]' : ''}`}
+                      className={`text-xs ${opcao.operacao === 'compra' ? 'bg-buy text-buy-foreground hover:bg-buy/90' : ''}`}
                     >
                       {opcao.operacao?.charAt(0).toUpperCase() + opcao.operacao?.slice(1) || '-'}
                     </Badge>
                     <Badge
                       variant="secondary"
-                      className="text-xs bg-[#F6F6E6] text-gray-900 hover:bg-gray-200 border-0"
+                      className="text-xs bg-neutral-bg text-foreground hover:bg-muted border-0"
                     >
                       {opcao.tipo?.charAt(0).toUpperCase() + opcao.tipo?.slice(1) || '-'}
                     </Badge>

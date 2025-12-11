@@ -22,11 +22,11 @@ const ProductSection = () => {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 mb-12">
-                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-blue hover:via-brand-blue-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
                         <CardContent className="p-8">
 
-                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
-                                <BarChart3 className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
+                            <div className="rounded-full bg-brand-blue group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <BarChart3 className="w-7 h-7 text-white group-hover:text-brand-blue transition-colors duration-300" />
                             </div>
 
                             <h3 className="text-2xl font-semibold mb-2">
@@ -40,11 +40,11 @@ const ProductSection = () => {
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-blue hover:via-brand-blue-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
                         <CardContent className="p-8">
 
-                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
-                                <Wallet className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
+                            <div className="rounded-full bg-brand-blue group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <Wallet className="w-7 h-7 text-white group-hover:text-brand-blue transition-colors duration-300" />
                             </div>
 
                             <h3 className="text-2xl font-semibold mb-2">
@@ -58,11 +58,11 @@ const ProductSection = () => {
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-blue hover:via-brand-blue-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
                         <CardContent className="p-8">
 
-                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
-                                <Skull className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
+                            <div className="rounded-full bg-brand-blue group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <Skull className="w-7 h-7 text-white group-hover:text-brand-blue transition-colors duration-300" />
                             </div>
 
                             <h3 className="text-2xl font-semibold mb-2">
@@ -76,11 +76,11 @@ const ProductSection = () => {
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-blue hover:via-brand-blue-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
                         <CardContent className="p-8">
 
-                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
-                                <DollarSign className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
+                            <div className="rounded-full bg-brand-blue group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <DollarSign className="w-7 h-7 text-white group-hover:text-brand-blue transition-colors duration-300" />
                             </div>
 
                             <h3 className="text-2xl font-semibold mb-2">
@@ -94,11 +94,11 @@ const ProductSection = () => {
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-blue hover:via-brand-blue-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
                         <CardContent className="p-8">
 
-                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
-                                <BookOpenText className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
+                            <div className="rounded-full bg-brand-blue group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <BookOpenText className="w-7 h-7 text-white group-hover:text-brand-blue transition-colors duration-300" />
                             </div>
 
                             <h3 className="text-2xl font-semibold mb-2">
@@ -112,11 +112,11 @@ const ProductSection = () => {
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-purple hover:via-brand-purple-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
+                    <Card className="rounded-3xl group bg-white border-none hover:border-transparent hover:bg-gradient-to-br hover:from-brand-blue hover:via-brand-blue-dark hover:to-[#1C2E51] hover:text-white hover:shadow-modern-lg transition-all duration-300">
                         <CardContent className="p-8">
 
-                            <div className="rounded-full bg-brand-purple group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
-                                <PiggyBank className="w-7 h-7 text-white group-hover:text-brand-purple transition-colors duration-300" />
+                            <div className="rounded-full bg-brand-blue group-hover:bg-white transition-colors duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                                <PiggyBank className="w-7 h-7 text-white group-hover:text-brand-blue transition-colors duration-300" />
                             </div>
 
                             <h3 className="text-2xl font-semibold mb-2">

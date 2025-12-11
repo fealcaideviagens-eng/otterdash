@@ -108,7 +108,7 @@ export default function Dashboard() {
         <Button
           onClick={() => navigate("/cadastro")}
           className="shadow-modern"
-          style={{ backgroundColor: '#263C64' }}
+          className="bg-brand-blue-dark"
         >
           <CirclePlus className="mr-2 h-4 w-4" />
           Nova operação

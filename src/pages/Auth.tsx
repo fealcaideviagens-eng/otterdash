@@ -59,7 +59,7 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-brand-purple via-brand-purple-dark to-[#1C2E51]">
+    <div className="min-h-screen flex bg-gradient-to-br from-brand-blue via-brand-blue-dark to-[#1C2E51]">
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
 
 
@@ -193,10 +193,10 @@ export default function Auth() {
               </button>
             </div>
 
-            <Alert className="mt-6 border-brand-purple/20 bg-brand-purple/5">
-              <Heart className="h-4 w-4 text-brand-purple" />
+            <Alert className="mt-6 border-brand-blue/20 bg-brand-blue/5">
+              <Heart className="h-4 w-4 text-brand-blue" />
               <AlertDescription className="text-sm">
-                <strong className="text-brand-purple">Apoie o projeto!</strong> Esta plataforma é 100% gratuita.
+                <strong className="text-brand-blue">Apoie o projeto!</strong> Esta plataforma é 100% gratuita.
                 Se quiser contribuir, faça uma doação via PIX:{" "}
                 <span className="font-mono font-semibold">otteropcoes@gmail.com</span>
               </AlertDescription>

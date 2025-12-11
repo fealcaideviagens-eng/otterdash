@@ -32,7 +32,7 @@ export const TickerInput = forwardRef<HTMLInputElement, TickerInputProps>(
                 {prefix ? (
                     <div className={cn(
                         "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                        error ? "border-red-500 focus-within:ring-red-500" : ""
+                        error ? "border-destructive focus-within:ring-destructive" : ""
                     )}>
                         <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                             {prefix}
@@ -61,12 +61,12 @@ export const TickerInput = forwardRef<HTMLInputElement, TickerInputProps>(
                         disabled={disabled}
                         className={cn(
                             "placeholder-subtle mt-1.5",
-                            error ? "border-red-500 focus-visible:ring-red-500" : ""
+                            error ? "border-destructive focus-visible:ring-destructive" : ""
                         )}
                     />
                 )}
                 {error && (
-                    <p className="text-xs text-red-500 mt-1">{error}</p>
+                    <p className="text-xs text-destructive mt-1">{error}</p>
                 )}
             </div>
         );

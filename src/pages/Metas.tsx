@@ -230,7 +230,7 @@ const Metas = () => {
         <h1 className="text-3xl font-bold tracking-tight">Metas</h1>
         <ResponsiveModal open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <ResponsiveModalTrigger asChild>
-            <Button style={{ backgroundColor: '#263C64' }} onClick={handleOpenDialog}>
+            <Button className="bg-brand-blue-dark" onClick={handleOpenDialog}>
               <Plus className="mr-2 h-4 w-4" />
               Nova meta
             </Button>
@@ -282,7 +282,7 @@ const Metas = () => {
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" style={{ backgroundColor: '#263C64' }}>
+                <Button type="submit" className="bg-brand-blue-dark">
                   {editingMeta ? "Salvar alterações" : "Cadastrar meta"}
                 </Button>
               </ResponsiveModalFooter>

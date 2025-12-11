@@ -83,11 +83,11 @@ export function SimpleOptionForm({
                                     maxLength={6}
                                     className={cn(
                                         "placeholder-subtle mt-1.5",
-                                        errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        errors.acao ? "border-destructive focus-visible:ring-destructive" : ""
                                     )}
                                 />
                                 {errors.acao && (
-                                    <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
+                                    <p className="text-xs text-destructive mt-1">{errors.acao}</p>
                                 )}
                             </div>
 
@@ -95,7 +95,7 @@ export function SimpleOptionForm({
                                 <Label htmlFor="opcao">Ticker da opção</Label>
                                 <div className={cn(
                                     "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
-                                    errors.opcao ? "border-red-500 focus-within:ring-red-500" : ""
+                                    errors.opcao ? "border-destructive focus-within:ring-destructive" : ""
                                 )}>
                                     <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
                                         {formData.acao.substring(0, 4) || ""}
@@ -147,7 +147,7 @@ export function SimpleOptionForm({
                                     <p className="text-xs text-muted-foreground mt-1">Selecione o vencimento primeiro</p>
                                 )}
                                 {errors.opcao && (
-                                    <p className="text-xs text-red-500 mt-1">{errors.opcao}</p>
+                                    <p className="text-xs text-destructive mt-1">{errors.opcao}</p>
                                 )}
                             </div>
                         </div>
@@ -162,11 +162,11 @@ export function SimpleOptionForm({
                                     placeholder="0,00"
                                     className={cn(
                                         "placeholder-subtle mt-1.5",
-                                        errors.cotacao ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        errors.cotacao ? "border-destructive focus-visible:ring-destructive" : ""
                                     )}
                                 />
                                 {errors.cotacao && (
-                                    <p className="text-xs text-red-500 mt-1">{errors.cotacao}</p>
+                                    <p className="text-xs text-destructive mt-1">{errors.cotacao}</p>
                                 )}
                             </div>
 
@@ -179,11 +179,11 @@ export function SimpleOptionForm({
                                     placeholder="0,00"
                                     className={cn(
                                         "placeholder-subtle mt-1.5",
-                                        errors.strike ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        errors.strike ? "border-destructive focus-visible:ring-destructive" : ""
                                     )}
                                 />
                                 {errors.strike && (
-                                    <p className="text-xs text-red-500 mt-1">{errors.strike}</p>
+                                    <p className="text-xs text-destructive mt-1">{errors.strike}</p>
                                 )}
                             </div>
                         </div>
@@ -198,11 +198,11 @@ export function SimpleOptionForm({
                                     placeholder="100"
                                     className={cn(
                                         "placeholder-subtle mt-1.5",
-                                        errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        errors.quantidade ? "border-destructive focus-visible:ring-destructive" : ""
                                     )}
                                 />
                                 {errors.quantidade && (
-                                    <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
+                                    <p className="text-xs text-destructive mt-1">{errors.quantidade}</p>
                                 )}
                             </div>
 
@@ -215,11 +215,11 @@ export function SimpleOptionForm({
                                     placeholder="0,00"
                                     className={cn(
                                         "placeholder-subtle mt-1.5",
-                                        errors.premio ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        errors.premio ? "border-destructive focus-visible:ring-destructive" : ""
                                     )}
                                 />
                                 {errors.premio && (
-                                    <p className="text-xs text-red-500 mt-1">{errors.premio}</p>
+                                    <p className="text-xs text-destructive mt-1">{errors.premio}</p>
                                 )}
                             </div>
                         </div>
