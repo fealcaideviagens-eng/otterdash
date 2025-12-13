@@ -89,7 +89,7 @@ export default function NovaOperacao() {
 
             <Button
                 size="lg"
-                className="px-8 rounded-full"
+                className="px-8 rounded-full w-full md:w-auto"
                 onClick={handleContinue}
             >
                 Continuar

@@ -148,7 +148,7 @@ function AppRoutes() {
           <ProtectedRoute>
             <div className="flex h-screen bg-background">
               <Sidebar />
-              <main className="flex-1 overflow-auto p-6 lg:ml-4 pb-20 lg:pb-6">
+              <main id="main-content" className="flex-1 overflow-auto p-6 lg:ml-4 pb-20 lg:pb-6">
                 <CadastroOpcao />
               </main>
             </div>

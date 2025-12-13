@@ -48,13 +48,17 @@ export function EditarEncerramentoModal({
 
   useEffect(() => {
     if (venda && isOpen) {
+      const premioValue = operacao === 'venda' ? -venda.premio : venda.premio;
       setFormData({
-        premio: operacao === 'venda' ? -venda.premio : venda.premio,
+        premio: premioValue,
         data: venda.encerramento,
         quantidade: venda.quantidade,
       });
       setFormattedValues({
-        premio: formatCurrencyInput((operacao === 'venda' ? -venda.premio : venda.premio).toString()),
+        premio: premioValue.toLocaleString('pt-BR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
         quantidade: venda.quantidade.toString(),
       });
     }
@@ -155,11 +159,11 @@ export function EditarEncerramentoModal({
           </div>
 
           <ResponsiveModalFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full">
               Salvar
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="w-full">
+              Cancelar
             </Button>
           </ResponsiveModalFooter>
         </form>

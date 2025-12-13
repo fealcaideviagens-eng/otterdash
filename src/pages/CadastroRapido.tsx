@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,9 +13,9 @@ import { CurrencyInput } from "@/components/operations/inputs/CurrencyInput";
 import { DateInput } from "@/components/operations/inputs/DateInput";
 import { DollarSign, Building2, ArrowBigDownDash, ArrowBigUpDash, ChevronLeft } from "lucide-react";
 import { parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
-import { formatDateForInput, parseLocalDate } from "@/utils/formatters";
+import { parseLocalDate } from "@/utils/formatters";
 import { SuccessModal } from "@/components/operations/SuccessModal";
-
+import { supabase } from "@/integrations/supabase/client";
 
 const OPERATION_TYPES = [
     {
@@ -61,6 +61,7 @@ export default function CadastroRapido() {
 
     const [selectedType, setSelectedType] = useState("venda_put");
     const [formData, setFormData] = useState({
+        acao: "",
         ticker: "",
         strike: "",
         premio: "",
@@ -69,15 +70,84 @@ export default function CadastroRapido() {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [successModalOpen, setSuccessModalOpen] = useState(false);
+    const acaoInputRef = useRef<HTMLInputElement>(null);
+
+    const CALL_MONTHS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+    const PUT_MONTHS = ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
+
+    // Auto-fill Ticker Prefix when Acao, Date or Type changes
+    useEffect(() => {
+        const updateTickerPrefix = () => {
+            const selectedOp = OPERATION_TYPES.find(t => t.id === selectedType);
+            if (!selectedOp || !formData.acao || formData.acao.length < 4 || !formData.vencimento) {
+                return;
+            }
+
+            const prefix = formData.acao.substring(0, 4).toUpperCase().replace(/[^A-Z]/g, '');
+            if (prefix.length < 4) return;
+
+            const vencimento = parseLocalDate(formData.vencimento);
+            const monthIndex = vencimento.getMonth();
+            const letter = selectedOp.tipo === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+
+            const newPrefix = prefix + letter;
+
+            // Preserve existing suffix numbers/chars if any
+            let currentSuffix = "";
+            if (formData.ticker && formData.ticker.length > 5) {
+                // If current ticker starts with the same root prefix (first 4 chars), try to keep the suffix
+                const currentRoot = formData.ticker.substring(0, 4);
+                if (currentRoot === prefix) {
+                    currentSuffix = formData.ticker.substring(5);
+                }
+            }
+
+            setFormData(prev => ({ ...prev, ticker: newPrefix + currentSuffix }));
+        };
+
+        const timeoutId = setTimeout(updateTickerPrefix, 100);
+        return () => clearTimeout(timeoutId);
+    }, [formData.acao, formData.vencimento, selectedType]);
+
+    // Auto-fill Ação based on Ticker (reverse logic similar to CadastroOpcao, but optional here)
+    // Only if Acao is empty and Ticker is filled manually
+    useEffect(() => {
+        const fetchAcao = async () => {
+            // Only if Acao is empty allow reverse lookup to not override user input
+            if (formData.acao) return;
+
+            const ticker = formData.ticker;
+            if (!ticker || ticker.length < 4) return;
+
+            const prefix = ticker.substring(0, 4);
+            // Default to prefix if no DB lookup needed, or implement full lookup
+            setFormData(prev => ({ ...prev, acao: prefix }));
+        };
+
+        // Debounce slightly longer to avoid clashing with the forward update
+        const timeoutId = setTimeout(fetchAcao, 800);
+        return () => clearTimeout(timeoutId);
+    }, [formData.ticker]);
+
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+
+        // Limpar erros
         if (errors[field]) {
             setErrors(prev => {
                 const newErrors = { ...prev };
                 delete newErrors[field];
                 return newErrors;
             });
+        }
+    };
+
+    const handleAcaoChange = (val: string) => {
+        const upperValue = val.toUpperCase();
+        const cleanValue = upperValue.replace(/[^A-Z0-9]/g, '');
+        if (cleanValue.length <= 6) {
+            handleInputChange("acao", cleanValue);
         }
     };
 
@@ -90,6 +160,11 @@ export default function CadastroRapido() {
         const selectedOp = OPERATION_TYPES.find(t => t.id === selectedType)!;
 
         // Basic required field validation
+        if (!formData.acao) {
+            newErrors.acao = "Preencha o código da ação";
+            hasError = true;
+        }
+
         const tickerRegex = /^[A-Z]{5}[0-9]{1,3}(W[0-9]?)?$/;
         if (!formData.ticker) {
             newErrors.ticker = "Preencha com o ticker da opção";
@@ -121,9 +196,6 @@ export default function CadastroRapido() {
             const fifthLetter = formData.ticker.charAt(4).toUpperCase();
             const vencimento = parseLocalDate(formData.vencimento);
             const monthIndex = vencimento.getMonth(); // 0 = Jan, 11 = Dez
-
-            const CALL_MONTHS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-            const PUT_MONTHS = ['M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X'];
 
             const isCallLetter = CALL_MONTHS.includes(fifthLetter);
             const isPutLetter = PUT_MONTHS.includes(fifthLetter);
@@ -157,13 +229,22 @@ export default function CadastroRapido() {
             }
         }
 
+        // Validate Ticker matches Action
+        if (!hasError && formData.acao && formData.ticker) {
+            const acaoPrefix = formData.acao.substring(0, 4);
+            if (!formData.ticker.startsWith(acaoPrefix)) {
+                newErrors.ticker = `O ticker deve começar com ${acaoPrefix}`;
+                hasError = true;
+            }
+        }
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             setLoading(false);
             toast({
                 variant: "destructive",
                 title: "Erro no formulário",
-                description: "Preencha todos os campos obrigatórios."
+                description: "Preencha todos os campos obrigatórios corretamente."
             });
             return;
         }
@@ -178,8 +259,8 @@ export default function CadastroRapido() {
                 operacao: selectedOp.operacao,
                 tipo: selectedOp.tipo,
                 status: "aberta",
-                acao: "", // Don't guess, let user edit later
-                cotacao: 0 // Not asked in quick form, maybe fetch or default to 0
+                acao: formData.acao,
+                cotacao: 0 // Not asked in quick form
             });
 
             setSuccessModalOpen(true);
@@ -203,13 +284,13 @@ export default function CadastroRapido() {
     const handleAddAnother = () => {
         setSuccessModalOpen(false);
         setFormData({
+            acao: "",
             ticker: "",
             strike: "",
             premio: "",
             quantidade: "",
             vencimento: ""
         });
-        // Optional: Keep the selected type or reset it? Usually keep it.
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -264,32 +345,27 @@ export default function CadastroRapido() {
                         <CardTitle className="text-lg font-bold">Dados da opção</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <TickerInput
-                                id="ticker"
-                                label="Ticker da opção"
-                                placeholder="ex: PETRH123"
-                                value={formData.ticker}
-                                onChange={(val) => handleInputChange("ticker", val)}
-                                error={errors.ticker}
-                            />
-                            <CurrencyInput
-                                id="strike"
-                                label="Strike (R$)"
-                                value={formData.strike}
-                                onChange={(val) => handleInputChange("strike", val)}
-                                error={errors.strike}
-                            />
-                        </div>
 
+                        {/* Linha 1: Ação e Quantidade */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <CurrencyInput
-                                id="premio"
-                                label="Prêmio (R$)"
-                                value={formData.premio}
-                                onChange={(val) => handleInputChange("premio", val)}
-                                error={errors.premio}
-                            />
+                            <div>
+                                <Label htmlFor="acao">Ação</Label>
+                                <Input
+                                    id="acao"
+                                    ref={acaoInputRef}
+                                    placeholder="Ex: PETR4"
+                                    value={formData.acao}
+                                    onChange={(e) => handleAcaoChange(e.target.value)}
+                                    maxLength={6}
+                                    className={cn(
+                                        "font-mono uppercase placeholder-subtle mt-1.5",
+                                        errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
+                                    )}
+                                />
+                                {errors.acao && (
+                                    <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
+                                )}
+                            </div>
                             <div>
                                 <Label htmlFor="quantidade">Quantidade</Label>
                                 <Input
@@ -309,7 +385,26 @@ export default function CadastroRapido() {
                             </div>
                         </div>
 
-                        <div className="w-full md:w-1/2 pr-0 md:pr-3">
+                        {/* Linha 2: Premio e Strike */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <CurrencyInput
+                                id="premio"
+                                label="Prêmio (R$)"
+                                value={formData.premio}
+                                onChange={(val) => handleInputChange("premio", val)}
+                                error={errors.premio}
+                            />
+                            <CurrencyInput
+                                id="strike"
+                                label="Strike (R$)"
+                                value={formData.strike}
+                                onChange={(val) => handleInputChange("strike", val)}
+                                error={errors.strike}
+                            />
+                        </div>
+
+                        {/* Linha 3: Vencimento e Ticker da opção */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <DateInput
                                 id="vencimento"
                                 label="Vencimento"
@@ -317,31 +412,48 @@ export default function CadastroRapido() {
                                 onChange={(val) => handleInputChange("vencimento", val)}
                                 error={errors.vencimento}
                             />
+                            <TickerInput
+                                id="ticker"
+                                label="Ticker da opção"
+                                placeholder="ex: PETRH123"
+                                value={formData.ticker}
+                                onChange={(val) => handleInputChange("ticker", val)}
+                                error={errors.ticker}
+                            />
                         </div>
+
                     </CardContent>
                 </Card>
             </div>
 
-            <div className="flex gap-4 mt-8">
+            {/* Container: flex-col-reverse (mobile) e md:flex-row (desktop) */}
+            <div className="flex flex-col-reverse md:flex-row gap-4 mt-8 w-full">
+
+                {/* Botão Voltar (Agora é o PRIMEIRO no HTML) */}
                 <Button
                     variant="outline"
                     size="lg"
-                    className="px-8 rounded-full"
+                    // w-full (mobile) e md:w-auto (desktop)
+                    className="w-full md:w-auto rounded-full flex items-center justify-center gap-2"
                     onClick={() => navigate("/nova-operacao")}
                 >
                     <ChevronLeft className="h-4 w-4" />
                     Voltar
                 </Button>
 
+                {/* Botão Adicionar (Agora é o SEGUNDO no HTML) */}
                 <Button
                     size="lg"
-                    className="px-8 rounded-full bg-brand-blue-dark hover:bg-brand-blue"
+                    // w-full (mobile) e md:w-auto (desktop)
+                    className="w-full md:w-auto rounded-full bg-brand-blue-dark hover:bg-brand-blue"
                     onClick={handleSubmit}
                     disabled={loading}
                 >
                     {loading ? "Salvando..." : "Adicionar opção"}
                 </Button>
+
             </div>
+
 
             <SuccessModal
                 isOpen={successModalOpen}

@@ -110,6 +110,9 @@ export default function CadastroOpcao() {
       const isBullCallSpread = selectedStrategyId === 'alta_moderada';
       const isBearPutSpread = selectedStrategyId === 'queda_moderada';
 
+      // Regex definition
+      const tickerRegex = /^[A-Z]{5}[0-9]{1,3}(W[0-9]?)?$/;
+
       // Validação Comum
       if (!formData.acao) {
         newErrors.acao = "Preencha com o ticker da ação";
@@ -128,10 +131,14 @@ export default function CadastroOpcao() {
       if (isTrava) {
         // Validar campos da Trava
         if (!travaData.compra.ticker) newErrors['compra.ticker'] = "Preencha o ticker da compra";
+        else if (!tickerRegex.test(travaData.compra.ticker)) newErrors['compra.ticker'] = "Ticker inválido (Ex: PETRA123)";
+
         if (!travaData.compra.strike) newErrors['compra.strike'] = "Preencha o strike da compra";
         if (!travaData.compra.premio) newErrors['compra.premio'] = "Preencha o prêmio da compra";
 
         if (!travaData.venda.ticker) newErrors['venda.ticker'] = "Preencha o ticker da venda";
+        else if (!tickerRegex.test(travaData.venda.ticker)) newErrors['venda.ticker'] = "Ticker inválido (Ex: PETRA123)";
+
         if (!travaData.venda.strike) newErrors['venda.strike'] = "Preencha o strike da venda";
         if (!travaData.venda.premio) newErrors['venda.premio'] = "Preencha o prêmio da venda";
 
@@ -417,14 +424,21 @@ export default function CadastroOpcao() {
           }));
         } else {
           // Lógica para Opção Simples
-          if (formData.opcao && formData.opcao.length >= 4) {
-            const type = formData.tipo === 'put' ? 'put' : 'call';
-            const letter = type === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+          const type = formData.tipo === 'put' ? 'put' : 'call';
+          const letter = type === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
 
-            let newTicker = formData.opcao;
+          let newTicker = formData.opcao || prefix;
+          // Ensure we have at least the 4 letter prefix
+          if (newTicker.length < 4) {
+            newTicker = prefix;
+          }
+
+          if (newTicker.length >= 4) {
             if (newTicker.length >= 5) {
+              // Replace the 5th char
               newTicker = newTicker.substring(0, 4) + letter + newTicker.substring(5);
             } else {
+              // Append the letter
               newTicker = newTicker + letter;
             }
             handleOpcaoChange(newTicker);
@@ -951,7 +965,7 @@ export default function CadastroOpcao() {
             progressValue = 80;
           } else if (score <= 1.50) {
             nivelRisco = "Moderado";
-            corRisco = "text-yellow-600";
+            corRisco = "text-warning";
             progressValue = 50;
           } else {
             // Score > 1.50
@@ -976,7 +990,7 @@ export default function CadastroOpcao() {
             progressValue = 35;
           } else if (score <= 1.50) {
             nivelRisco = "Moderado";
-            corRisco = "text-yellow-600";
+            corRisco = "text-warning";
             progressValue = 65;
           } else {
             // Score > 1.50 (Muito longe do dinheiro)
@@ -1051,7 +1065,7 @@ export default function CadastroOpcao() {
     if (premio > 0 && quantidade > 0) {
       valorTotal = premio * quantidade;
       if (formData.operacao === "venda") {
-        valorTotalLabel = "Ganho máximo";
+        valorTotalLabel = "Lucro máximo";
         isGanho = true;
       } else {
         valorTotalLabel = "Risco máximo";
@@ -1091,7 +1105,7 @@ export default function CadastroOpcao() {
         isGanhoGarantia = false;
       } else {
         percentualRelativoGarantia = (premioTotal / garantia) * 100;
-        labelPercentualGarantia = "Ganho máximo";
+        labelPercentualGarantia = "Lucro máximo";
         isGanhoGarantia = true;
       }
     }
@@ -1213,6 +1227,139 @@ export default function CadastroOpcao() {
   }, []);
 
   const handleSaveDraft = () => {
+    // Validação Rigorosa (Idêntica ao handleSubmit)
+    const newErrors: Record<string, string> = {};
+    let hasError = false;
+    const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
+    const isBullCallSpread = selectedStrategyId === 'alta_moderada';
+    const isBearPutSpread = selectedStrategyId === 'queda_moderada';
+
+    // Regex definition
+    const tickerRegex = /^[A-Z]{5}[0-9]{1,3}(W[0-9]?)?$/;
+
+    // Validação Comum
+    if (!formData.acao) {
+      newErrors.acao = "Preencha com o ticker da ação";
+      hasError = true;
+    }
+    if (!formData.cotacao) {
+      newErrors.cotacao = "Preencha com a cotacao";
+      hasError = true;
+    }
+    if (!formData.quantidade) {
+      newErrors.quantidade = "Preencha com a quantidade";
+      hasError = true;
+    }
+
+    // Validação Específica: TRAVA
+    if (isTrava) {
+      // Validar campos da Trava
+      if (!travaData.compra.ticker) newErrors['compra.ticker'] = "Preencha o ticker da compra";
+      else if (!tickerRegex.test(travaData.compra.ticker)) newErrors['compra.ticker'] = "Ticker inválido (Ex: PETRA123)";
+
+      if (!travaData.compra.strike) newErrors['compra.strike'] = "Preencha o strike da compra";
+      if (!travaData.compra.premio) newErrors['compra.premio'] = "Preencha o prêmio da compra";
+
+      if (!travaData.venda.ticker) newErrors['venda.ticker'] = "Preencha o ticker da venda";
+      else if (!tickerRegex.test(travaData.venda.ticker)) newErrors['venda.ticker'] = "Ticker inválido (Ex: PETRA123)";
+
+      if (!travaData.venda.strike) newErrors['venda.strike'] = "Preencha o strike da venda";
+      if (!travaData.venda.premio) newErrors['venda.premio'] = "Preencha o prêmio da venda";
+
+      // Validar Ticker vs Ação (Trava)
+      if (formData.acao && formData.acao.length >= 4) {
+        const acaoPrefix = formData.acao.substring(0, 4);
+        if (travaData.compra.ticker && !travaData.compra.ticker.startsWith(acaoPrefix)) {
+          newErrors['compra.ticker'] = `O ticker deve começar com ${acaoPrefix}`;
+        }
+        if (travaData.venda.ticker && !travaData.venda.ticker.startsWith(acaoPrefix)) {
+          newErrors['venda.ticker'] = `O ticker deve começar com ${acaoPrefix}`;
+        }
+      }
+
+      if (Object.keys(newErrors).length > 0) hasError = true;
+
+      // Validar Regra de Negócio: Ambas Travas devem ser DÉBITO
+      if (!hasError) {
+        const strikeCompra = parseCurrencyToNumber(travaData.compra.strike);
+        const strikeVenda = parseCurrencyToNumber(travaData.venda.strike);
+        const premioCompra = parseCurrencyToNumber(travaData.compra.premio);
+        const premioVenda = parseCurrencyToNumber(travaData.venda.premio);
+        const custo = premioCompra - premioVenda;
+
+        // Validar Custo (Débito)
+        if (custo <= 0) {
+          const strategyName = isBullCallSpread ? "Trava de Alta com Call" : "Trava de Baixa com Put";
+          toast({
+            variant: "destructive",
+            title: "⚠️ Operação Inválida",
+            description: `${strategyName} deve ser um DÉBITO (Custo > 0). O prêmio da compra deve ser maior que o da venda.`,
+            className: "border-warning-bg bg-warning-bg text-warning-foreground",
+          });
+          return;
+        }
+
+        // Validar Hierarquia de Strikes
+        if (isBullCallSpread && strikeCompra >= strikeVenda) {
+          toast({
+            variant: "destructive",
+            title: "⚠️ Strikes Inválidos",
+            description: "Na Trava de Alta com Call, o Strike da COMPRA deve ser MENOR que o Strike da VENDA.",
+            className: "border-warning-bg bg-warning-bg text-warning-foreground",
+          });
+          return;
+        }
+
+        if (isBearPutSpread && strikeCompra <= strikeVenda) {
+          toast({
+            variant: "destructive",
+            title: "⚠️ Strikes Inválidos",
+            description: "Na Trava de Baixa com Put, o Strike da COMPRA deve ser MAIOR que o Strike da VENDA.",
+            className: "border-warning-bg bg-warning-bg text-warning-foreground",
+          });
+          return;
+        }
+
+      }
+
+    } else {
+      // Validação Específica: OUTRAS ESTRATÉGIAS (Original)
+      const tickerRegex = /^[A-Z]{5}[0-9]{1,3}(W[0-9]?)?$/;
+      if (!formData.opcao) {
+        newErrors.opcao = "Preencha com o ticker da opção";
+        hasError = true;
+      } else if (!tickerRegex.test(formData.opcao)) {
+        newErrors.opcao = "Formato inválido. Ex: PETRA123";
+        hasError = true;
+      } else if (formData.acao && formData.acao.length >= 4) {
+        // Validar Ticker vs Ação (Simples)
+        const acaoPrefix = formData.acao.substring(0, 4);
+        if (!formData.opcao.startsWith(acaoPrefix)) {
+          newErrors.opcao = `O ticker deve começar com ${acaoPrefix}`;
+          hasError = true;
+        }
+      }
+
+      if (!formData.strike) {
+        newErrors.strike = "Preencha com o strike";
+        hasError = true;
+      }
+      if (!formData.premio) {
+        newErrors.premio = "Preencha com o prêmio";
+        hasError = true;
+      }
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      toast({
+        variant: "destructive",
+        title: "Erro no formulário",
+        description: "Por favor, corrija os erros destacados.",
+      });
+      return;
+    }
+
     try {
       const operationData = calculateOperationData();
       const isTrava = selectedStrategyId === 'alta_moderada' || selectedStrategyId === 'queda_moderada';
@@ -1233,35 +1380,23 @@ export default function CadastroOpcao() {
 
       let updatedDrafts;
 
-      if (editingDraftId) {
-        // Update existing draft
-        updatedDrafts = drafts.map(d =>
-          d.id === editingDraftId
-            ? { ...d, ...draftData }
-            : d
-        );
+      // Always create a new draft with a new ID
+      const newDraft = { id: crypto.randomUUID(), ...draftData };
+      updatedDrafts = [...drafts, newDraft];
 
-        // If for some reason the draft wasn't found (e.g. expired/deleted), create new
-        if (!updatedDrafts.find(d => d.id === editingDraftId)) {
-          const newDraft = { id: crypto.randomUUID(), ...draftData };
-          updatedDrafts = [...drafts, newDraft];
-          setEditingDraftId(newDraft.id);
-        }
-      } else {
-        // Create new draft
-        const newDraft = { id: crypto.randomUUID(), ...draftData };
-        updatedDrafts = [...drafts, newDraft];
-        // Optionally set editingDraftId to this new draft so subsequent saves update it
-        setEditingDraftId(newDraft.id);
-      }
+      // Optionally set editingDraftId to this new draft so if they navigate away and back it might help,
+      // but for "always new ID" behavior on button click, we just add it.
+      // We will set it to the new ID so the UI reflects the current "context", 
+      // but the NEXT save will still generate a NEW ID because we are removing the "update" logic block above.
+      setEditingDraftId(newDraft.id);
 
       setDrafts(updatedDrafts);
       localStorage.setItem('operation_drafts', JSON.stringify(updatedDrafts));
 
       toast({
         title: "✅ Rascunho salvo!",
-        description: "Operação salva temporariamente por 20 minutos.",
-        className: "bg-success-bg border-success-bg text-success-foreground",
+        description: "Novo rascunho criado com sucesso.",
+        className: "bg-success border-success text-success-foreground",
       });
     } catch (error) {
       console.error('Error saving draft:', error);
@@ -1364,7 +1499,7 @@ export default function CadastroOpcao() {
           data: formatDateForInput(getNextBusinessDay()),
           status: "aberta",
         });
-        setStep(1); // Go back to strategy selection or keep in form? User said "mantenha na pagina".
+        setStep(2); // Keep user on the form page so they see the Success Modal
         // Actually, "mantenha na pagina que ele está" usually means don't navigate away.
         // But if the draft is gone, showing the empty form might be confusing or correct.
         // Let's keep the user on the page (Step 2) but maybe clear the form to indicate success?
@@ -1373,11 +1508,7 @@ export default function CadastroOpcao() {
         // Let's just clear the ID.
       }
 
-      toast({
-        title: "✅ Opção Cadastrada!",
-        description: "Sua operação foi salva com sucesso no portfólio.",
-        className: "border-success-bg bg-success-bg text-success-foreground",
-      });
+      setSuccessModalOpen(true);
     } catch (error) {
       console.error('Error adding draft to portfolio:', error);
       toast({
@@ -1399,6 +1530,13 @@ export default function CadastroOpcao() {
     }
     setEditingDraftId(draft.id);
     setStep(2);
+
+    setTimeout(() => {
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 100);
 
     toast({
       title: "Rascunho carregado",
@@ -1423,24 +1561,30 @@ export default function CadastroOpcao() {
           onSelectStrategy={setSelectedStrategyId}
         />
 
-        <div className="flex gap-4">
+        <div className="flex flex-col-reverse md:flex-row gap-4 w-full">
+
+          {/* Botão Voltar (Movido para ser o PRIMEIRO no HTML) */}
           <Button
             variant="outline"
             size="lg"
-            className="px-8 rounded-full flex items-center gap-2"
+            // w-full (mobile) e md:w-auto (desktop), removido flex-1
+            className="w-full md:w-auto rounded-full flex items-center justify-center gap-2"
             onClick={() => navigate("/nova-operacao")}
           >
             <ChevronLeft className="h-4 w-4" />
             Voltar
           </Button>
 
+          {/* Botão Continuar (Movido para ser o SEGUNDO no HTML) */}
           <Button
             size="lg"
-            className="px-8 rounded-full"
+            // w-full (mobile) e md:w-auto (desktop), removido flex-1
+            className="w-full md:w-auto rounded-full"
             onClick={handleContinueToForm}
           >
             Continuar
           </Button>
+
         </div>
       </div>
     );
@@ -1473,7 +1617,6 @@ export default function CadastroOpcao() {
                   <CardTitle className="text-xl font-bold">
                     {currentStrategy?.headerTitle || "Trava de alta"}
                   </CardTitle>
-                  {/* BOTÃO COMENTADO TEMPORARIAMENTE PARA CORREÇÃO FUTURA
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1484,7 +1627,6 @@ export default function CadastroOpcao() {
                     <Layers2 className="h-3 w-3" />
                     Salvar rascunho
                   </Button>
-                  */}
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1608,21 +1750,40 @@ export default function CadastroOpcao() {
                         "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
                         errors['compra.ticker'] ? "border-destructive focus-within:ring-destructive" : ""
                       )}>
-                        <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
-                          {formData.acao.substring(0, 4) || ""}
-                        </div>
-                        <Input
-                          id="compra-ticker"
-                          value={travaData.compra.ticker.substring(formData.acao.substring(0, 4).length)}
-                          onChange={(e) => {
-                            const prefix = formData.acao.substring(0, 4);
-                            const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
-                            handleTravaChange('compra', 'ticker', prefix + suffix);
-                          }}
-                          placeholder="H123"
-                          maxLength={6}
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
-                        />
+                        {(() => {
+                          const prefix = formData.acao.substring(0, 4);
+                          let letter = "";
+                          if (formData.data && prefix.length === 4) {
+                            const vencimento = parseLocalDate(formData.data);
+                            const monthIndex = vencimento.getMonth();
+                            // Compra leg type: Call for Bull Call Spread, Put for Bear Put Spread
+                            // isBullCallSpread is defined in scope above
+                            const legType = isBullCallSpread ? 'call' : 'put';
+                            letter = legType === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+                          }
+                          const displayPrefix = prefix + letter;
+
+                          return (
+                            <>
+                              <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
+                                {displayPrefix}
+                              </div>
+                              <Input
+                                id="compra-ticker"
+                                value={travaData.compra.ticker.startsWith(displayPrefix)
+                                  ? travaData.compra.ticker.substring(displayPrefix.length)
+                                  : travaData.compra.ticker.replace(prefix, '')}
+                                onChange={(e) => {
+                                  const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
+                                  handleTravaChange('compra', 'ticker', displayPrefix + suffix);
+                                }}
+                                placeholder="123"
+                                maxLength={6}
+                                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
+                              />
+                            </>
+                          );
+                        })()}
                       </div>
                       {errors['compra.ticker'] && (
                         <p className="text-xs text-destructive mt-1">{errors['compra.ticker']}</p>
@@ -1681,21 +1842,40 @@ export default function CadastroOpcao() {
                         "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
                         errors['venda.ticker'] ? "border-destructive focus-within:ring-destructive" : ""
                       )}>
-                        <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
-                          {formData.acao.substring(0, 4) || ""}
-                        </div>
-                        <Input
-                          id="venda-ticker"
-                          value={travaData.venda.ticker.substring(formData.acao.substring(0, 4).length)}
-                          onChange={(e) => {
-                            const prefix = formData.acao.substring(0, 4);
-                            const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
-                            handleTravaChange('venda', 'ticker', prefix + suffix);
-                          }}
-                          placeholder="H123"
-                          maxLength={6}
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
-                        />
+                        {(() => {
+                          const prefix = formData.acao.substring(0, 4);
+                          let letter = "";
+                          if (formData.data && prefix.length === 4) {
+                            const vencimento = parseLocalDate(formData.data);
+                            const monthIndex = vencimento.getMonth();
+                            // Venda leg type: Call for Bull Call Spread, Put for Bear Put Spread
+                            // isBullCallSpread is defined in scope above
+                            const legType = isBullCallSpread ? 'call' : 'put';
+                            letter = legType === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+                          }
+                          const displayPrefix = prefix + letter;
+
+                          return (
+                            <>
+                              <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
+                                {displayPrefix}
+                              </div>
+                              <Input
+                                id="venda-ticker"
+                                value={travaData.venda.ticker.startsWith(displayPrefix)
+                                  ? travaData.venda.ticker.substring(displayPrefix.length)
+                                  : travaData.venda.ticker.replace(prefix, '')}
+                                onChange={(e) => {
+                                  const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
+                                  handleTravaChange('venda', 'ticker', displayPrefix + suffix);
+                                }}
+                                placeholder="123"
+                                maxLength={6}
+                                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
+                              />
+                            </>
+                          );
+                        })()}
                       </div>
                       {errors['venda.ticker'] && (
                         <p className="text-xs text-destructive mt-1">{errors['venda.ticker']}</p>
@@ -1706,20 +1886,33 @@ export default function CadastroOpcao() {
               </Card>
 
               {/* Botão de Submit */}
-              <div className="pt-4 flex items-center gap-3">
+              {/* Container: flex-col-reverse (mobile inverte verticalmente) e md:flex-row (desktop normal horizontal) */}
+              <div className="pt-4 flex flex-col-reverse md:flex-row items-center gap-3 w-full">
+
+                {/* Botão Voltar (Agora é o PRIMEIRO no código) */}
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setStep(1)}
-                  className="w-full sm:w-auto px-6 rounded-full flex items-center gap-2"
+                  // w-full (mobile) e md:w-auto (desktop), removido flex-1
+                  className="w-full md:w-auto rounded-full flex items-center justify-center gap-2"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Voltar
                 </Button>
-                <Button type="submit" disabled={loading} className="w-full sm:w-auto px-8 rounded-full">
+
+                {/* Botão Concluir (Agora é o SEGUNDO no código) */}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  // w-full (mobile) e md:w-auto (desktop), removido flex-1
+                  className="w-full md:w-auto rounded-full"
+                >
                   {loading ? "Cadastrando..." : "Concluir cadastro"}
                 </Button>
+
               </div>
+
             </form>
           ) : (
             // LAYOUT ORIGINAL PARA OUTRAS ESTRATÉGIAS
@@ -1729,7 +1922,6 @@ export default function CadastroOpcao() {
                   <CardTitle className="text-xl font-bold">
                     {currentStrategy?.headerTitle || "Nova opção"}
                   </CardTitle>
-                  {/* BOTÃO COMENTADO TEMPORARIAMENTE PARA CORREÇÃO FUTURA
                   <Button
                     variant="ghost"
                     size="sm"
@@ -1740,7 +1932,6 @@ export default function CadastroOpcao() {
                     <Layers2 className="h-3 w-3" />
                     Salvar rascunho
                   </Button>
-                  */}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -1861,21 +2052,37 @@ export default function CadastroOpcao() {
                           "flex rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 mt-1.5",
                           errors.opcao ? "border-destructive focus-within:ring-destructive" : ""
                         )}>
-                          <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
-                            {formData.acao.substring(0, 4) || ""}
-                          </div>
-                          <Input
-                            id="opcao"
-                            value={formData.opcao.substring(formData.acao.substring(0, 4).length)}
-                            onChange={(e) => {
-                              const prefix = formData.acao.substring(0, 4);
-                              const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
-                              handleOpcaoChange(prefix + suffix);
-                            }}
-                            placeholder="H123"
-                            maxLength={6}
-                            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
-                          />
+                          {(() => {
+                            const prefix = formData.acao.substring(0, 4);
+                            let letter = "";
+                            if (formData.data && prefix.length === 4) {
+                              const vencimento = parseLocalDate(formData.data);
+                              const monthIndex = vencimento.getMonth();
+                              letter = formData.tipo === 'call' ? CALL_MONTHS[monthIndex] : PUT_MONTHS[monthIndex];
+                            }
+                            const displayPrefix = prefix + letter;
+
+                            return (
+                              <>
+                                <div className="flex items-center px-3 text-muted-foreground bg-muted/50 border-r border-input rounded-l-md select-none">
+                                  {displayPrefix}
+                                </div>
+                                <Input
+                                  id="opcao"
+                                  value={formData.opcao.startsWith(displayPrefix)
+                                    ? formData.opcao.substring(displayPrefix.length)
+                                    : formData.opcao.replace(prefix, '')}
+                                  onChange={(e) => {
+                                    const suffix = e.target.value.toUpperCase().replace(/[^A-Z0-9W]/g, '');
+                                    handleOpcaoChange(displayPrefix + suffix);
+                                  }}
+                                  placeholder="123"
+                                  maxLength={6}
+                                  className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 rounded-l-none placeholder-subtle"
+                                />
+                              </>
+                            );
+                          })()}
                         </div>
                         {errors.opcao && (
                           <p className="text-xs text-destructive mt-1">{errors.opcao}</p>
@@ -1888,20 +2095,33 @@ export default function CadastroOpcao() {
 
               </Card>
 
-              <div className="pt-4 flex items-center gap-3">
+              {/* Container: flex-col-reverse (mobile) e md:flex-row (desktop) */}
+              <div className="pt-4 flex flex-col-reverse md:flex-row items-center gap-3 w-full">
+
+                {/* Botão Voltar (Movido para ser o PRIMEIRO no HTML) */}
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setStep(1)}
-                  className="w-full sm:w-auto px-6 rounded-full flex items-center gap-2"
+                  // w-full (mobile) e md:w-auto (desktop), removido flex-1
+                  className="w-full md:w-auto rounded-full flex items-center justify-center gap-2"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Voltar
                 </Button>
-                <Button type="submit" disabled={loading} className="w-full sm:w-auto px-8 rounded-full">
+
+                {/* Botão Concluir cadastro (Movido para ser o SEGUNDO no HTML) */}
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  // w-full (mobile) e md:w-auto (desktop), removido flex-1
+                  className="w-full md:w-auto rounded-full"
+                >
                   {loading ? "Cadastrando..." : "Concluir cadastro"}
                 </Button>
+
               </div>
+
             </form>
           )}
         </div>
@@ -1975,7 +2195,7 @@ export default function CadastroOpcao() {
                 </div>
 
                 <div>
-                    <Label className="text-xs text-muted-foreground">Distância do alvo</Label>
+                  <Label className="text-xs text-muted-foreground">Distância do alvo</Label>
                   <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
@@ -2077,7 +2297,7 @@ export default function CadastroOpcao() {
                 </div>
 
                 <div>
-                      <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                  <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
                   <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
@@ -2133,7 +2353,7 @@ export default function CadastroOpcao() {
                 </div>
 
                 <div>
-                      <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                  <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
                   <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
@@ -2189,7 +2409,7 @@ export default function CadastroOpcao() {
                 </div>
 
                 <div>
-                      <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                  <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
                   <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
@@ -2245,7 +2465,7 @@ export default function CadastroOpcao() {
                 </div>
 
                 <div>
-                      <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                  <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
                   <p className="font-semibold text-foreground">
                     {operationData.distanciaLabel}
                   </p>
@@ -2480,7 +2700,7 @@ export default function CadastroOpcao() {
                     </div>
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-muted-foreground">Ganho máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Lucro máximo</Label>
                       </div>
                       <p className="font-semibold text-success">
                         {operationData.valorTotal !== 0 ? 'Exponencial' : '-'}
@@ -2535,7 +2755,7 @@ export default function CadastroOpcao() {
                     </div>
                     <div>
                       <div className="flex items-center gap-1">
-                        <Label className="text-xs text-muted-foreground">Ganho máximo</Label>
+                        <Label className="text-xs text-muted-foreground">Lucro máximo</Label>
                       </div>
                       <p className="font-semibold text-success">
                         {operationData.valorTotal !== 0 ? 'Exponencial' : '-'}
@@ -2570,7 +2790,7 @@ export default function CadastroOpcao() {
       </div>
 
       {/* Rascunhos salvos section */}
-      {step === 2 && drafts.length > 0 && (
+      {step === 2 && drafts.some(d => d.strategyId === selectedStrategyId) && (
         <div className="mt-24 border-t pt-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Rascunhos salvos</h2>
           <p className="text-sm text-muted-foreground mb-6">
@@ -2579,232 +2799,243 @@ export default function CadastroOpcao() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-            {drafts.map((draft) => {
-              const isExpanded = expandedDrafts.includes(draft.id);
+            {drafts
+              .filter(draft => draft.strategyId === selectedStrategyId)
+              .map((draft) => {
+                const isExpanded = expandedDrafts.includes(draft.id);
 
-              return (
-                <Card key={draft.id} className="bg-white overflow-hidden">
-                  {/* Header with ticker */}
-                  <CardHeader
-                    className="cursor-pointer hover:bg-muted transition-colors pb-4"
-                    onClick={() => {
-                      if (isExpanded) {
-                        setExpandedDrafts(prev => prev.filter(id => id !== draft.id));
-                      } else {
-                        setExpandedDrafts(prev => [...prev, draft.id]);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold text-foreground">
-                        {draft.isTrava
-                          ? `${draft.travaData?.compra?.ticker || 'CP'} / ${draft.travaData?.venda?.ticker || 'VD'}`
-                          : (draft.formData.opcao || 'PETRH363')
+                return (
+                  <Card key={draft.id} className="bg-white overflow-hidden">
+                    {/* Header with ticker */}
+                    <CardHeader
+                      className="cursor-pointer hover:bg-muted transition-colors pb-4"
+                      onClick={() => {
+                        if (isExpanded) {
+                          setExpandedDrafts(prev => prev.filter(id => id !== draft.id));
+                        } else {
+                          setExpandedDrafts(prev => [...prev, draft.id]);
                         }
-                      </h3>
-                      <ChevronDown className={cn(
-                        "h-5 w-5 text-muted-foreground transition-transform",
-                        isExpanded && "transform rotate-180"
-                      )} />
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="pt-0 space-y-4">
-                    {/* 3-column grid: Strike, Qnt, Vencimento with dividers */}
-                    <div className="grid grid-cols-3 gap-0 text-center divide-x divide-slate-200">
-                      <div className="px-2">
-                        <p className="text-xs text-muted-foreground mb-1">Strike</p>
-                        <p className="font-semibold text-sm truncate">
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold text-foreground">
                           {draft.isTrava
-                            ? `${draft.travaData?.compra?.strike || '-'} / ${draft.travaData?.venda?.strike || '-'}`
-                            : (draft.formData.strike ? formatCurrencyDisplay(parseCurrencyToNumber(draft.formData.strike)) : '-')
+                            ? `${draft.travaData?.compra?.ticker || 'CP'} / ${draft.travaData?.venda?.ticker || 'VD'}`
+                            : (draft.formData.opcao || 'PETRH363')
                           }
-                        </p>
+                        </h3>
+                        <ChevronDown className={cn(
+                          "h-5 w-5 text-muted-foreground transition-transform",
+                          isExpanded && "transform rotate-180"
+                        )} />
                       </div>
-                      <div className="px-2">
-                        <p className="text-xs text-muted-foreground mb-1">Qnt</p>
-                        <p className="font-semibold text-sm">{draft.formData.quantidade || '-'}</p>
-                      </div>
-                      <div className="px-2">
-                        <p className="text-xs text-muted-foreground mb-1">Vencimento</p>
-                        <p className="font-semibold text-sm">
-                          {draft.formData.data ? format(parseLocalDate(draft.formData.data), 'dd/MM/yyyy') : '-'}
-                        </p>
-                      </div>
-                    </div>
+                    </CardHeader>
 
-                    {/* Dotted separator */}
-                    <div className="border-t border-dashed border-border/60" />
-
-                    {/* Expanded content */}
-                    {isExpanded && draft.operationData && (
-                      <>
-                        {/* Break-even point */}
-                        {draft.operationData.breakEven && draft.operationData.breakEven !== 0 && (
-                          <div>
-                            <div className="flex items-center gap-1 mb-1">
-                              <p className="text-sm text-muted-foreground">Ponto de equilíbrio</p>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="text-xs">Preço da ação onde você não ganha nem perde</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <p className="text-lg font-bold text-foreground">
-                              {formatCurrencyDisplay(draft.operationData.breakEven)}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Distance to break-even */}
-                        {draft.operationData.distanciaLabel && draft.operationData.distanciaLabel !== '-' && (
-                          <div>
-                            <p className="text-sm text-slate-600 mb-1">Distância do ponto de equilíbrio</p>
-                            <p className="text-base font-bold text-slate-900">
-                              {draft.operationData.distanciaLabel}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Risk/Return Ratio */}
-                        {draft.operationData.payoffRatio > 0 && (
-                          <div>
-                            <div className="flex items-center gap-1 mb-1">
-                              <p className="text-sm text-slate-600">Relação risco/retorno</p>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="text-xs">Para cada R$ 1,00 de risco, quanto você pode ganhar</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <p className="text-base font-bold text-slate-900">
-                              1 : {parseFloat(draft.operationData.payoffRatio.toFixed(1))}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Risk level with semicircular gauge */}
-                        {draft.operationData.nivelRisco && draft.operationData.nivelRisco !== '-' && (
-                          <div>
-                            <p className="text-sm text-slate-600 mb-3">Nível de risco</p>
-                            <div className="relative flex justify-center">
-                              <div className="relative w-48 h-24 overflow-hidden">
-                                <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
-                                <div
-                                  className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
-                                  style={{
-                                    background: `conic-gradient(${getRiskColorHex(draft.operationData.corRisco)} 0deg ${draft.operationData.progressValue * 1.8}deg, transparent ${draft.operationData.progressValue * 1.8}deg 360deg)`,
-                                    transform: 'rotate(-90deg)',
-                                    maskImage: 'radial-gradient(transparent 63%, black 64%)',
-                                    WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
-                                  }}
-                                ></div>
-                              </div>
-                              <div className="absolute bottom-0 left-0 right-0 text-center">
-                                <p className={cn("font-bold text-lg capitalize", draft.operationData.corRisco)}>
-                                  {draft.operationData.nivelRisco}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Dotted separator between gauge and risk/profit */}
-                        {draft.operationData.nivelRisco && draft.operationData.nivelRisco !== '-' && (
-                          <div className="border-t border-dashed border-border/60" />
-                        )}
-
-                        {/* Max risk and max profit */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="flex items-center gap-1 mb-1">
-                              <p className="text-sm text-slate-600">Risco máximo</p>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="text-xs">Máximo que você pode perder nesta operação</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                            <p className="text-base font-bold text-destructive">
-                              {draft.operationData.riscoMaximo !== undefined
-                                ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.riscoMaximo))}`
-                                : draft.operationData.valorTotal
-                                  ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.valorTotal))}`
-                                  : '-'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-slate-600 mb-1">Lucro máximo</p>
-                            <p className="text-base font-bold text-success">
-                              {draft.operationData.lucroMaximoLabel !== undefined
-                                ? draft.operationData.lucroMaximoLabel
-                                : (draft.operationData.lucroMaximo && draft.operationData.lucroMaximo !== 0
-                                  ? formatCurrencyDisplay(draft.operationData.lucroMaximo)
-                                  : 'Exponencial')}
-                            </p>
-                          </div>
+                    <CardContent className="pt-0 space-y-4">
+                      {/* 3-column grid: Strike, Qnt, Vencimento with dividers */}
+                      <div className="grid grid-cols-3 gap-0 text-center divide-x divide-slate-200">
+                        <div className="px-2">
+                          <p className="text-xs text-muted-foreground mb-1">Strike</p>
+                          <p className="font-semibold text-sm truncate">
+                            {draft.isTrava
+                              ? `${draft.travaData?.compra?.strike || '-'} / ${draft.travaData?.venda?.strike || '-'}`
+                              : (draft.formData.strike ? formatCurrencyDisplay(parseCurrencyToNumber(draft.formData.strike)) : '-')
+                            }
+                          </p>
                         </div>
+                        <div className="px-2">
+                          <p className="text-xs text-muted-foreground mb-1">Qnt</p>
+                          <p className="font-semibold text-sm">{draft.formData.quantidade || '-'}</p>
+                        </div>
+                        <div className="px-2">
+                          <p className="text-xs text-muted-foreground mb-1">Vencimento</p>
+                          <p className="font-semibold text-sm">
+                            {draft.formData.data ? format(parseLocalDate(draft.formData.data), 'dd/MM/yyyy') : '-'}
+                          </p>
+                        </div>
+                      </div>
 
-                        {/* Dotted separator before buttons */}
-                        <div className="border-t border-dashed border-border/60" />
-                      </>
-                    )}
+                      {/* Dotted separator */}
+                      <div className="border-t border-dashed border-border/60" />
 
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-3">
-                      <Button
-                        size="lg"
-                        className="flex-1 rounded-full bg-brand-blue-dark hover:bg-brand-blue text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddDraftToPortfolio(draft);
-                        }}
-                      >
-                        <CirclePlus className="h-5 w-5 mr-2" />
-                        Adicionar
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="rounded-full h-12 w-12"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditDraft(draft);
-                        }}
-                      >
-                        <Edit className="h-5 w-5 text-slate-600" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        className="rounded-full h-12 w-12 text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteDraft(draft.id);
-                        }}
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                      {/* Expanded content */}
+                      {isExpanded && draft.operationData && (
+                        <>
+                          {/* Break-even point */}
+                          {draft.operationData.breakEven && draft.operationData.breakEven !== 0 && (
+                            <div>
+                              <div className="flex items-center gap-1 mb-1">
+                                <p className="text-sm text-muted-foreground">Ponto de equilíbrio</p>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="text-xs">Preço da ação onde você não ganha nem perde</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                              <p className="text-lg font-bold text-foreground">
+                                {formatCurrencyDisplay(draft.operationData.breakEven)}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Distance to break-even */}
+                          {draft.operationData.distanciaLabel && draft.operationData.distanciaLabel !== '-' && (
+                            <div>
+                              <p className="text-sm text-slate-600 mb-1">Distância do ponto de equilíbrio</p>
+                              <p className="text-base font-bold text-slate-900">
+                                {draft.operationData.distanciaLabel}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Risk/Return Ratio */}
+                          {draft.operationData.payoffRatio > 0 && (
+                            <div>
+                              <div className="flex items-center gap-1 mb-1">
+                                <p className="text-sm text-slate-600">Relação risco/retorno</p>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="text-xs">Para cada R$ 1,00 de risco, quanto você pode ganhar</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                              <p className="text-base font-bold text-slate-900">
+                                1 : {parseFloat(draft.operationData.payoffRatio.toFixed(1))}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Risk level with semicircular gauge */}
+                          {draft.operationData.nivelRisco && draft.operationData.nivelRisco !== '-' && (
+                            <div>
+                              <p className="text-sm text-slate-600 mb-3">Nível de risco</p>
+                              <div className="relative flex justify-center">
+                                <div className="relative w-48 h-24 overflow-hidden">
+                                  <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
+                                  <div
+                                    className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                                    style={{
+                                      background: `conic-gradient(${getRiskColorHex(draft.operationData.corRisco)} 0deg ${draft.operationData.progressValue * 1.8}deg, transparent ${draft.operationData.progressValue * 1.8}deg 360deg)`,
+                                      transform: 'rotate(-90deg)',
+                                      maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                                      WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                                    }}
+                                  ></div>
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 text-center">
+                                  <p className={cn("font-bold text-lg capitalize", draft.operationData.corRisco)}>
+                                    {draft.operationData.nivelRisco}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Dotted separator between gauge and risk/profit */}
+                          {draft.operationData.nivelRisco && draft.operationData.nivelRisco !== '-' && (
+                            <div className="border-t border-dashed border-border/60" />
+                          )}
+
+                          {/* Max risk and max profit */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="flex items-center gap-1 mb-1">
+                                <p className="text-sm text-slate-600">Risco máximo</p>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="text-xs">Máximo que você pode perder nesta operação</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                              <p className="text-base font-bold text-destructive">
+                                {draft.isTrava
+                                  ? (draft.operationData.custoTotal
+                                    ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.custoTotal))}`
+                                    : (draft.operationData.riscoMaximo ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.riscoMaximo))}` : '-'))
+                                  : (draft.formData.operacao === 'venda' && draft.formData.tipo === 'call'
+                                    ? `-${draft.formData.quantidade || 0} ações`
+                                    : (draft.formData.operacao === 'venda' && draft.formData.tipo === 'put'
+                                      ? (draft.operationData.valorExercicio ? `-${formatCurrencyDisplay(draft.operationData.valorExercicio)}` : '-')
+                                      : (draft.operationData.valorTotal ? `-${formatCurrencyDisplay(Math.abs(draft.operationData.valorTotal))}` : '-')
+                                    )
+                                  )
+                                }
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-slate-600 mb-1">Lucro máximo</p>
+                              <p className="text-base font-bold text-success">
+                                {draft.isTrava
+                                  ? (draft.operationData.lucroMaximo ? formatCurrencyDisplay(draft.operationData.lucroMaximo) : '-')
+                                  : (draft.formData.operacao === 'venda'
+                                    ? (draft.operationData.valorTotal ? formatCurrencyDisplay(Math.abs(draft.operationData.valorTotal)) : '-')
+                                    : 'Ilimitado'
+                                  )
+                                }
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Dotted separator before buttons */}
+                          <div className="border-t border-dashed border-border/60" />
+                        </>
+                      )}
+
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-3">
+                        <Button
+                          size="lg"
+                          className="flex-1 rounded-full bg-brand-blue-dark hover:bg-brand-blue text-white"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddDraftToPortfolio(draft);
+                          }}
+                        >
+                          <CirclePlus className="h-5 w-5 mr-2" />
+                          Adicionar
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="rounded-full h-12 w-12"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditDraft(draft);
+                          }}
+                        >
+                          <Edit className="h-5 w-5 text-slate-600" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="rounded-full h-12 w-12 text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteDraft(draft.id);
+                          }}
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
           </div>
         </div>
       )}

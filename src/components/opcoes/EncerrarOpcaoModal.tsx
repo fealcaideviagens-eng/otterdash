@@ -87,7 +87,7 @@ export const EncerrarOpcaoModal = ({
       toast({
         title: "✅ Sucesso!",
         description: "Opção encerrada com sucesso.",
-        className: "border-green-200 bg-green-50 text-green-900",
+        className: "bg-success border-success text-success-foreground",
       });
 
       // Reset form
@@ -237,11 +237,11 @@ export const EncerrarOpcaoModal = ({
           </div>
 
           <ResponsiveModalFooter className="mt-6">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading} variant="default">
+            <Button type="submit" disabled={loading} variant="default" className="w-full">
               {loading ? "Encerrando..." : "Confirmar encerramento"}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="w-full">
+              Cancelar
             </Button>
           </ResponsiveModalFooter>
         </form>

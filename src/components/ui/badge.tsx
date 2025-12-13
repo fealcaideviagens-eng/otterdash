@@ -21,7 +21,7 @@ const badgeVariants = cva(
         info:
           "border-transparent bg-info-bg text-info-foreground hover:bg-info-bg/80",
         buy:
-          "border-transparent bg-buy-bg text-buy-foreground hover:bg-buy-bg/80",
+          "border-transparent bg-buy text-buy-foreground hover:bg-buy/80",
         outline: "text-foreground",
       },
       size: {
@@ -39,7 +39,7 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+  VariantProps<typeof badgeVariants> { }
 
 function Badge({ className, variant, size, ...props }: BadgeProps) {
   return (

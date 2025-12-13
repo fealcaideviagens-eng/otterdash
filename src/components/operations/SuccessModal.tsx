@@ -42,19 +42,19 @@ export const SuccessModal = ({
 
                 <Separator className="my-2" />
 
-                <ResponsiveModalFooter className="flex flex-col sm:flex-row gap-3 mt-2">
+                <ResponsiveModalFooter className="flex flex-col gap-3 mt-2">
+                    <Button
+                        className="w-full rounded-full bg-brand-blue-dark hover:bg-brand-blue text-white"
+                        onClick={onAddAnother}
+                    >
+                        Adicionar outra opção
+                    </Button>
                     <Button
                         variant="outline"
                         className="w-full rounded-full border-blue-200 text-blue-700 hover:bg-blue-50"
                         onClick={onGoToPortfolio}
                     >
                         Ir para Portfólio
-                    </Button>
-                    <Button
-                        className="w-full rounded-full bg-brand-blue-dark hover:bg-brand-blue text-white"
-                        onClick={onAddAnother}
-                    >
-                        Adicionar outra opção
                     </Button>
                 </ResponsiveModalFooter>
             </ResponsiveModalContent>

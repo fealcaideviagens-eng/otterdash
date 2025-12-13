@@ -1,13 +1,12 @@
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    ResponsiveModal,
+    ResponsiveModalContent,
+    ResponsiveModalDescription,
+    ResponsiveModalFooter,
+    ResponsiveModalHeader,
+    ResponsiveModalTitle,
+} from "@/components/ui/responsive-modal";
+import { Button } from "@/components/ui/button";
 import { Opcao } from "@/types/database";
 
 interface StrategyGroup {
@@ -41,11 +40,11 @@ export function DeleteTravaModal({
     const vendaLeg = strategy.legs.find(leg => leg.ops_strategy_role === 'SHORT_LEG');
 
     return (
-        <AlertDialog open={isOpen} onOpenChange={onClose}>
-            <AlertDialogContent className="bg-white">
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir Trava</AlertDialogTitle>
-                    <AlertDialogDescription>
+        <ResponsiveModal open={isOpen} onOpenChange={onClose}>
+            <ResponsiveModalContent>
+                <ResponsiveModalHeader>
+                    <ResponsiveModalTitle>Excluir Trava</ResponsiveModalTitle>
+                    <ResponsiveModalDescription>
                         Tem certeza que deseja excluir esta estratégia?
                         <br /><br />
                         Isso excluirá permanentemente as seguintes opções:
@@ -55,21 +54,24 @@ export function DeleteTravaModal({
                         </ul>
                         <br />
                         Esta ação não pode ser desfeita.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={onClose}>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
+                    </ResponsiveModalDescription>
+                </ResponsiveModalHeader>
+                <ResponsiveModalFooter>
+                    <Button
                         onClick={() => {
                             onConfirm();
                             onClose();
                         }}
-                        className="bg-red-600 hover:bg-red-700 text-white"
+                        variant="destructive"
+                        className="w-full"
                     >
                         Excluir Estratégia
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                    </Button>
+                    <Button variant="outline" onClick={onClose} className="w-full">
+                        Cancelar
+                    </Button>
+                </ResponsiveModalFooter>
+            </ResponsiveModalContent>
+        </ResponsiveModal>
     );
 }

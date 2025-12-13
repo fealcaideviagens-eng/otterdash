@@ -256,11 +256,11 @@ export function EditarOpcaoModal({
           </div>
 
           <ResponsiveModalFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit" variant="default">
+            <Button type="submit" variant="default" className="w-full">
               Salvar
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="w-full">
+              Cancelar
             </Button>
           </ResponsiveModalFooter>
         </form>

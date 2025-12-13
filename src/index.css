@@ -81,8 +81,11 @@ All colors MUST be HSL.
 
     /* Semantic colors */
     --success: 142 76% 36%;
+    /* hex 	#16a249 */
     --success-foreground: 0 0% 100%;
+    /* branco */
     --success-bg: 142 76% 95%;
+    /* hex 	#16a249 */
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;

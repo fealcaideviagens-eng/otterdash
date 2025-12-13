@@ -44,7 +44,7 @@ export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, 
     const optionType = isBullCallSpread ? 'Call' : 'Put';
 
     // Calculate Risk/Reward for display
-    const riscoMaximo = Math.abs(strategy.custoTotal); // Custo é negativo na compra, mas risco é absoluto
+    const riscoMaximo = -Math.abs(strategy.custoTotal); // Risco máximo é sempre negativo (saída de caixa)
 
     return (
         <div
@@ -108,7 +108,7 @@ export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, 
             </div>
 
             {/* Separator */}
-            <div className="mt-4 border-t-2 border-dashed border-border/60 pt-4 flex flex-col"></div>
+            <div className="mt-4 border-t-2 border-dashed border-dotted border-gray-400 pt-4 flex flex-col"></div>
 
             {/* Expanded Content */}
             {expandido && (
@@ -129,7 +129,7 @@ export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, 
                             <span className="text-sm font-bold">{formatCurrency(strategy.breakEven)}</span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Ganho máximo</span>
+                            <span className="text-muted-foreground">Lucro máximo</span>
                             <span className="text-sm font-bold">{formatCurrency(strategy.lucroMaximo * strategy.quantidade)}</span>
                         </div>
                         <div className="flex justify-between">
@@ -155,7 +155,7 @@ export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, 
                     </div>
 
                     {/* Separator */}
-                    <div className="border-t-2 border-dashed border-border/60"></div>
+                    <div className="border-t-2 border-dashed border-dotted border-gray-400"></div>
 
                     {/* Opção Vendida Details */}
                     <div>
@@ -175,8 +175,7 @@ export function StrategyCard({ strategy, onEncerrar, onEncerrarTrava, onEditar, 
             {/* Footer Actions */}
             <div className={`flex items-center justify-between ${expandido ? 'mt-0' : 'mt-2'} pt-2 gap-2`}>
                 <Button
-                    className="text-white text-sm font-semibold rounded-full px-5 py-2 transition whitespace-nowrap border-0 shadow-none"
-                    className="bg-brand-blue-dark"
+                    className="bg-brand-blue-dark text-white text-sm font-semibold rounded-full px-5 py-2 transition whitespace-nowrap border-0 shadow-none"
                     onClick={() => onEncerrarTrava(strategy)}
                 >
                     Encerrar trava

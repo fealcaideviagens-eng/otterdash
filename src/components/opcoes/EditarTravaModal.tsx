@@ -347,11 +347,11 @@ export function EditarTravaModal({
                     </div>
 
                     <ResponsiveModalFooter className="mt-4">
-                        <Button type="button" variant="outline" onClick={onClose}>
-                            Cancelar
-                        </Button>
-                        <Button type="submit" variant="default">
+                        <Button type="submit" variant="default" className="w-full">
                             Salvar alterações
+                        </Button>
+                        <Button type="button" variant="outline" onClick={onClose} className="w-full">
+                            Cancelar
                         </Button>
                     </ResponsiveModalFooter>
                 </form>

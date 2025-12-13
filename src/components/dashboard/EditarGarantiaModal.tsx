@@ -59,12 +59,12 @@ export const EditarGarantiaModal = ({
               className="mt-1 placeholder-subtle"
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit" style={{ backgroundColor: '#61005D' }}>
+          <div className="space-y-2 w-full">
+            <Button type="submit" style={{ backgroundColor: '#61005D' }} className="w-full">
               Salvar
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="w-full">
+              Cancelar
             </Button>
           </div>
         </form>

@@ -34,17 +34,18 @@ export function DeleteOpcaoModal({
             Esta ação não pode ser desfeita.
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
-        <ResponsiveModalFooter className="flex-col-reverse sm:flex-row gap-2">
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <ResponsiveModalFooter>
           <Button
             onClick={() => {
               onConfirm();
               onClose();
             }}
             variant="destructive"
+            className="w-full"
           >
             Excluir
           </Button>
+          <Button variant="outline" onClick={onClose} className="w-full">Cancelar</Button>
         </ResponsiveModalFooter>
       </ResponsiveModalContent>
     </ResponsiveModal>

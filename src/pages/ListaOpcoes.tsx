@@ -666,7 +666,7 @@ export default function ListaOpcoes() {
                                       )}
                                       <div className="flex justify-between">
                                         <span className="text-muted-foreground">Strike:</span>
-                                        <span className="font-semibold text-xs">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
+                                        <span className="font-medium">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
                                       </div>
                                       {!!opcao.cotacao && (
                                         <div className="flex justify-between">
@@ -924,7 +924,7 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
           {!!opcao.cotacao && (
             <div className="flex justify-between items-center text-xs">
               <span className="text-sm text-gray-500 font-regular">Cotação</span>
-              <span className="text-sm font-bold">R$ {formatCurrency(opcao.cotacao)}</span>
+              <span className="text-sm font-bold">{formatCurrency(opcao.cotacao)}</span>
             </div>
           )}
           {!!opcao.cotacao && (
@@ -934,20 +934,23 @@ function CardOpcao({ opcao, isHighlighted, onEncerrar, onEditar, onDeletar, calc
             </div>
           )}
           <div className="flex justify-between items-center text-xs">
-            <span className="text-sm text-gray-500 font-regular">Ganho/perda máx.</span>
+            <span className="text-sm text-gray-500 font-regular">
+              {calculateGanhoMaximo(opcao) < 0 ? 'Perda máxima' : 'Lucro máximo'}
+            </span>
             <span className="text-sm font-semibold">{calculateGanhoMaximo(opcao) !== 0 ? formatCurrency(calculateGanhoMaximo(opcao)) : '-'}</span>
           </div>
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-sm text-gray-500 font-regular">Rentab. máx.</span>
-            <span className="text-sm font-semibold">{calculateRentabilidadeMaxima(opcao)}</span>
-          </div>
+          {calculateRentabilidadeMaxima(opcao) !== '-' && (
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-sm text-gray-500 font-regular">Rentab. máx.</span>
+              <span className="text-sm font-semibold">{calculateRentabilidadeMaxima(opcao)}</span>
+            </div>
+          )}
         </div>
       )}
       {/* Rodapé ações */}
       <div className={`flex items-center justify-between ${expandido ? 'mt-6' : 'mt-2'} pt-2 gap-2`}>
         <Button
-          className="text-white text-sm font-semibold rounded-full px-5 py-2 transition whitespace-nowrap border-0 shadow-none"
-          className="bg-brand-blue-dark"
+          className="bg-brand-blue-dark text-white text-sm font-semibold rounded-full px-5 py-2 transition whitespace-nowrap border-0 shadow-none"
           onClick={() => onEncerrar(opcao)}
         >
           Encerrar opção

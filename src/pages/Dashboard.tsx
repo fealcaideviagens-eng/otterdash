@@ -75,18 +75,63 @@ export default function Dashboard() {
 
   // 4. A PARTIR DAQUI, MANTENHA TUDO IGUAL (Garantia em Ativos):
   const calcularGarantiaAtivos = () => {
-    const opcoesGarantiaAtivos = opcoes.filter(opcao =>
-      opcao.status === 'aberta' &&
-      (
-        (opcao.tipo?.toLowerCase() === 'call' && opcao.operacao?.toLowerCase() === 'venda') ||
-        (opcao.tipo?.toLowerCase() === 'put' && opcao.operacao?.toLowerCase() === 'compra')
-      )
-    );
+    // 1. Mapear o saldo de garantias em ações disponíveis
+    const saldoGarantias = new Map<string, number>();
+    garantias
+      .filter(g => g.tipo === 'acao' && g.ticker && g.quantidade)
+      .forEach(g => {
+        const ticker = g.ticker!.toUpperCase();
+        const atual = saldoGarantias.get(ticker) || 0;
+        saldoGarantias.set(ticker, atual + g.quantidade!);
+      });
 
-    const garantiaAtivosTotal = opcoesGarantiaAtivos.reduce((total, opcao) => {
-      if (opcao.strike && opcao.quantidade) {
-        return total + (opcao.strike * opcao.quantidade);
+    // 2. Filtrar apenas operações simples de risco (Venda de Call e Compra de Put)
+    const opcoesRisco = opcoes.filter(opcao => {
+      // Ignora operações que são partes de travas/estratégias
+      // @ts-ignore
+      if (opcao.ops_strategy_group_id || opcao.ops_strategy_type) return false;
+
+      return (
+        opcao.status === 'aberta' &&
+        (
+          (opcao.tipo?.toLowerCase() === 'call' && opcao.operacao?.toLowerCase() === 'venda') ||
+          (opcao.tipo?.toLowerCase() === 'put' && opcao.operacao?.toLowerCase() === 'compra')
+        )
+      );
+    });
+
+    // 3. Calcular o valor descoberto
+    const garantiaAtivosTotal = opcoesRisco.reduce((total, opcao) => {
+      if (!opcao.strike || !opcao.quantidade) return total;
+
+      // Tenta obter o ticker da ação (campo 'acao' ou inferido do ticker da opção)
+      let ativoTicker = opcao.acao?.toUpperCase();
+      if (!ativoTicker && opcao.opcao) {
+        ativoTicker = opcao.opcao.substring(0, 4).toUpperCase();
       }
+
+      const qtdOpcao = opcao.quantidade;
+      let qtdDescoberta = qtdOpcao;
+
+      if (ativoTicker) {
+        const saldoDisponivel = saldoGarantias.get(ativoTicker) || 0;
+
+        if (saldoDisponivel >= qtdOpcao) {
+          // Totalmente coberto
+          saldoGarantias.set(ativoTicker, saldoDisponivel - qtdOpcao);
+          qtdDescoberta = 0;
+        } else {
+          // Parcialmente coberto
+          qtdDescoberta = qtdOpcao - saldoDisponivel;
+          saldoGarantias.set(ativoTicker, 0); // Zerou o saldo
+        }
+      }
+
+      // Se houver quantidade descoberta, soma ao total (Strike * Quantidade Descoberta)
+      if (qtdDescoberta > 0) {
+        return total + (opcao.strike * qtdDescoberta);
+      }
+
       return total;
     }, 0);
 
@@ -107,8 +152,7 @@ export default function Dashboard() {
         </div>
         <Button
           onClick={() => navigate("/cadastro")}
-          className="shadow-modern"
-          className="bg-brand-blue-dark"
+          className="shadow-modern bg-brand-blue-dark"
         >
           <CirclePlus className="mr-2 h-4 w-4" />
           Nova operação
@@ -165,7 +209,7 @@ export default function Dashboard() {
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Valor total dos ativos necessários em carteira</p>
+              <p>Valor total necessário para operar coberto</p>
               <p className="text-xs text-muted-foreground mt-1">Venda de Call e Compra de Put (Strike × Quantidade)</p>
             </TooltipContent>
           </Tooltip>

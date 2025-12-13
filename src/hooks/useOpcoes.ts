@@ -318,14 +318,73 @@ export const useOpcoes = (userId?: string) => {
       return total;
     }, 0);
 
-    const lucroMaximoEstimado = opcoes
-      .filter(opcao => opcao.status === 'aberta')
-      .reduce((total, opcao) => {
-        if (!opcao.ops_quanti || !opcao.ops_premio) return total;
+    const opcoesAbertasRaw = opcoes.filter(opcao => opcao.status === 'aberta');
+
+    // Agrupar por estratégia para validar integridade
+    const grouped: { [key: string]: Opcao[] } = {};
+    const singles: Opcao[] = [];
+
+    opcoesAbertasRaw.forEach(opcao => {
+      if (opcao.ops_strategy_group_id) {
+        if (!grouped[opcao.ops_strategy_group_id]) {
+          grouped[opcao.ops_strategy_group_id] = [];
+        }
+        grouped[opcao.ops_strategy_group_id].push(opcao);
+      } else {
+        singles.push(opcao);
+      }
+    });
+
+    // Filtrar apenas pernas de estratégias completas (que aparecem no portfólio)
+    const validStrategyLegs: Opcao[] = [];
+    Object.values(grouped).forEach(legs => {
+      const longLeg = legs.find(l => l.ops_strategy_role === 'LONG_LEG');
+      const shortLeg = legs.find(l => l.ops_strategy_role === 'SHORT_LEG');
+      if (longLeg && shortLeg) {
+        validStrategyLegs.push(...legs);
+      }
+    });
+
+    const visibleOpcoes = [...singles, ...validStrategyLegs];
+
+    // Calcular lucro máximo estimado
+    const lucroMaximoEstimado = (() => {
+      let total = 0;
+
+      // Processar estratégias (travas)
+      Object.values(grouped).forEach(legs => {
+        const longLeg = legs.find(l => l.ops_strategy_role === 'LONG_LEG');
+        const shortLeg = legs.find(l => l.ops_strategy_role === 'SHORT_LEG');
+
+        if (longLeg && shortLeg && longLeg.ops_strike && shortLeg.ops_strike && longLeg.ops_premio !== undefined && shortLeg.ops_premio !== undefined && longLeg.ops_quanti) {
+          const strategyType = longLeg.ops_strategy_type || 'BULL_CALL_SPREAD';
+          const custoTotal = (longLeg.ops_premio || 0) - (shortLeg.ops_premio || 0);
+          const strikeCompra = longLeg.ops_strike;
+          const strikeVenda = shortLeg.ops_strike;
+
+          let lucroMaximo = 0;
+          if (strategyType === 'BULL_CALL_SPREAD') {
+            // Bull Call: Max Profit = (Strike Venda - Strike Compra) - Custo
+            lucroMaximo = (strikeVenda - strikeCompra) - custoTotal;
+          } else if (strategyType === 'BEAR_PUT_SPREAD') {
+            // Bear Put: Max Profit = (Strike Compra - Strike Venda) - Custo
+            lucroMaximo = (strikeCompra - strikeVenda) - custoTotal;
+          }
+
+          total += lucroMaximo * longLeg.ops_quanti;
+        }
+      });
+
+      // Processar operações simples
+      singles.forEach(opcao => {
+        if (!opcao.ops_quanti || !opcao.ops_premio) return;
         const ganho = opcao.ops_quanti * opcao.ops_premio;
         // Para operações de compra, o ganho máximo é negativo (subtrai do total)
-        return opcao.ops_operacao === 'compra' ? total - ganho : total + ganho;
-      }, 0);
+        total += opcao.ops_operacao === 'compra' ? -ganho : ganho;
+      });
+
+      return total;
+    })();
 
     return { opcoesAbertas, valorGanhoMes, lucroMaximoEstimado };
   };

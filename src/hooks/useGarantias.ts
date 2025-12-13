@@ -15,71 +15,87 @@ export const useGarantias = (props?: UseGarantiasProps) => {
     valorRendaFixaEmGarantia: number;
   }> => {
     if (!props?.userId) return { quantidadesPorTicker: new Map(), valorRendaFixaEmGarantia: 0 };
-    
+
     try {
       // Buscar todas as opções do usuário
       const { data: opcoesData, error: opcoesError } = await supabase
         .from('ops_registry')
         .select('*')
         .eq('user_id', props.userId);
-      
+
       if (opcoesError) throw opcoesError;
-      
+
+      // Type assertion para incluir campos de estratégia
+      type OpcaoComEstrategia = typeof opcoesData extends (infer T)[] ? T & {
+        ops_strategy_group_id?: string | null;
+        ops_strategy_type?: string | null;
+        ops_strategy_role?: string | null;
+      } : never;
+
+      const opcoesComEstrategia = opcoesData as unknown as OpcaoComEstrategia[];
+
+
       // Buscar todos os encerramentos
       const { data: completedData, error: completedError } = await supabase
         .from('ops_completed')
         .select('*')
         .eq('user_id', props.userId);
-      
+
       if (completedError) throw completedError;
-      
+
       // Criar um Set com os IDs das opções encerradas
       const opcoesEncerradas = new Set(
         (completedData || []).map(c => c.ops_id)
       );
-      
+
       // Filtrar opções abertas que usam garantia de ações (Venda de Call ou Compra de Put)
-      const opcoesAbertasAcoes = (opcoesData || []).filter(opcao => {
+      // IMPORTANTE: Excluir opções que fazem parte de travas (ops_strategy_group_id)
+      // pois as duas pernas se anulam automaticamente
+      const opcoesAbertasAcoes = (opcoesComEstrategia || []).filter(opcao => {
         const naoEncerrada = !opcoesEncerradas.has(opcao.ops_id);
-        const usaGarantiaAcao = 
+        const naoEhTrava = !opcao.ops_strategy_group_id; // Excluir travas
+        const usaGarantiaAcao =
           (opcao.ops_operacao?.toLowerCase() === 'venda' && opcao.ops_tipo?.toLowerCase() === 'call') ||
           (opcao.ops_operacao?.toLowerCase() === 'compra' && opcao.ops_tipo?.toLowerCase() === 'put');
-        
-        return naoEncerrada && usaGarantiaAcao;
+
+        return naoEncerrada && naoEhTrava && usaGarantiaAcao;
       });
-      
+
       // Filtrar opções abertas que usam garantia de renda fixa (Compra de Call ou Venda de Put)
-      const opcoesAbertasRendaFixa = (opcoesData || []).filter(opcao => {
+      // IMPORTANTE: Excluir opções que fazem parte de travas (ops_strategy_group_id)
+      // pois as duas pernas se anulam automaticamente
+      const opcoesAbertasRendaFixa = (opcoesComEstrategia || []).filter(opcao => {
         const naoEncerrada = !opcoesEncerradas.has(opcao.ops_id);
-        const usaGarantiaRendaFixa = 
+        const naoEhTrava = !opcao.ops_strategy_group_id; // Excluir travas
+        const usaGarantiaRendaFixa =
           (opcao.ops_operacao?.toLowerCase() === 'compra' && opcao.ops_tipo?.toLowerCase() === 'call') ||
           (opcao.ops_operacao?.toLowerCase() === 'venda' && opcao.ops_tipo?.toLowerCase() === 'put');
-        
-        return naoEncerrada && usaGarantiaRendaFixa;
+
+        return naoEncerrada && naoEhTrava && usaGarantiaRendaFixa;
       });
-      
+
       // Agrupar por ticker (ops_acao) e somar quantidades para garantia de ações
       const quantidadesPorTicker = new Map<string, number>();
-      
+
       opcoesAbertasAcoes.forEach(opcao => {
         const ticker = opcao.ops_acao?.toUpperCase() || '';
         const quantidade = Number(opcao.ops_quanti) || 0;
-        
+
         if (ticker) {
           const quantidadeAtual = quantidadesPorTicker.get(ticker) || 0;
           quantidadesPorTicker.set(ticker, quantidadeAtual + quantidade);
         }
       });
-      
+
       // Calcular valor em garantia de renda fixa (Strike * Quantidade)
       let valorRendaFixaEmGarantia = 0;
-      
+
       opcoesAbertasRendaFixa.forEach(opcao => {
         const strike = Number(opcao.ops_strike) || 0;
         const quantidade = Number(opcao.ops_quanti) || 0;
         valorRendaFixaEmGarantia += strike * quantidade;
       });
-      
+
       return { quantidadesPorTicker, valorRendaFixaEmGarantia };
     } catch (error) {
       console.error('Erro ao calcular status das garantias:', error);
@@ -89,23 +105,23 @@ export const useGarantias = (props?: UseGarantiasProps) => {
 
   const fetchGarantias = async () => {
     if (!props?.userId) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('garantias')
         .select('*')
         .eq('user_id', props.userId)
         .order('criado_em', { ascending: false });
-      
+
       if (error) throw error;
-      
+
       // Calcular status para cada garantia
       const { quantidadesPorTicker, valorRendaFixaEmGarantia } = await calcularStatusGarantias();
-      
+
       // Separar ações e rendas fixas
       const acoes = (data || []).filter(g => g.tipo === 'acao');
       const rendasFixas = (data || []).filter(g => g.tipo === 'renda_fixa');
-      
+
       // Processar ações
       const acoesComStatus = acoes.map(garantia => {
         if (garantia.ticker) {
@@ -113,11 +129,11 @@ export const useGarantias = (props?: UseGarantiasProps) => {
           const quantidadeEmGarantia = quantidadesPorTicker.get(tickerUpper) || 0;
           const quantidadeTotal = garantia.quantidade || 0;
           const quantidadeLivre = quantidadeTotal - quantidadeEmGarantia;
-          
+
           return {
             ...garantia,
-            status: quantidadeEmGarantia > 0 
-              ? `Em garantia (${quantidadeEmGarantia})` 
+            status: quantidadeEmGarantia > 0
+              ? `Em garantia (${quantidadeEmGarantia})`
               : 'Livre',
             quantidadeEmGarantia,
             quantidadeLivre
@@ -125,21 +141,21 @@ export const useGarantias = (props?: UseGarantiasProps) => {
         }
         return garantia as Garantia;
       });
-      
+
       // Processar rendas fixas - ordenar cronologicamente (mais antigas primeiro) para distribuição
       const rendasFixasOrdenadas = [...rendasFixas].sort((a, b) => {
         const dataA = new Date(a.criado_em || 0).getTime();
         const dataB = new Date(b.criado_em || 0).getTime();
         return dataA - dataB; // Ordem crescente (mais antigas primeiro)
       });
-      
+
       let valorRestante = valorRendaFixaEmGarantia;
       const rendasFixasComStatus = rendasFixasOrdenadas.map(garantia => {
         const valorTotal = garantia.valor_reais || 0;
-        
+
         let valorEmGarantiaAtual = 0;
         let valorLivreAtual = valorTotal;
-        
+
         if (valorRestante > 0) {
           if (valorRestante >= valorTotal) {
             // Usa toda essa renda fixa
@@ -153,14 +169,14 @@ export const useGarantias = (props?: UseGarantiasProps) => {
             valorRestante = 0;
           }
         }
-        
+
         return {
           ...garantia,
           valorEmGarantia: valorEmGarantiaAtual,
           valorLivre: valorLivreAtual
         } as Garantia;
       });
-      
+
       // Se ainda sobrou valor em garantia necessário e não há mais rendas fixas, 
       // mostrar o negativo na última renda fixa (ou primeira se houver apenas uma)
       if (valorRestante > 0 && rendasFixasComStatus.length > 0) {
@@ -168,9 +184,9 @@ export const useGarantias = (props?: UseGarantiasProps) => {
         ultimaRendaFixa.valorEmGarantia = (ultimaRendaFixa.valorEmGarantia || 0) + valorRestante;
         ultimaRendaFixa.valorLivre = (ultimaRendaFixa.valorLivre || 0) - valorRestante;
       }
-      
+
       const garantiasComStatus = [...acoesComStatus, ...rendasFixasComStatus];
-      
+
       setGarantias(garantiasComStatus);
     } catch (error) {
       console.error('Erro ao buscar garantias:', error);
@@ -182,16 +198,16 @@ export const useGarantias = (props?: UseGarantiasProps) => {
 
   const adicionarGarantia = async (garantia: Partial<Garantia>) => {
     if (!props?.userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       const garantiaData: any = { ...garantia, user_id: props.userId };
       const { data, error } = await supabase
         .from('garantias')
         .insert([garantiaData])
         .select();
-      
+
       if (error) throw error;
-      
+
       await fetchGarantias();
       return data;
     } catch (error) {
@@ -202,16 +218,16 @@ export const useGarantias = (props?: UseGarantiasProps) => {
 
   const editarGarantia = async (garantiaId: string, dadosAtualizados: Partial<Garantia>) => {
     if (!props?.userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       const { error } = await supabase
         .from('garantias')
         .update(dadosAtualizados)
         .eq('garantia_id', garantiaId)
         .eq('user_id', props.userId);
-      
+
       if (error) throw error;
-      
+
       await fetchGarantias();
     } catch (error) {
       console.error('Erro ao editar garantia:', error);
@@ -221,16 +237,16 @@ export const useGarantias = (props?: UseGarantiasProps) => {
 
   const deletarGarantia = async (garantiaId: string) => {
     if (!props?.userId) throw new Error('Usuário não autenticado');
-    
+
     try {
       const { error } = await supabase
         .from('garantias')
         .delete()
         .eq('garantia_id', garantiaId)
         .eq('user_id', props.userId);
-      
+
       if (error) throw error;
-      
+
       await fetchGarantias();
     } catch (error) {
       console.error('Erro ao deletar garantia:', error);

@@ -70,7 +70,7 @@ export function EditarAcaoModal({
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4 px-4 sm:px-0 pb-4 sm:pb-0">
+          <div className="space-y-4 pt-0 pb-4 px-4 sm:px-0 sm:pb-0">
             <div className="space-y-2">
               <Label htmlFor="ticker">Ticker</Label>
               <Input
@@ -97,10 +97,12 @@ export function EditarAcaoModal({
             </div>
           </div>
           <ResponsiveModalFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button type="submit">Salvar</Button>
+            <div className="space-y-2 w-full">
+              <Button type="submit" className="w-full">Salvar</Button>
+              <Button type="button" variant="outline" onClick={onClose} className="w-full">
+                Cancelar
+              </Button>
+            </div>
           </ResponsiveModalFooter>
         </form>
       </ResponsiveModalContent>
