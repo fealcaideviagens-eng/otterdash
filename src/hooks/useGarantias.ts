@@ -130,11 +130,23 @@ export const useGarantias = (props?: UseGarantiasProps) => {
           const quantidadeTotal = garantia.quantidade || 0;
           const quantidadeLivre = quantidadeTotal - quantidadeEmGarantia;
 
+          // Determinar o status baseado na comparação entre quantidade em garantia e quantidade total
+          let status: string;
+          if (quantidadeEmGarantia > quantidadeTotal) {
+            // Alavancado: quantidade em uso excede a quantidade disponível
+            const diferenca = quantidadeEmGarantia - quantidadeTotal;
+            status = `Alavancado (${diferenca})`;
+          } else if (quantidadeEmGarantia > 0) {
+            // Em garantia: há quantidade em uso, mas não excede o total
+            status = `Em garantia (${quantidadeEmGarantia})`;
+          } else {
+            // Livre: nenhuma quantidade em uso
+            status = 'Livre';
+          }
+
           return {
             ...garantia,
-            status: quantidadeEmGarantia > 0
-              ? `Em garantia (${quantidadeEmGarantia})`
-              : 'Livre',
+            status,
             quantidadeEmGarantia,
             quantidadeLivre
           } as Garantia;

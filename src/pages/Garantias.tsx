@@ -226,7 +226,11 @@ export default function Garantias() {
                   <TableCell className="font-medium">{acao.ticker}</TableCell>
                   <TableCell>{acao.quantidade}</TableCell>
                   <TableCell>
-                    <Badge variant={acao.status?.includes('Em garantia') ? 'default' : 'secondary'}>
+                    <Badge variant={
+                      acao.status?.includes('Alavancado') ? 'destructive' :
+                        acao.status?.includes('Em garantia') ? 'default' :
+                          'secondary'
+                    }>
                       {acao.status || 'Livre'}
                     </Badge>
                   </TableCell>

@@ -9,7 +9,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { DollarSign, Heart, Eye, EyeOff } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import lontralogin from "@/assets/lontra-login.png";
-import { SEO } from "@/components/SEO";
+import logoOtterNegativo from "@/assets/logo-otter-negativo.png";
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -84,7 +84,13 @@ export default function Auth() {
       </div>
 
       {/* Lado Direito - Card de Login */}
-      <div className="flex-1 lg:w-1/2 flex items-center justify-center p-6 lg:pl-0 lg:pr-1 lg:py-1">
+      <div className="flex-1 lg:w-1/2 flex flex-col items-center justify-center p-6 lg:pl-0 lg:pr-1 lg:py-1">
+        {/* Logo Mobile */}
+        <img
+          src={logoOtterNegativo}
+          alt="Otter Ops Logo"
+          className="lg:hidden w-48 mb-6 opacity-90"
+        />
         <Card className="w-full max-w-md shadow-2xl drop-shadow-2xl glass">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">

@@ -565,199 +565,211 @@ export default function ListaOpcoes() {
               </TabsList>
 
               <TabsContent value="abertas" className="mt-4">
-                <div className="cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 items-start">
-                  {opcoesAbertas.map((item, index) => {
-                    if ('legs' in item) {
-                      // Render Strategy Card
-                      return (
-                        <StrategyCard
-                          key={item.id}
-                          strategy={item}
-                          onEncerrar={handleEncerrar}
-                          onEncerrarTrava={handleEncerrarTrava}
-                          onEditar={handleEditTrava}
-                          onDeletar={handleDelete}
-                          onDeletarTrava={handleDeleteTrava}
-                          isHighlighted={highlightedStrategyId === item.id}
-                        />
-                      );
-                    } else {
-                      // Render Single Option Card
-                      return (
-                        <CardOpcao
-                          key={`${item.opcao}-${index}`}
-                          opcao={item}
-                          isHighlighted={highlightedOpcaoId === item.ops_id}
-                          onEncerrar={handleEncerrar}
-                          onEditar={handleEdit}
-                          onDeletar={handleDelete}
-                          calculateDiferencaPercentual={calculateDiferencaPercentual}
-                          calculateGanhoMaximo={calculateGanhoMaximo}
-                          calculateRentabilidadeMaxima={calculateRentabilidadeMaxima}
-                          formatCurrency={formatCurrency}
-                          formatDate={formatDate}
-                        />
-                      );
-                    }
-                  })}
-                </div>
+                {opcoesAbertas.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/20">
+                    <p className="text-lg">Você não tem nenhuma operação em aberta neste momento</p>
+                  </div>
+                ) : (
+                  <div className="cards-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 items-start">
+                    {opcoesAbertas.map((item, index) => {
+                      if ('legs' in item) {
+                        // Render Strategy Card
+                        return (
+                          <StrategyCard
+                            key={item.id}
+                            strategy={item}
+                            onEncerrar={handleEncerrar}
+                            onEncerrarTrava={handleEncerrarTrava}
+                            onEditar={handleEditTrava}
+                            onDeletar={handleDelete}
+                            onDeletarTrava={handleDeleteTrava}
+                            isHighlighted={highlightedStrategyId === item.id}
+                          />
+                        );
+                      } else {
+                        // Render Single Option Card
+                        return (
+                          <CardOpcao
+                            key={`${item.opcao}-${index}`}
+                            opcao={item}
+                            isHighlighted={highlightedOpcaoId === item.ops_id}
+                            onEncerrar={handleEncerrar}
+                            onEditar={handleEdit}
+                            onDeletar={handleDelete}
+                            calculateDiferencaPercentual={calculateDiferencaPercentual}
+                            calculateGanhoMaximo={calculateGanhoMaximo}
+                            calculateRentabilidadeMaxima={calculateRentabilidadeMaxima}
+                            formatCurrency={formatCurrency}
+                            formatDate={formatDate}
+                          />
+                        );
+                      }
+                    })}
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="finalizadas" className="mt-4">
-                <div className="space-y-6">
-                  {groupOpcoesFinalizadasByMonth().map((monthGroup) => (
-                    <div key={monthGroup.key} className="space-y-2">
-                      <h3 className="text-lg font-semibold text-foreground border-b pb-2">
-                        {monthGroup.monthName}
-                      </h3>
-                      <Accordion type="multiple" className="w-full" value={openAccordions} onValueChange={setOpenAccordions}>
-                        {monthGroup.opcoes.map((opcao, index) => {
-                          const venda = vendas.find(v => v.ops_id === opcao.ops_id);
-                          const accordionValue = `${monthGroup.key}-item-${index}`;
-                          return (
-                            <AccordionItem
-                              key={`${opcao.opcao}-${index}`}
-                              value={accordionValue}
-                              id={`accordion-${accordionValue}`}
-                            >
-                              <AccordionTrigger className="hover:no-underline">
-                                <div className="flex items-center justify-between w-full pr-4">
-                                  <div className="flex items-center space-x-2 sm:space-x-4">
-                                    <span className="font-medium">{opcao.opcao}</span>
-                                    <Badge
-                                      variant={opcao.operacao === 'compra' ? 'default' : 'destructive'}
-                                      className={`hidden sm:inline-flex ${opcao.operacao === 'compra' ? 'bg-buy text-buy-foreground hover:bg-buy/90' : ''}`}
-                                    >
-                                      {opcao.operacao?.charAt(0).toUpperCase() + opcao.operacao?.slice(1) || '-'}
-                                    </Badge>
-                                    {opcao.tipo && (
+                {opcoesFinalizadas.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/20">
+                    <p className="text-lg">Você não tem nenhuma operação finalizada ainda</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {groupOpcoesFinalizadasByMonth().map((monthGroup) => (
+                      <div key={monthGroup.key} className="space-y-2">
+                        <h3 className="text-lg font-semibold text-foreground border-b pb-2">
+                          {monthGroup.monthName}
+                        </h3>
+                        <Accordion type="multiple" className="w-full" value={openAccordions} onValueChange={setOpenAccordions}>
+                          {monthGroup.opcoes.map((opcao, index) => {
+                            const venda = vendas.find(v => v.ops_id === opcao.ops_id);
+                            const accordionValue = `${monthGroup.key}-item-${index}`;
+                            return (
+                              <AccordionItem
+                                key={`${opcao.opcao}-${index}`}
+                                value={accordionValue}
+                                id={`accordion-${accordionValue}`}
+                              >
+                                <AccordionTrigger className="hover:no-underline">
+                                  <div className="flex items-center justify-between w-full pr-4">
+                                    <div className="flex items-center space-x-2 sm:space-x-4">
+                                      <span className="font-medium">{opcao.opcao}</span>
                                       <Badge
-                                        variant="secondary"
-                                        className={`hidden sm:inline-flex ${opcao.tipo === 'put'
-                                          ? 'bg-neutral-bg text-foreground hover:bg-muted border-0'
-                                          : 'bg-neutral-bg text-foreground hover:bg-muted border-0'
-                                          }`}
+                                        variant={opcao.operacao === 'compra' ? 'default' : 'destructive'}
+                                        className={`hidden sm:inline-flex ${opcao.operacao === 'compra' ? 'bg-buy text-buy-foreground hover:bg-buy/90' : ''}`}
                                       >
-                                        {opcao.tipo.charAt(0).toUpperCase() + opcao.tipo.slice(1)}
+                                        {opcao.operacao?.charAt(0).toUpperCase() + opcao.operacao?.slice(1) || '-'}
                                       </Badge>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center space-x-6 text-sm">
-                                    <span className={`font-medium ${calculateLucroPrejuizoReais(opcao) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                      {formatCurrency(calculateLucroPrejuizoReais(opcao))}
-                                    </span>
-                                    <span className={`${calculateLucroPrejuizoPorcentagem(opcao).includes('-') ? 'text-red-600' : 'text-green-600'}`}>
-                                      {calculateLucroPrejuizoPorcentagem(opcao)}
-                                    </span>
-                                  </div>
-                                </div>
-                              </AccordionTrigger>
-                              <AccordionContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 p-4 bg-muted/30 rounded-lg">
-                                  {/* Dados da Operação Original */}
-                                  <div className="space-y-4">
-                                    <h4 className="font-semibold text-base border-b pb-2">Dados da operação</h4>
-                                    <div className="space-y-3">
-                                      {opcao.acao && /\d/.test(opcao.acao) && (
-                                        <div className="flex justify-between">
-                                          <span className="text-muted-foreground">Ação:</span>
-                                          <span className="font-medium">{opcao.acao}</span>
-                                        </div>
+                                      {opcao.tipo && (
+                                        <Badge
+                                          variant="secondary"
+                                          className={`hidden sm:inline-flex ${opcao.tipo === 'put'
+                                            ? 'bg-neutral-bg text-foreground hover:bg-muted border-0'
+                                            : 'bg-neutral-bg text-foreground hover:bg-muted border-0'
+                                            }`}
+                                        >
+                                          {opcao.tipo.charAt(0).toUpperCase() + opcao.tipo.slice(1)}
+                                        </Badge>
                                       )}
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Strike:</span>
-                                        <span className="font-medium">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
-                                      </div>
-                                      {!!opcao.cotacao && (
+                                    </div>
+                                    <div className="flex items-center space-x-6 text-sm">
+                                      <span className={`font-medium ${calculateLucroPrejuizoReais(opcao) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                        {formatCurrency(calculateLucroPrejuizoReais(opcao))}
+                                      </span>
+                                      <span className={`${calculateLucroPrejuizoPorcentagem(opcao).includes('-') ? 'text-red-600' : 'text-green-600'}`}>
+                                        {calculateLucroPrejuizoPorcentagem(opcao)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 p-4 bg-muted/30 rounded-lg">
+                                    {/* Dados da Operação Original */}
+                                    <div className="space-y-4">
+                                      <h4 className="font-semibold text-base border-b pb-2">Dados da operação</h4>
+                                      <div className="space-y-3">
+                                        {opcao.acao && /\d/.test(opcao.acao) && (
+                                          <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Ação:</span>
+                                            <span className="font-medium">{opcao.acao}</span>
+                                          </div>
+                                        )}
                                         <div className="flex justify-between">
-                                          <span className="text-muted-foreground">Cotação no cadastro:</span>
-                                          <span className="font-medium">{formatCurrency(opcao.cotacao)}</span>
+                                          <span className="text-muted-foreground">Strike:</span>
+                                          <span className="font-medium">{opcao.strike ? formatCurrency(opcao.strike).replace(/^R\$\s*/, 'R$ ') : '-'}</span>
                                         </div>
-                                      )}
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Quantidade:</span>
-                                        <span className="font-medium">{opcao.quantidade ? (opcao.operacao === 'venda' ? `-${formatQuantidade(opcao.quantidade)}` : formatQuantidade(opcao.quantidade)) : '-'}</span>                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Prêmio inicial:</span>
-                                        <span className="font-medium">
-                                          {opcao.premio ? formatCurrency(opcao.operacao === 'compra' ? -opcao.premio : opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}
-                                        </span>
+                                        {!!opcao.cotacao && (
+                                          <div className="flex justify-between">
+                                            <span className="text-muted-foreground">Cotação no cadastro:</span>
+                                            <span className="font-medium">{formatCurrency(opcao.cotacao)}</span>
+                                          </div>
+                                        )}
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Quantidade:</span>
+                                          <span className="font-medium">{opcao.quantidade ? (opcao.operacao === 'venda' ? `-${formatQuantidade(opcao.quantidade)}` : formatQuantidade(opcao.quantidade)) : '-'}</span>                                      </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Prêmio inicial:</span>
+                                          <span className="font-medium">
+                                            {opcao.premio ? formatCurrency(opcao.operacao === 'compra' ? -opcao.premio : opcao.premio).replace(/^R\$\s*/, 'R$ ') : '-'}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Data de abertura:</span>
+                                          <span className="font-medium">{opcao.data ? formatDate(opcao.data) : '-'}</span>
+                                        </div>
                                       </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Data de abertura:</span>
-                                        <span className="font-medium">{opcao.data ? formatDate(opcao.data) : '-'}</span>
+                                    </div>
+
+                                    {/* Dados do Encerramento */}
+                                    <div className="space-y-4">
+                                      <h4 className="font-semibold text-base border-b pb-2">Dados do encerramento</h4>
+                                      <div className="space-y-3">
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Prêmio final:</span>
+                                          <span className="font-medium">
+                                            {venda?.premio !== undefined ? formatCurrency(opcao.operacao === 'venda' ? -venda.premio : venda.premio).replace(/^R\$\s*/, 'R$ ') : '-'}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Diferença de prêmio:</span>
+                                          <span className={`font-medium ${calculateDiferencaPremio(opcao) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {formatCurrency(calculateDiferencaPremio(opcao))}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Data de encerramento:</span>
+                                          <span className="font-medium">{getDataEncerramento(opcao)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Resultado (R$):</span>
+                                          <span className={`font-medium ${calculateLucroPrejuizoReais(opcao) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {formatCurrency(calculateLucroPrejuizoReais(opcao))}
+                                          </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-muted-foreground">Resultado (%):</span>
+                                          <span className={`font-medium ${calculateLucroPrejuizoPorcentagem(opcao).includes('-') ? 'text-red-600' : 'text-green-600'}`}>
+                                            {calculateLucroPrejuizoPorcentagem(opcao)}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
 
-                                  {/* Dados do Encerramento */}
-                                  <div className="space-y-4">
-                                    <h4 className="font-semibold text-base border-b pb-2">Dados do encerramento</h4>
-                                    <div className="space-y-3">
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Prêmio final:</span>
-                                        <span className="font-medium">
-                                          {venda?.premio !== undefined ? formatCurrency(opcao.operacao === 'venda' ? -venda.premio : venda.premio).replace(/^R\$\s*/, 'R$ ') : '-'}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Diferença de prêmio:</span>
-                                        <span className={`font-medium ${calculateDiferencaPremio(opcao) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                          {formatCurrency(calculateDiferencaPremio(opcao))}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Data de encerramento:</span>
-                                        <span className="font-medium">{getDataEncerramento(opcao)}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Resultado (R$):</span>
-                                        <span className={`font-medium ${calculateLucroPrejuizoReais(opcao) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                          {formatCurrency(calculateLucroPrejuizoReais(opcao))}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Resultado (%):</span>
-                                        <span className={`font-medium ${calculateLucroPrejuizoPorcentagem(opcao).includes('-') ? 'text-red-600' : 'text-green-600'}`}>
-                                          {calculateLucroPrejuizoPorcentagem(opcao)}
-                                        </span>
-                                      </div>
-                                    </div>
+                                  {/* Botões de Ação */}
+                                  <div className="flex justify-end space-x-2 pt-4 border-t">
+                                    <button
+                                      className="p-4 hover:bg-gray-100 rounded-full transition flex items-center gap-2"
+                                      onClick={() => handleEdit(opcao)}
+                                    >
+                                      <FileTextIcon size={18} />
+                                      <span className="hidden sm:inline text-sm">Editar opção</span>
+                                    </button>
+                                    <button
+                                      className="p-4 hover:bg-gray-100 rounded-full transition flex items-center gap-2"
+                                      onClick={() => handleEditEncerramento(opcao)}
+                                    >
+                                      <Edit size={18} />
+                                      <span className="hidden sm:inline text-sm">Editar encerramento</span>
+                                    </button>
+                                    <button
+                                      className="p-4 text-red-600 hover:bg-red-600 hover:text-white rounded-full transition flex items-center gap-2"
+                                      onClick={() => handleDelete(opcao)}
+                                    >
+                                      <Trash2 size={18} />
+                                      <span className="hidden sm:inline text-sm">Deletar</span>
+                                    </button>
                                   </div>
-                                </div>
-
-                                {/* Botões de Ação */}
-                                <div className="flex justify-end space-x-2 pt-4 border-t">
-                                  <button
-                                    className="p-4 hover:bg-gray-100 rounded-full transition flex items-center gap-2"
-                                    onClick={() => handleEdit(opcao)}
-                                  >
-                                    <FileTextIcon size={18} />
-                                    <span className="hidden sm:inline text-sm">Editar opção</span>
-                                  </button>
-                                  <button
-                                    className="p-4 hover:bg-gray-100 rounded-full transition flex items-center gap-2"
-                                    onClick={() => handleEditEncerramento(opcao)}
-                                  >
-                                    <Edit size={18} />
-                                    <span className="hidden sm:inline text-sm">Editar encerramento</span>
-                                  </button>
-                                  <button
-                                    className="p-4 text-red-600 hover:bg-red-600 hover:text-white rounded-full transition flex items-center gap-2"
-                                    onClick={() => handleDelete(opcao)}
-                                  >
-                                    <Trash2 size={18} />
-                                    <span className="hidden sm:inline text-sm">Deletar</span>
-                                  </button>
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          );
-                        })}
-                      </Accordion>
-                    </div>
-                  ))}
-                </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            );
+                          })}
+                        </Accordion>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           )}

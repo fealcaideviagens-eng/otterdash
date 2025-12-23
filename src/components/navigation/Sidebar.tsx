@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { CirclePlus, List, Home, TrendingUp, Target, Shield, LogOut, Menu, User, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ const navigation = [...mainNavigation, ...hamburgerNavigation];
 
 export const Sidebar = () => {
   const { signOut, user } = useAuth();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (
     <>
@@ -115,7 +117,7 @@ export const Sidebar = () => {
           ))}
 
           {/* ITEM 4: MENU HAMBURGER (SHEET) */}
-          <Sheet>
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
@@ -146,6 +148,7 @@ export const Sidebar = () => {
                   <NavLink
                     key={item.name}
                     to={item.href}
+                    onClick={() => setIsSheetOpen(false)}
                     className={({ isActive }) =>
                       cn(
                         "flex items-center px-3 py-3 text-sm font-medium transition-colors text-slate-700 rounded-lg",
@@ -164,6 +167,7 @@ export const Sidebar = () => {
                 <div className="pt-4 border-t border-slate-200 mt-4 space-y-2">
                   <NavLink
                     to="/dados-pessoais"
+                    onClick={() => setIsSheetOpen(false)}
                     className={({ isActive }) =>
                       cn(
                         "flex items-center px-3 py-3 text-sm font-medium transition-colors text-slate-700 rounded-lg",

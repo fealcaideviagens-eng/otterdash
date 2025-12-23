@@ -1885,6 +1885,115 @@ export default function CadastroOpcao() {
                 </CardContent>
               </Card>
 
+              {/* Card Análise de Risco - Mobile Only (antes dos botões) */}
+              <Card className="w-full h-fit bg-white lg:hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    Análise de risco
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Conteúdo será o mesmo do card lateral */}
+                  {/* GRAFICO CORRIGIDO: Estrutura CSS/Div sem Gap */}
+                  {operationData.isTrava ? (
+                    <div className="space-y-4 pb-4">
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <Label className="text-xs text-muted-foreground">Ponto de equilíbrio</Label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p className="text-xs">
+                                  É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <p className="font-semibold text-foreground">
+                          {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Distância do alvo</Label>
+                        <p className="font-semibold text-foreground">
+                          {operationData.distanciaLabel}
+                        </p>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <Label className="text-xs text-muted-foreground">Relação risco/retorno</Label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p className="text-xs">
+                                  Para cada R$ 1,00 que você arrisca perder, você pode ganhar {formatCurrencyDisplay(operationData.payoffRatio)}.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <p className="font-semibold text-foreground">
+                          {operationData.payoffRatio > 0 ? `1 : ${parseFloat(operationData.payoffRatio.toFixed(1))}` : "-"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Nível de risco</Label>
+                        <div className="relative mt-4 flex justify-center">
+                          <div className="relative w-48 h-24 overflow-hidden">
+                            <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
+                            <div
+                              className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                              style={{
+                                background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                                transform: 'rotate(-90deg)',
+                                maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                                WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                              }}
+                            ></div>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 text-center">
+                            <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                              {operationData.nivelRisco}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="pt-4 border-t border-border space-y-4">
+                    {/* Trava-specific metrics */}
+                    {operationData.isTrava ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Risco máximo</Label>
+                          <p className="font-semibold text-destructive">
+                            {operationData.custoTotal !== 0 ? formatCurrencyDisplay(-operationData.custoTotal) : '-'}
+                          </p>
+                        </div>
+
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Lucro máximo</Label>
+                          <p className="font-semibold text-success">
+                            {operationData.lucroMaximo !== 0 ? formatCurrencyDisplay(operationData.lucroMaximo) : '-'}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Botão de Submit */}
               {/* Container: flex-col-reverse (mobile inverte verticalmente) e md:flex-row (desktop normal horizontal) */}
               <div className="pt-4 flex flex-col-reverse md:flex-row items-center gap-3 w-full">
@@ -2095,6 +2204,293 @@ export default function CadastroOpcao() {
 
               </Card>
 
+              {/* Card Análise de Risco - Mobile Only (antes dos botões) */}
+              <Card className="w-full h-fit bg-white lg:hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    Análise de risco
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Hide "Diferença Strike vs Cotação" for trava, short put, short call, long put, and long call */}
+                  {!operationData.isTrava && !operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
+                    <div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="cursor-help">
+                              <Label className="text-sm text-muted-foreground font-medium">
+                                Diferença Strike vs Cotação
+                              </Label>
+                              <p className={`text-2xl font-bold mt-1 ${operationData.percentualDiferenca >= 0
+                                ? 'text-success'
+                                : 'text-warning'
+                                }`}>
+                                {formatPercentage(operationData.percentualDiferenca)}
+                              </p>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p className="text-xs">
+                              {formData.tipo === "call"
+                                ? operationData.percentualDiferenca >= 0
+                                  ? "Strike acima da cotação (fora do dinheiro)"
+                                  : "Strike abaixo da cotação (dentro do dinheiro)"
+                                : operationData.percentualDiferenca >= 0
+                                  ? "Cotação acima do strike (fora do dinheiro)"
+                                  : "Cotação abaixo do strike (dentro do dinheiro)"
+                              }
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )}
+
+                  {/* SHORT PUT, SHORT CALL, LONG PUT, LONG CALL LAYOUTS */}
+                  {(operationData.isShortPut || operationData.isShortCall || operationData.isLongPut || operationData.isLongCall) && (
+                    <div className="space-y-4 pb-4">
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <Label className="text-xs text-muted-foreground">Ponto de equilíbrio</Label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p className="text-xs">
+                                  {operationData.isShortCall || operationData.isLongPut
+                                    ? "É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você perde. Abaixo, você ganha."
+                                    : "É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde."
+                                  }
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <p className="font-semibold text-foreground">
+                          {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Distância do ponto de equilíbrio</Label>
+                        <p className="font-semibold text-foreground">
+                          {operationData.distanciaLabel}
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Nível de risco</Label>
+                        <div className="relative mt-4 flex justify-center">
+                          <div className="relative w-48 h-24 overflow-hidden">
+                            <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
+                            <div
+                              className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                              style={{
+                                background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                                transform: 'rotate(-90deg)',
+                                maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                                WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                              }}
+                            ></div>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 text-center">
+                            <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                              {operationData.nivelRisco}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Nível de risco para estratégias simples (não trava, não short/long) */}
+                  {!operationData.isTrava && !operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
+                    <div>
+                      <Label className="text-sm text-muted-foreground font-medium">Nível de risco</Label>
+                      <div className="relative mt-4 flex justify-center">
+                        <div className="relative w-48 h-24 overflow-hidden">
+                          <div className="absolute top-0 left-0 w-48 h-48 rounded-full border-[12px] border-muted box-border"></div>
+                          <div
+                            className="absolute top-0 left-0 w-48 h-48 rounded-full transition-all duration-700 ease-out"
+                            style={{
+                              background: `conic-gradient(${getRiskColorHex(operationData.corRisco)} 0deg ${operationData.progressValue * 1.8}deg, transparent ${operationData.progressValue * 1.8}deg 360deg)`,
+                              transform: 'rotate(-90deg)',
+                              maskImage: 'radial-gradient(transparent 63%, black 64%)',
+                              WebkitMaskImage: 'radial-gradient(transparent 63%, black 64%)',
+                            }}
+                          ></div>
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 text-center">
+                          <p className={cn("font-bold text-lg capitalize", operationData.corRisco)}>
+                            {operationData.nivelRisco}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t border-border space-y-4">
+                    {/* Métricas específicas para cada tipo */}
+                    {!operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && operationData.mostrarValorExercicio && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Valor de Exercício</Label>
+                        <p className="font-semibold text-foreground">
+                          {formatCurrencyDisplay(operationData.valorExercicio)}
+                        </p>
+                      </div>
+                    )}
+
+                    {!operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">{operationData.valorTotalLabel}</Label>
+                        <p className={`font-semibold ${operationData.isGanho ? 'text-success' : 'text-destructive'}`}>
+                          {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* SHORT PUT METRICS */}
+                    {operationData.isShortPut && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs text-muted-foreground">Risco máximo</Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-xs">
+                                      Representa o valor que você precisará ter em conta se for exercido. Você será obrigado a comprar as ações pelo valor do Strike, independente de quanto elas estejam valendo no mercado.
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <p className="font-semibold text-destructive">
+                              {operationData.valorExercicio !== 0 ? formatCurrencyDisplay(-operationData.valorExercicio) : '-'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Lucro máximo</Label>
+                            <p className="font-semibold text-success">
+                              {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SHORT CALL METRICS */}
+                    {operationData.isShortCall && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs text-muted-foreground">Risco máximo</Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-xs">
+                                      Se for exercido, você terá que entregar esta quantidade de ações para o comprador ou ter {formatCurrencyDisplay((parseCurrencyToNumber(formData.strike) - parseCurrencyToNumber(formData.premio)) * parseNumberToInt(formData.quantidade))} para comprar as ações
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <p className="font-semibold text-destructive text-sm">
+                              -{formData.quantidade || 0} ações
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Lucro máximo</Label>
+                            <p className="font-semibold text-success">
+                              {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* LONG PUT METRICS */}
+                    {operationData.isLongPut && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs text-muted-foreground">Risco máximo</Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-xs">
+                                      Este é o valor máximo que você pode perder: o dinheiro que você pagou para montar a operação. Você não fica devendo nada além disso.
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <p className="font-semibold text-destructive">
+                              {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Ganho máximo</Label>
+                            <p className="font-semibold text-success">
+                              {operationData.valorTotal !== 0 ? 'Exponencial' : '-'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* LONG CALL METRICS */}
+                    {operationData.isLongCall && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="flex items-center gap-1">
+                              <Label className="text-xs text-muted-foreground">Risco máximo</Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <HelpCircle className="h-3 w-3 text-muted-foreground cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <p className="text-xs">
+                                      Valor máximo que você pode perder nesta operação. Limitado ao prêmio pago.
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <p className="font-semibold text-destructive">
+                              {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Ganho máximo</Label>
+                            <p className="font-semibold text-success">
+                              {operationData.valorTotal !== 0 ? 'Exponencial' : '-'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Container: flex-col-reverse (mobile) e md:flex-row (desktop) */}
               <div className="pt-4 flex flex-col-reverse md:flex-row items-center gap-3 w-full">
 
@@ -2127,7 +2523,7 @@ export default function CadastroOpcao() {
         </div>
 
         {/* Card lateral com análise de risco */}
-        <Card className="w-full lg:w-80 h-fit bg-white">
+        <Card className="hidden lg:block w-full lg:w-80 h-fit bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               Análise de risco

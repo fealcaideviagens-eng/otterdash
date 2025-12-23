@@ -1,16 +1,62 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { HelpCircle, AlertTriangle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency as formatCurrencyDisplay, formatPercentage } from "@/utils/formatters";
 import { parseCurrencyToNumber, parseNumberToInt } from "@/utils/inputFormatters";
 import { getRiskColorHex } from "./utils";
-import { FormData } from "./types";
+import { OpcaoFormData } from "./types";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
 
 interface RiskAnalysisCardProps {
     operationData: any;
-    formData: FormData;
+    formData: OpcaoFormData;
+}
+
+// Componente wrapper que mostra tooltip no desktop e bottomsheet no mobile
+interface TooltipOrSheetProps {
+    children: React.ReactNode;
+    content: React.ReactNode;
+    title?: string;
+}
+
+function TooltipOrSheet({ children, content, title }: TooltipOrSheetProps) {
+    const isMobile = useIsMobile();
+    const [open, setOpen] = useState(false);
+
+    if (isMobile) {
+        return (
+            <Sheet open={open} onOpenChange={setOpen}>
+                <div onClick={() => setOpen(true)} className="cursor-pointer">
+                    {children}
+                </div>
+                <SheetContent side="bottom" className="rounded-t-2xl">
+                    <SheetHeader>
+                        {title && <SheetTitle>{title}</SheetTitle>}
+                        <SheetDescription className="text-left">
+                            {content}
+                        </SheetDescription>
+                    </SheetHeader>
+                </SheetContent>
+            </Sheet>
+        );
+    }
+
+    return (
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    {children}
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                    {content}
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    );
 }
 
 export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardProps) {
@@ -26,35 +72,33 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                 {/* Hide "Diferença Strike vs Cotação" for trava, short put, short call, long put, and long call */}
                 {!operationData.isTrava && !operationData.isShortPut && !operationData.isShortCall && !operationData.isLongPut && !operationData.isLongCall && (
                     <div>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <div className="cursor-help">
-                                        <Label className="text-sm text-slate-500 font-medium">
-                                            Diferença Strike vs Cotação
-                                        </Label>
-                                        <p className={`text-2xl font-bold mt-1 ${operationData.percentualDiferenca >= 0
-                                            ? 'text-emerald-500'
-                                            : 'text-orange-500'
-                                            }`}>
-                                            {formatPercentage(operationData.percentualDiferenca)}
-                                        </p>
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                    <p className="text-xs">
-                                        {formData.tipo === "call"
-                                            ? operationData.percentualDiferenca >= 0
-                                                ? "Strike acima da cotação (fora do dinheiro)"
-                                                : "Strike abaixo da cotação (dentro do dinheiro)"
-                                            : operationData.percentualDiferenca >= 0
-                                                ? "Cotação acima do strike (fora do dinheiro)"
-                                                : "Cotação abaixo do strike (dentro do dinheiro)"
-                                        }
-                                    </p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                        <TooltipOrSheet
+                            title="Diferença Strike vs Cotação"
+                            content={
+                                <p className="text-xs">
+                                    {formData.tipo === "call"
+                                        ? operationData.percentualDiferenca >= 0
+                                            ? "Strike acima da cotação (fora do dinheiro)"
+                                            : "Strike abaixo da cotação (dentro do dinheiro)"
+                                        : operationData.percentualDiferenca >= 0
+                                            ? "Cotação acima do strike (fora do dinheiro)"
+                                            : "Cotação abaixo do strike (dentro do dinheiro)"
+                                    }
+                                </p>
+                            }
+                        >
+                            <div className="cursor-help">
+                                <Label className="text-sm text-slate-500 font-medium">
+                                    Diferença Strike vs Cotação
+                                </Label>
+                                <p className={`text-2xl font-bold mt-1 ${operationData.percentualDiferenca >= 0
+                                    ? 'text-emerald-500'
+                                    : 'text-orange-500'
+                                    }`}>
+                                    {formatPercentage(operationData.percentualDiferenca)}
+                                </p>
+                            </div>
+                        </TooltipOrSheet>
                     </div>
                 )}
 
@@ -64,18 +108,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                         <div>
                             <div className="flex items-center gap-1">
                                 <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                            <p className="text-xs">
-                                                É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
-                                            </p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <TooltipOrSheet
+                                    title="Ponto de equilíbrio"
+                                    content={
+                                        <p className="text-xs">
+                                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
+                                        </p>
+                                    }
+                                >
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                </TooltipOrSheet>
                             </div>
                             <p className="font-semibold text-slate-900">
                                 {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
@@ -92,18 +134,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                         <div>
                             <div className="flex items-center gap-1">
                                 <Label className="text-xs text-slate-500">Relação risco/retorno</Label>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                            <p className="text-xs">
-                                                Para cada R$ 1,00 que você arrisca perder, você pode ganhar {formatCurrencyDisplay(operationData.payoffRatio)}.
-                                            </p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <TooltipOrSheet
+                                    title="Relação risco/retorno"
+                                    content={
+                                        <p className="text-xs">
+                                            Para cada R$ 1,00 que você arrisca perder, você pode ganhar {formatCurrencyDisplay(operationData.payoffRatio)}.
+                                        </p>
+                                    }
+                                >
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                </TooltipOrSheet>
                             </div>
                             <p className="font-semibold text-slate-900">
                                 {operationData.payoffRatio > 0 ? `1 : ${parseFloat(operationData.payoffRatio.toFixed(1))}` : "-"}
@@ -166,18 +206,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                         <div>
                             <div className="flex items-center gap-1">
                                 <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                            <p className="text-xs">
-                                                É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
-                                            </p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <TooltipOrSheet
+                                    title="Ponto de equilíbrio"
+                                    content={
+                                        <p className="text-xs">
+                                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
+                                        </p>
+                                    }
+                                >
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                </TooltipOrSheet>
                             </div>
                             <p className="font-semibold text-slate-900">
                                 {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
@@ -222,18 +260,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                         <div>
                             <div className="flex items-center gap-1">
                                 <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                            <p className="text-xs">
-                                                É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você perde. Abaixo, você ganha.
-                                            </p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <TooltipOrSheet
+                                    title="Ponto de equilíbrio"
+                                    content={
+                                        <p className="text-xs">
+                                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você perde. Abaixo, você ganha.
+                                        </p>
+                                    }
+                                >
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                </TooltipOrSheet>
                             </div>
                             <p className="font-semibold text-slate-900">
                                 {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
@@ -278,18 +314,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                         <div>
                             <div className="flex items-center gap-1">
                                 <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                            <p className="text-xs">
-                                                É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você perde. Abaixo, você ganha.
-                                            </p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <TooltipOrSheet
+                                    title="Ponto de equilíbrio"
+                                    content={
+                                        <p className="text-xs">
+                                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você perde. Abaixo, você ganha.
+                                        </p>
+                                    }
+                                >
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                </TooltipOrSheet>
                             </div>
                             <p className="font-semibold text-slate-900">
                                 {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
@@ -334,18 +368,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                         <div>
                             <div className="flex items-center gap-1">
                                 <Label className="text-xs text-slate-500">Ponto de equilíbrio</Label>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="max-w-xs">
-                                            <p className="text-xs">
-                                                É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
-                                            </p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <TooltipOrSheet
+                                    title="Ponto de equilíbrio"
+                                    content={
+                                        <p className="text-xs">
+                                            É o preço que a ação precisa atingir para você não ter lucro nem prejuízo. Acima disso, você ganha. Abaixo, você perde.
+                                        </p>
+                                    }
+                                >
+                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                </TooltipOrSheet>
                             </div>
                             <p className="font-semibold text-slate-900">
                                 {operationData.breakEven !== 0 ? formatCurrencyDisplay(operationData.breakEven) : '-'}
@@ -459,18 +491,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                                 <div>
                                     <div className="flex items-center gap-1">
                                         <Label className="text-xs text-slate-500">Risco máximo</Label>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="max-w-xs">
-                                                    <p className="text-xs">
-                                                        Representa o valor que você precisará ter em conta se for exercido. Você será obrigado a comprar as ações pelo valor do Strike, independente de quanto elas estejam valendo no mercado.
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                        <TooltipOrSheet
+                                            title="Risco máximo"
+                                            content={
+                                                <p className="text-xs">
+                                                    Representa o valor que você precisará ter em conta se for exercido. Você será obrigado a comprar as ações pelo valor do Strike, independente de quanto elas estejam valendo no mercado.
+                                                </p>
+                                            }
+                                        >
+                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                        </TooltipOrSheet>
                                     </div>
                                     <p className="font-semibold text-red-600">
                                         {operationData.valorExercicio !== 0 ? formatCurrencyDisplay(-operationData.valorExercicio) : '-'}
@@ -514,18 +544,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                                 <div>
                                     <div className="flex items-center gap-1">
                                         <Label className="text-xs text-slate-500">Risco máximo</Label>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="max-w-xs">
-                                                    <p className="text-xs">
-                                                        Se for exercido, você terá que entregar esta quantidade de ações para o comprador ou ter {formatCurrencyDisplay((parseCurrencyToNumber(formData.strike) - parseCurrencyToNumber(formData.premio)) * parseNumberToInt(formData.quantidade))} para comprar as ações
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                        <TooltipOrSheet
+                                            title="Risco máximo"
+                                            content={
+                                                <p className="text-xs">
+                                                    Se for exercido, você terá que entregar esta quantidade de ações para o comprador ou ter {formatCurrencyDisplay((parseCurrencyToNumber(formData.strike) - parseCurrencyToNumber(formData.premio)) * parseNumberToInt(formData.quantidade))} para comprar as ações
+                                                </p>
+                                            }
+                                        >
+                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                        </TooltipOrSheet>
                                     </div>
                                     <p className="font-semibold text-red-600 text-sm">
                                         -{formData.quantidade || 0} ações
@@ -569,18 +597,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                                 <div>
                                     <div className="flex items-center gap-1">
                                         <Label className="text-xs text-slate-500">Risco máximo</Label>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="max-w-xs">
-                                                    <p className="text-xs">
-                                                        Este é o valor máximo que você pode perder: o dinheiro que você pagou para montar a operação. Você não fica devendo nada além disso.
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                        <TooltipOrSheet
+                                            title="Risco máximo"
+                                            content={
+                                                <p className="text-xs">
+                                                    Este é o valor máximo que você pode perder: o dinheiro que você pagou para montar a operação. Você não fica devendo nada além disso.
+                                                </p>
+                                            }
+                                        >
+                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                        </TooltipOrSheet>
                                     </div>
                                     <p className="font-semibold text-red-600">
                                         {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
@@ -624,18 +650,16 @@ export function RiskAnalysisCard({ operationData, formData }: RiskAnalysisCardPr
                                 <div>
                                     <div className="flex items-center gap-1">
                                         <Label className="text-xs text-slate-500">Risco máximo</Label>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="max-w-xs">
-                                                    <p className="text-xs">
-                                                        Valor máximo que você pode perder nesta operação. Limitado ao prêmio pago.
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                        <TooltipOrSheet
+                                            title="Risco máximo"
+                                            content={
+                                                <p className="text-xs">
+                                                    Valor máximo que você pode perder nesta operação. Limitado ao prêmio pago.
+                                                </p>
+                                            }
+                                        >
+                                            <HelpCircle className="h-3 w-3 text-slate-400 cursor-help" />
+                                        </TooltipOrSheet>
                                     </div>
                                     <p className="font-semibold text-red-600">
                                         {operationData.valorTotal !== 0 ? formatCurrencyDisplay(operationData.valorTotal) : '-'}
