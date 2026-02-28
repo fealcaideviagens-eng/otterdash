@@ -3,6 +3,7 @@ import { MetricsCard } from "@/components/dashboard/MetricsCard";
 import { ResultsChart } from "@/components/dashboard/ResultsChart";
 import { OptionsDistributionChart } from "@/components/dashboard/OptionsDistributionChart";
 import { AlertasCard } from "@/components/dashboard/AlertasCard";
+import { OpportunitiesAlertCard } from "@/components/dashboard/OpportunitiesAlertCard";
 import { useOpcoes } from "@/hooks/useOpcoes";
 import { useMetas } from "@/hooks/useMetas";
 import { useGarantias } from "@/hooks/useGarantias";
@@ -159,6 +160,7 @@ export default function Dashboard() {
         </Button>
       </div>
 
+
       {/* Primeira linha - 4 cards */}
       <TooltipProvider>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -235,6 +237,9 @@ export default function Dashboard() {
         </div>
         <ResultsChart viewType={chartPeriod} userId={user?.id} />
       </div>
+
+      {/* Card de Oportunidades de rentabilização — entre o gráfico e os alertas */}
+      <OpportunitiesAlertCard garantias={garantias} />
 
       {/* Card de Alertas */}
       <AlertasCard
