@@ -180,19 +180,44 @@ export default function Garantias() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAdicionarAcao} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-3">
+                <div className="flex flex-col gap-1">
                   <Label htmlFor="ticker">Ticker</Label>
-                  <Input id="ticker" ref={tickerInputRef} value={ticker} onChange={e => setTicker(e.target.value.toUpperCase())} placeholder="Ex: PETR4" maxLength={6} required />
+                  <Input
+                    id="ticker"
+                    ref={tickerInputRef}
+                    value={ticker}
+                    onChange={e => setTicker(e.target.value.toUpperCase())}
+                    placeholder="Ex: PETR4"
+                    maxLength={6}
+                    required
+                    className="w-48"
+                  />
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-1">
                   <Label htmlFor="quantidade">Quantidade</Label>
-                  <Input id="quantidade" type="number" value={quantidade} onChange={e => setQuantidade(e.target.value)} placeholder="100" step="1" min="0" required />
+                  <Input
+                    id="quantidade"
+                    type="number"
+                    value={quantidade}
+                    onChange={e => setQuantidade(e.target.value)}
+                    placeholder="100"
+                    step="1"
+                    min="0"
+                    required
+                    className="w-48"
+                  />
                 </div>
+                <Button
+                  type="submit"
+                  className="text-[590051] bg-brand-blue-dark text-white md:ml-2"
+                >
+                  Cadastrar ação
+                </Button>
               </div>
-              <Button type="submit" className="text-[590051] bg-brand-blue-dark text-white">Cadastrar ação</Button>
             </form>
           </CardContent>
+
         </Card>
 
         <Card>
@@ -261,11 +286,11 @@ export default function Garantias() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleAdicionarRendaFixa} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
+              <div className="flex flex-col gap-2 md:flex-row md:items-end md:gap-3">
+                <div className="flex flex-col gap-1">
                   <Label htmlFor="tipo">Tipo</Label>
                   <Select value={tipoRendaFixa} onValueChange={(value: "tesouro_selic" | "caixa") => setTipoRendaFixa(value)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-48">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -274,14 +299,27 @@ export default function Garantias() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-1">
                   <Label htmlFor="valor">Valor (R$)</Label>
-                  <Input id="valor" value={valorReais} onChange={handleCurrencyChange} placeholder="0,00" required />
+                  <Input
+                    id="valor"
+                    value={valorReais}
+                    onChange={handleCurrencyChange}
+                    placeholder="0,00"
+                    required
+                    className="w-48"
+                  />
                 </div>
+                <Button
+                  type="submit"
+                  className="text-[590051] bg-brand-blue-dark text-white md:ml-2"
+                >
+                  Cadastrar renda fixa
+                </Button>
               </div>
-              <Button type="submit" className="text-[590051] bg-brand-blue-dark text-white">Cadastrar renda fixa</Button>
             </form>
           </CardContent>
+
         </Card>
 
         <Card>

@@ -151,7 +151,8 @@ export default function CadastroRapido() {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e?: React.FormEvent) => {
+        e?.preventDefault();
         setLoading(true);
         const newErrors: Record<string, string> = {};
         let hasError = false;
@@ -301,158 +302,161 @@ export default function CadastroRapido() {
                 <p className="text-slate-600 mt-2">Preencha os detalhes abaixo para atualizar sua carteira.</p>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6">
-                {/* Left Column: Option Type Selector */}
-                <Card className="w-full lg:w-1/3 h-fit bg-white">
-                    <CardHeader>
-                        <CardTitle className="text-lg font-bold">Opção</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        {OPERATION_TYPES.map((type) => (
-                            <div
-                                key={type.id}
-                                onClick={() => setSelectedType(type.id)}
-                                className={cn(
-                                    "flex items-center justify-between p-3 rounded-full cursor-pointer transition-colors",
-                                    selectedType === type.id ? "bg-slate-50" : "hover:bg-slate-50"
-                                )}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className={cn(
-                                        "h-10 w-10 rounded-full flex items-center justify-center",
-                                        type.colorClass
-                                    )}>
-                                        <type.icon className="h-5 w-5" />
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Left Column: Option Type Selector */}
+                    <Card className="w-full lg:w-1/3 h-fit bg-white">
+                        <CardHeader>
+                            <CardTitle className="text-lg font-bold">Opção</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            {OPERATION_TYPES.map((type) => (
+                                <div
+                                    key={type.id}
+                                    onClick={() => setSelectedType(type.id)}
+                                    className={cn(
+                                        "flex items-center justify-between p-3 rounded-full cursor-pointer transition-colors",
+                                        selectedType === type.id ? "bg-slate-50" : "hover:bg-slate-50"
+                                    )}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            "h-10 w-10 rounded-full flex items-center justify-center",
+                                            type.colorClass
+                                        )}>
+                                            <type.icon className="h-5 w-5" />
+                                        </div>
+                                        <span className="font-medium text-slate-900">{type.label}</span>
                                     </div>
-                                    <span className="font-medium text-slate-900">{type.label}</span>
+                                    <div className={cn(
+                                        "h-5 w-5 rounded-full border-2 flex items-center justify-center",
+                                        selectedType === type.id ? "border-blue-600" : "border-slate-300"
+                                    )}>
+                                        {selectedType === type.id && (
+                                            <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                                        )}
+                                    </div>
                                 </div>
-                                <div className={cn(
-                                    "h-5 w-5 rounded-full border-2 flex items-center justify-center",
-                                    selectedType === type.id ? "border-blue-600" : "border-slate-300"
-                                )}>
-                                    {selectedType === type.id && (
-                                        <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                            ))}
+                        </CardContent>
+                    </Card>
+
+                    {/* Right Column: Form */}
+                    <Card className="flex-1 bg-white">
+                        <CardHeader>
+                            <CardTitle className="text-lg font-bold">Dados da opção</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+
+                            {/* Linha 1: Ação e Quantidade */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <Label htmlFor="acao">Ação</Label>
+                                    <Input
+                                        id="acao"
+                                        ref={acaoInputRef}
+                                        placeholder="Ex: PETR4"
+                                        value={formData.acao}
+                                        onChange={(e) => handleAcaoChange(e.target.value)}
+                                        maxLength={6}
+                                        className={cn(
+                                            "font-mono uppercase placeholder-subtle mt-1.5",
+                                            errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        )}
+                                    />
+                                    {errors.acao && (
+                                        <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <Label htmlFor="quantidade">Quantidade</Label>
+                                    <Input
+                                        id="quantidade"
+                                        type="number"
+                                        placeholder="100"
+                                        value={formData.quantidade}
+                                        onChange={(e) => handleInputChange("quantidade", e.target.value)}
+                                        className={cn(
+                                            "placeholder-subtle mt-1.5",
+                                            errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
+                                        )}
+                                    />
+                                    {errors.quantidade && (
+                                        <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
                                     )}
                                 </div>
                             </div>
-                        ))}
-                    </CardContent>
-                </Card>
 
-                {/* Right Column: Form */}
-                <Card className="flex-1 bg-white">
-                    <CardHeader>
-                        <CardTitle className="text-lg font-bold">Dados da opção</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-
-                        {/* Linha 1: Ação e Quantidade */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <Label htmlFor="acao">Ação</Label>
-                                <Input
-                                    id="acao"
-                                    ref={acaoInputRef}
-                                    placeholder="Ex: PETR4"
-                                    value={formData.acao}
-                                    onChange={(e) => handleAcaoChange(e.target.value)}
-                                    maxLength={6}
-                                    className={cn(
-                                        "font-mono uppercase placeholder-subtle mt-1.5",
-                                        errors.acao ? "border-red-500 focus-visible:ring-red-500" : ""
-                                    )}
+                            {/* Linha 2: Premio e Strike */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <CurrencyInput
+                                    id="premio"
+                                    label="Prêmio (R$)"
+                                    value={formData.premio}
+                                    onChange={(val) => handleInputChange("premio", val)}
+                                    error={errors.premio}
                                 />
-                                {errors.acao && (
-                                    <p className="text-xs text-red-500 mt-1">{errors.acao}</p>
-                                )}
-                            </div>
-                            <div>
-                                <Label htmlFor="quantidade">Quantidade</Label>
-                                <Input
-                                    id="quantidade"
-                                    type="number"
-                                    placeholder="100"
-                                    value={formData.quantidade}
-                                    onChange={(e) => handleInputChange("quantidade", e.target.value)}
-                                    className={cn(
-                                        "placeholder-subtle mt-1.5",
-                                        errors.quantidade ? "border-red-500 focus-visible:ring-red-500" : ""
-                                    )}
+                                <CurrencyInput
+                                    id="strike"
+                                    label="Strike (R$)"
+                                    value={formData.strike}
+                                    onChange={(val) => handleInputChange("strike", val)}
+                                    error={errors.strike}
                                 />
-                                {errors.quantidade && (
-                                    <p className="text-xs text-red-500 mt-1">{errors.quantidade}</p>
-                                )}
                             </div>
-                        </div>
 
-                        {/* Linha 2: Premio e Strike */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <CurrencyInput
-                                id="premio"
-                                label="Prêmio (R$)"
-                                value={formData.premio}
-                                onChange={(val) => handleInputChange("premio", val)}
-                                error={errors.premio}
-                            />
-                            <CurrencyInput
-                                id="strike"
-                                label="Strike (R$)"
-                                value={formData.strike}
-                                onChange={(val) => handleInputChange("strike", val)}
-                                error={errors.strike}
-                            />
-                        </div>
+                            {/* Linha 3: Vencimento e Ticker da opção */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <DateInput
+                                    id="vencimento"
+                                    label="Vencimento"
+                                    value={formData.vencimento}
+                                    onChange={(val) => handleInputChange("vencimento", val)}
+                                    error={errors.vencimento}
+                                />
+                                <TickerInput
+                                    id="ticker"
+                                    label="Ticker da opção"
+                                    placeholder="ex: PETRH123"
+                                    value={formData.ticker}
+                                    onChange={(val) => handleInputChange("ticker", val)}
+                                    error={errors.ticker}
+                                />
+                            </div>
 
-                        {/* Linha 3: Vencimento e Ticker da opção */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <DateInput
-                                id="vencimento"
-                                label="Vencimento"
-                                value={formData.vencimento}
-                                onChange={(val) => handleInputChange("vencimento", val)}
-                                error={errors.vencimento}
-                            />
-                            <TickerInput
-                                id="ticker"
-                                label="Ticker da opção"
-                                placeholder="ex: PETRH123"
-                                value={formData.ticker}
-                                onChange={(val) => handleInputChange("ticker", val)}
-                                error={errors.ticker}
-                            />
-                        </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
-                    </CardContent>
-                </Card>
-            </div>
+                {/* Container: flex-col-reverse (mobile) e md:flex-row (desktop) */}
+                <div className="flex flex-col-reverse md:flex-row gap-4 mt-8 w-full">
 
-            {/* Container: flex-col-reverse (mobile) e md:flex-row (desktop) */}
-            <div className="flex flex-col-reverse md:flex-row gap-4 mt-8 w-full">
+                    {/* Botão Voltar (Agora é o PRIMEIRO no HTML) */}
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="lg"
+                        // w-full (mobile) e md:w-auto (desktop)
+                        className="w-full md:w-auto rounded-full flex items-center justify-center gap-2"
+                        onClick={() => navigate("/nova-operacao")}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        Voltar
+                    </Button>
 
-                {/* Botão Voltar (Agora é o PRIMEIRO no HTML) */}
-                <Button
-                    variant="outline"
-                    size="lg"
-                    // w-full (mobile) e md:w-auto (desktop)
-                    className="w-full md:w-auto rounded-full flex items-center justify-center gap-2"
-                    onClick={() => navigate("/nova-operacao")}
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                    Voltar
-                </Button>
+                    {/* Botão Adicionar (Agora é o SEGUNDO no HTML) */}
+                    <Button
+                        type="submit"
+                        size="lg"
+                        // w-full (mobile) e md:w-auto (desktop)
+                        className="w-full md:w-auto rounded-full bg-brand-blue-dark hover:bg-brand-blue"
+                        disabled={loading}
+                    >
+                        {loading ? "Salvando..." : "Adicionar opção"}
+                    </Button>
 
-                {/* Botão Adicionar (Agora é o SEGUNDO no HTML) */}
-                <Button
-                    size="lg"
-                    // w-full (mobile) e md:w-auto (desktop)
-                    className="w-full md:w-auto rounded-full bg-brand-blue-dark hover:bg-brand-blue"
-                    onClick={handleSubmit}
-                    disabled={loading}
-                >
-                    {loading ? "Salvando..." : "Adicionar opção"}
-                </Button>
-
-            </div>
+                </div>
+            </form>
 
 
             <SuccessModal

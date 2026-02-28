@@ -70,7 +70,7 @@ export function EditarAcaoModal({
           </ResponsiveModalDescription>
         </ResponsiveModalHeader>
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 pt-0 pb-4 px-4 sm:px-0 sm:pb-0">
+          <div className="space-y-4 pt-0 pb-4 px-4 sm:px-0">
             <div className="space-y-2">
               <Label htmlFor="ticker">Ticker</Label>
               <Input
